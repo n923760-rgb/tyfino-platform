@@ -10,6 +10,7 @@
   root * /srv/public
   file_server
   header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
     X-Content-Type-Options nosniff
     Referrer-Policy strict-origin-when-cross-origin
     Permissions-Policy "camera=(), microphone=(), geolocation=()"
@@ -21,13 +22,16 @@
   root * /srv/admin
   file_server
   header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
     X-Content-Type-Options nosniff
     Referrer-Policy no-referrer
     X-Robots-Tag "noindex, nofollow"
+    Content-Security-Policy "default-src 'self'; connect-src 'self' https://{$API_DOMAIN}; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
   }
 }
 
 {$API_DOMAIN} {
   encode zstd gzip
   reverse_proxy api:3000
+  header Strict-Transport-Security "max-age=31536000; includeSubDomains"
 }

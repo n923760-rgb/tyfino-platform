@@ -34,6 +34,10 @@ flowchart TD
 | Devices | Registration, limits, blocking, last-seen tracking |
 | Audit | Immutable administrative activity trail |
 
+## Administration interface
+
+The React/TypeScript admin application is a private RTL interface for Techify staff. Authentication uses a secure, HTTP-only cookie issued by the API. Provider credentials are accepted only in protected forms, encrypted by the API, and never returned to list views.
+
 ## Provider integration rule
 
 The current reseller panel has no API. Provider accounts are therefore entered manually. A future provider API must be integrated behind an adapter so the player and activation logic do not change.
