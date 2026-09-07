@@ -17,6 +17,17 @@ CREATE TABLE admins (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE admin_sessions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_id uuid NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+  token_hash text NOT NULL UNIQUE,
+  ip_address inet,
+  user_agent text,
+  expires_at timestamptz NOT NULL,
+  revoked_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE customers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   display_name text NOT NULL,
@@ -85,6 +96,16 @@ CREATE TABLE devices (
   UNIQUE (activation_code_id, device_fingerprint_hash)
 );
 
+CREATE TABLE player_sessions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  device_id uuid NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
+  token_hash text NOT NULL UNIQUE,
+  expires_at timestamptz NOT NULL,
+  revoked_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  last_seen_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE audit_logs (
   id bigserial PRIMARY KEY,
   admin_id uuid REFERENCES admins(id) ON DELETE SET NULL,
@@ -97,9 +118,13 @@ CREATE TABLE audit_logs (
 );
 
 CREATE INDEX provider_accounts_customer_idx ON provider_accounts(customer_id);
+CREATE INDEX admin_sessions_admin_idx ON admin_sessions(admin_id);
+CREATE INDEX admin_sessions_expiry_idx ON admin_sessions(expires_at) WHERE revoked_at IS NULL;
 CREATE INDEX activation_codes_customer_idx ON activation_codes(customer_id);
 CREATE INDEX activation_codes_status_expiry_idx ON activation_codes(status, expires_at);
 CREATE INDEX devices_activation_idx ON devices(activation_code_id);
+CREATE INDEX player_sessions_device_idx ON player_sessions(device_id);
+CREATE INDEX player_sessions_expiry_idx ON player_sessions(expires_at) WHERE revoked_at IS NULL;
 CREATE INDEX audit_logs_created_idx ON audit_logs(created_at DESC);
 
 COMMIT;

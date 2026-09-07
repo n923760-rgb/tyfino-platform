@@ -3,6 +3,13 @@ export type AppConfig = {
   databaseUrl: string;
   logLevel: string;
   trustProxy: boolean;
+  appEnv: "development" | "test" | "production";
+  adminOrigin: string;
+  playerOrigins: string[];
+  encryptionKey: Buffer;
+  tokenPepper: string;
+  bootstrapEmail: string;
+  bootstrapPassword?: string;
 };
 
 function required(name: string): string {
@@ -17,10 +24,40 @@ export function loadConfig(): AppConfig {
     throw new Error("API_PORT must be a valid TCP port");
   }
 
+  const appEnv = (process.env.APP_ENV ?? "development") as AppConfig["appEnv"];
+  if (!["development", "test", "production"].includes(appEnv)) {
+    throw new Error("APP_ENV must be development, test, or production");
+  }
+
+  const encryptionKey = Buffer.from(required("CREDENTIAL_ENCRYPTION_KEY"), "base64");
+  if (encryptionKey.length !== 32) {
+    throw new Error("CREDENTIAL_ENCRYPTION_KEY must be a base64-encoded 32-byte key");
+  }
+
+  const bootstrapPassword = process.env.ADMIN_BOOTSTRAP_PASSWORD?.trim();
+  if (bootstrapPassword && (bootstrapPassword.length < 14 || bootstrapPassword.includes("CHANGE_ME"))) {
+    throw new Error("ADMIN_BOOTSTRAP_PASSWORD must be at least 14 characters and changed from the example");
+  }
+
+  const tokenPepper = required("TOKEN_PEPPER");
+  if (tokenPepper.length < 32 || tokenPepper.includes("CHANGE_ME")) {
+    throw new Error("TOKEN_PEPPER must be at least 32 characters and changed from the example");
+  }
+
   return {
     port,
     databaseUrl: required("DATABASE_URL"),
     logLevel: process.env.LOG_LEVEL ?? "info",
-    trustProxy: (process.env.TRUST_PROXY ?? "true") === "true"
+    trustProxy: (process.env.TRUST_PROXY ?? "true") === "true",
+    appEnv,
+    adminOrigin: required("ADMIN_ORIGIN"),
+    playerOrigins: (process.env.PLAYER_ORIGINS ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+    encryptionKey,
+    tokenPepper,
+    bootstrapEmail: required("ADMIN_BOOTSTRAP_EMAIL").toLowerCase(),
+    bootstrapPassword
   };
 }
