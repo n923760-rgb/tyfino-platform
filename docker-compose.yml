@@ -44,7 +44,11 @@ services:
       - no-new-privileges:true
 
   caddy:
-    image: caddy:2-alpine
+    build:
+      context: .
+      dockerfile: infrastructure/caddy/Dockerfile
+      args:
+        VITE_API_BASE_URL: https://${API_DOMAIN}
     restart: unless-stopped
     env_file:
       - .env
@@ -53,9 +57,6 @@ services:
       - "443:443"
       - "443:443/udp"
     volumes:
-      - ./infrastructure/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./sites/public:/srv/public:ro
-      - ./sites/admin:/srv/admin:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

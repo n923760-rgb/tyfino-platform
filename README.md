@@ -6,7 +6,7 @@ TYFINO is an IPTV player platform for Techify customers. It manages application 
 
 ## Current milestone
 
-`Backend v0.2` provides:
+`Admin v0.3` provides:
 
 - A lightweight TypeScript/Fastify API with health and readiness checks.
 - PostgreSQL schema for customers, provider accounts, activation codes, devices, hosts, and audit logs.
@@ -16,6 +16,8 @@ TYFINO is an IPTV player platform for Techify customers. It manages application 
 - A documented deployment and security model.
 - Secure admin sessions, customer and provider-account management, activation codes, and device enforcement.
 - AES-256-GCM encryption for provider credentials and HMAC hashing for activation/session tokens.
+- A responsive Arabic RTL administration interface connected to every v0.2 management endpoint.
+- A single Caddy image that builds and serves the admin application with the public site and HTTPS routing.
 
 ## Domain layout
 
@@ -38,6 +40,7 @@ Production is intentionally not deployed automatically yet. Server secrets, an i
 
 ```text
 apps/api/                 Fastify control-plane API
+apps/admin/               React/TypeScript administration interface
 database/init/            Initial PostgreSQL schema
 docs/                     Architecture, security, and deployment notes
 infrastructure/caddy/     Domain routing and TLS configuration
