@@ -1,0 +1,33 @@
+{
+  email admin@{$ROOT_DOMAIN}
+  servers {
+    protocols h1 h2 h3
+  }
+}
+
+{$ROOT_DOMAIN} {
+  encode zstd gzip
+  root * /srv/public
+  file_server
+  header {
+    X-Content-Type-Options nosniff
+    Referrer-Policy strict-origin-when-cross-origin
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  }
+}
+
+{$ADMIN_DOMAIN} {
+  encode zstd gzip
+  root * /srv/admin
+  file_server
+  header {
+    X-Content-Type-Options nosniff
+    Referrer-Policy no-referrer
+    X-Robots-Tag "noindex, nofollow"
+  }
+}
+
+{$API_DOMAIN} {
+  encode zstd gzip
+  reverse_proxy api:3000
+}
