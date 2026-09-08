@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TYFINO Dev</string>
+    <string name="destination_foundation">الأساس</string>
+    <string name="destination_settings">الإعدادات</string>
+    <string name="foundation_title">الأساس التقني لتطبيق TYFINO على أندرويد</string>
+    <string name="foundation_description">هيكل تطبيق خفيف ومتكيّف أُعِدّ للهواتف والأجهزة اللوحية والقابلة للطي وشاشات التلفاز والتحكم عن بُعد، مع نص عربي طويل للتأكد من الالتفاف السليم وعدم القص الكارثي. لن تُضاف خصائص المنتج إلا وفق العقود المعتمدة الخاصة بها.</string>
+    <string name="open_settings">فتح نموذج الإعدادات</string>
+    <string name="settings_title">أساس الإعدادات</string>
+    <string name="settings_description">هذه الوجهة مخصّصة للتحقق من التنقل والعرض المتكيّف فقط، ولا تحتوي على إعدادات إنتاجية أو منطق أعمال.</string>
+</resources>

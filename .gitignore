@@ -14,3 +14,12 @@ backups/
 *.pem
 *.key
 secrets/
+
+# Android / Gradle
+.gradle/
+.kotlin/
+**/build/
+local.properties
+captures/
+*.apk
+*.aab
