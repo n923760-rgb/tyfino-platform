@@ -46,7 +46,11 @@ The following are **DECIDED**:
 - Trial authority is server-side and must not rely only on the Android device clock.
 - Exact anti-trial-abuse behavior must not be invented before approval.
 
-The exact event that begins the seven-day trial is **OPEN**. Candidate events include explicit confirmation of **Start 7-Day Free Trial** or a later successful licensing transaction. Installation time, app process start, and Xtream login must not be silently selected as the authoritative start event.
+The following trial-start rule is **DECIDED**:
+
+- The seven-day trial starts only after the user explicitly selects **Start 7-Day Free Trial** and the server successfully accepts and records that request.
+- Installing the app, opening the app, or completing Xtream login must not start the trial automatically.
+- A failed, timed-out, or uncommitted start request must not consume trial time.
 
 ## 4. Conceptual ownership model
 
@@ -80,19 +84,21 @@ The following are **DECIDED**:
 - A one-year code and a lifetime code are distinct administrator-selected license periods.
 - Revoked or expired authority must not be reported as active.
 - Recovery and retries must be finite, explicit, and testable.
+- An already verified active entitlement may remain usable for at most 72 hours after the last successful server-authoritative verification.
+- After 72 hours without successful verification, licensed use requires a successful connection to the licensing service.
+- A successful server response reporting expiry or revocation takes effect immediately.
+- Failed requests and changes to the Android device clock must not extend the 72-hour grace period.
 
 The following are **OPEN**:
 
-- the exact trial start event;
 - whether seven days means 168 hours or a calendar-based interval;
 - the exact one-year calendar calculation;
 - the product/legal definition of Lifetime;
 - activation-code pre-activation expiry, if any;
-- reactivation, transfer, reset, and replacement rules;
-- cached entitlement and offline grace behavior;
+- eligibility controls and rate limits for administrator-initiated device reset;
 - refresh cadence and session duration;
-- behavior after reinstall, factory reset, device replacement, or app-data deletion;
-- revocation propagation timing.
+- behavior after reinstall, factory reset, or app-data deletion;
+- the exact user-facing experience during and after offline grace.
 
 No implementation may disguise these choices as technical defaults.
 
@@ -105,12 +111,13 @@ The following are **DECIDED**:
 - Device information collected by TYFINO must be limited to an approved licensing purpose.
 - Sensitive identifiers must not be written to ordinary logs or exposed to the dashboard without need.
 - Custom cryptography is not authorized.
+- Each paid Activation Code permits one active device in V1.
+- An authorized administrator may reset the active device binding when a customer replaces the device.
+- A reset must be audited, invalidate the previous active binding and its licensing session, and allow a replacement device to activate.
 
 The following are **OPEN**:
 
 - device or installation identity mechanism;
-- whether a paid license has a device limit;
-- device replacement and administrator reset policy;
 - signals used to reduce repeated-trial abuse;
 - attestation use, if any;
 - privacy retention and deletion periods;
@@ -213,7 +220,7 @@ The following are **DECIDED**:
 - dependencies require a current concrete need;
 - performance and failure behavior must be measured rather than guessed.
 
-Offline authority, grace periods, refresh intervals, and server-outage behavior are **OPEN** and must be resolved before implementation.
+The 72-hour offline grace limit is **DECIDED**. Refresh intervals, retry scheduling, cached-entitlement representation, and the precise server-outage UI remain **OPEN**.
 
 ## 12. Security and privacy qualification
 
@@ -255,8 +262,8 @@ Implementation qualification must eventually include:
 - lifetime activation;
 - expiry and revocation;
 - stale licensing completion after a newer owner or generation exists;
-- device limit and replacement behavior once approved;
-- offline and server-outage behavior once approved;
+- one-device enforcement and audited administrator reset;
+- 72-hour offline grace, expiry, reconnection, clock-change, and server-outage behavior;
 - administrative authorization;
 - activation brute-force and rate-limit behavior;
 - redaction and privacy-boundary tests;
