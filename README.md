@@ -1,59 +1,56 @@
 # TYFINO Platform
 
-Private control plane and application foundation for **TYFINO by Techify**.
+TYFINO is a native Android IPTV player/client with a separate application-licensing service and a small administration dashboard.
 
-TYFINO is an IPTV player platform for Techify customers. It manages application activation, devices, provider connection metadata, and administrative operations. It does **not** sell IPTV subscriptions or relay video traffic.
+Status: PROPOSED foundation alignment. No production deployment or release is authorized.
 
-## Current milestone
+## Product boundary
 
-`Admin v0.3` provides:
+The following are **DECIDED**:
 
-- A lightweight TypeScript/Fastify API with health and readiness checks.
-- PostgreSQL schema for customers, provider accounts, activation codes, devices, hosts, and audit logs.
-- Docker Compose deployment suitable for the temporary 2 GB Ubuntu VPS.
-- Caddy routing and automatic HTTPS for the public site, admin panel, and API.
-- Static placeholders that keep the domains presentable until the React applications are connected.
-- A documented deployment and security model.
-- Secure admin sessions, customer and provider-account management, activation codes, and device enforcement.
-- AES-256-GCM encryption for provider credentials and HMAC hashing for activation/session tokens.
-- A responsive Arabic RTL administration interface connected to every v0.2 management endpoint.
-- A single Caddy image that builds and serves the admin application with the public site and HTTPS routing.
+- Users bring their own IPTV subscription.
+- Android V1 supports Xtream Codes only using Host, Username, and Password.
+- The Android app connects directly to the IPTV provider.
+- The TYFINO backend manages application licensing/control only.
+- `APPLICATION LICENSE != IPTV SUBSCRIPTION`.
+- The backend must not proxy, cache, restream, sell, or administer IPTV subscriptions.
+- IPTV credentials must not be sent to the TYFINO backend.
 
-## Domain layout
+## V1 direction
 
-| Address | Purpose |
-| --- | --- |
-| `tyfino.online` | Product and download website |
-| `admin.tyfino.online` | Private Techify administration panel |
-| `api.tyfino.online` | Application API |
+The following direction is **DECIDED**: the Android application is Kotlin and Jetpack Compose, performance-first, adaptive, RTL-safe, and designed for phones, tablets, foldables, Android TV, and Google TV from one codebase.
 
-## Local startup
+V1 includes Live TV, Movies/VOD, Series, categories, search, favorites, EPG when available, details, seasons and episodes, media playback, audio tracks, subtitles, resume, Continue Watching, history, and previous/last live channel.
 
-1. Copy `.env.example` to `.env`.
-2. Replace every value marked `CHANGE_ME`.
-3. Run `docker compose up --build`.
-4. Check `http://localhost:3000/healthz`.
-
-Production is intentionally not deployed automatically yet. Server secrets, an isolated deployment user, and the admin UI must be configured first.
+M3U, MAC Portal, profiles, downloads, cloud sync, social features, and a custom recommendation engine are **DEFERRED**.
 
 ## Repository map
 
 ```text
-apps/api/                 Fastify control-plane API
-apps/admin/               React/TypeScript administration interface
-database/init/            Initial PostgreSQL schema
-docs/                     Architecture, security, and deployment notes
-infrastructure/caddy/     Domain routing and TLS configuration
-sites/                    Temporary public/admin pages
-docker-compose.yml        VPS service definition
+apps/android/              Native Android client foundation
+apps/api/                  Existing control-service implementation
+apps/admin/                Existing administration interface
+database/                  Existing database schema
+docs/                      Authoritative scoped contracts and project guidance
+infrastructure/            Existing deployment preparation
+sites/                     Existing web assets
 ```
 
-## Important boundaries
+## Current implementation warning
 
-- Stream traffic goes directly from the IPTV provider to the customer device.
-- Provider credentials are never committed to GitHub.
-- The provider's reseller panel currently has no API, so account mapping is manual.
-- App activation codes (`TYF-XXXX-XXXX`) are separate from provider credentials.
-- Future provider integrations must use an adapter interface; scraping the reseller panel is not part of this foundation.
+The existing backend, admin application, and database were created before the current product boundary was approved. They include provider-account management and fields for IPTV credentials and protocols outside V1.
 
-See [`docs/architecture.md`](docs/architecture.md) and [`docs/deployment.md`](docs/deployment.md) before production deployment.
+That legacy implementation is not approved for production use or Android integration. It must be audited and remediated in a separate atomic task. Documentation alignment does not prove implementation compliance.
+
+## Decision vocabulary
+
+- **DECIDED**: mandatory and authoritative.
+- **PROPOSED**: awaiting explicit approval.
+- **OPEN**: unresolved; must not be silently chosen.
+- **DEFERRED**: intentionally outside the current phase.
+
+## Authority
+
+Scoped approved contracts override general documents for their scope. Architecture and security documents override component READMEs. When documentation and implementation disagree, report the mismatch; do not silently change production behavior.
+
+Read `AGENTS.md` when present on the working branch, then read the relevant files under `docs/` before repository work.
