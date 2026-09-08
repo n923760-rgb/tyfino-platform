@@ -1,6 +1,6 @@
 # TYFINO Licensing & Trial Contract v1
 
-Status: PROPOSED — awaiting explicit approval  
+Status: DECIDED — approved 2026-09-08  
 Last reviewed: 2026-09-08  
 Scope: TYFINO application licensing, trial authority, activation boundaries, and administration
 
