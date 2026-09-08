@@ -103,7 +103,7 @@ Request:
 
 ```json
 {
-  "activationCode": "TYF-XXXX-XXXX-XXXX-XXXX",
+  "activationCode": "TYF-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX",
   "installationId": "opaque-random-installation-identifier",
   "platform": "android",
   "appVersion": "1.0.0"
@@ -237,7 +237,7 @@ Proposed request:
 
 `licenseKind` is `one_year` or `lifetime`.
 
-The plaintext Activation Code is returned exactly once. Proposed storage uses a keyed server-side HMAC-SHA-256 digest plus a non-secret suffix for Admin identification. The HMAC key lives outside source control and outside the database.
+The plaintext Activation Code is returned exactly once. The proposed format encodes at least 128 bits from a cryptographically secure random generator using human-safe uppercase Base32 groups; normalization may remove separators and fold case but must reject all other transformations. Proposed storage uses a keyed server-side HMAC-SHA-256 digest plus a non-secret suffix for Admin identification. The HMAC key lives outside source control and outside the database.
 
 Administrative-only metadata must never enter Android responses.
 
