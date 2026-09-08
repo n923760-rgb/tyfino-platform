@@ -1,33 +1,40 @@
-# Deployment preparation
+# TYFINO Deployment Status
 
-## VPS assumptions
+Status: DEFERRED  
+Last reviewed: 2026-09-08
 
-- Ubuntu 24.04
-- Temporary shared VPS: 2 GB RAM, 40 GB disk
-- Existing Sayad service remains isolated and untouched
-- DNS is not changed until the TYFINO stack passes local health checks
+## Current rule
 
-## Required DNS records
+Production deployment is not authorized in the foundation phase.
 
-Create these only when the server is ready:
+The following are **DECIDED**:
 
-| Type | Host | Value |
-| --- | --- | --- |
-| A | `@` | VPS IPv4 address |
-| A | `admin` | VPS IPv4 address |
-| A | `api` | VPS IPv4 address |
+- Do not configure production DNS, hosting, secrets, signing, releases, or automated deployment without explicit instruction.
+- Do not deploy the Android foundation, legacy provider-account backend path, or unapproved licensing behavior.
+- Do not use GitHub Actions as a trial-and-error deployment environment.
+- The IPTV provider stream path must never pass through TYFINO infrastructure.
+- Existing unrelated services on any future host must remain isolated and untouched.
 
-## Safe deployment order
+## Possible V1 shape
 
-1. Create a dedicated `tyfino` directory and non-root deployment user.
-2. Install Docker Engine and the Compose plugin from Docker's official repository.
-3. Create at least 2 GB swap because this VPS has 2 GB RAM.
-4. Clone the private repository using a read-only deploy key.
-5. Create the server `.env` with generated secrets.
-6. Start the database and API without changing public DNS.
-7. Verify `/healthz` and `/readyz` locally.
-8. Back up existing DNS records, then add the TYFINO records.
-9. Start Caddy and verify automatic TLS.
-10. Configure encrypted off-site database backups.
+A single domain with paths such as `/admin` and `/api/v1` is **PROPOSED**, not finalized.
 
-Automatic GitHub deployment will be added only after the isolated VPS user and deploy key exist.
+The production domain, DNS records, hosting target, API endpoints, secret management, backup location, monitoring, and deployment mechanism are **OPEN**.
+
+## Entry gate
+
+Deployment planning must not begin until:
+
+1. The licensing/backend boundary is audited against the current implementation.
+2. Legacy IPTV provider-account handling is removed or explicitly isolated from the approved product.
+3. Licensing and trial contracts are approved.
+4. Production endpoints and hosting details are explicitly approved.
+5. Secrets, backups, restoration, monitoring, and rollback are designed and tested.
+6. Android identity, versioning, signing, and release policy are approved.
+7. CI and security qualification are `PASS`; `BLOCKED` is not `PASS`.
+
+## Historical deployment material
+
+Earlier VPS, DNS, Docker, and Caddy instructions are not authoritative for the current foundation. They may be reconsidered later only after the entry gate is satisfied.
+
+No DNS record, server, domain, tag, release, or deployment is changed by this document.
