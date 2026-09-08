@@ -3,24 +3,15 @@ import type { AppConfig } from "./config.js";
 import type { Database } from "./db.js";
 import { hashPassword, tokenHash } from "./security.js";
 
-export type AdminIdentity = {
-  id: string;
-  email: string;
-  role: "owner" | "admin" | "support";
-};
+export type AdminIdentity = { id: string; email: string; role: "owner" | "admin" | "support" };
 
 export async function ensureBootstrapAdmin(db: Database, config: AppConfig): Promise<void> {
   const count = await db.query<{ count: string }>("SELECT count(*)::text AS count FROM admins");
   if (count.rows[0]?.count !== "0") return;
-  if (!config.bootstrapPassword) {
-    throw new Error("ADMIN_BOOTSTRAP_PASSWORD is required while the admins table is empty");
-  }
-
+  if (!config.bootstrapPassword) throw new Error("ADMIN_BOOTSTRAP_PASSWORD is required while the admins table is empty");
   const passwordHash = await hashPassword(config.bootstrapPassword);
   await db.query(
-    `INSERT INTO admins (email, password_hash, role)
-     VALUES ($1, $2, 'owner')
-     ON CONFLICT (email) DO NOTHING`,
+    `INSERT INTO admins (email, password_hash, role) VALUES ($1, $2, 'owner') ON CONFLICT (email) DO NOTHING`,
     [config.bootstrapEmail, passwordHash]
   );
 }
@@ -29,8 +20,7 @@ function sessionToken(request: FastifyRequest): string | undefined {
   const cookieToken = request.cookies.tyfino_admin_session;
   if (cookieToken) return cookieToken;
   const authorization = request.headers.authorization;
-  if (authorization?.startsWith("Bearer ")) return authorization.slice(7);
-  return undefined;
+  return authorization?.startsWith("Bearer ") ? authorization.slice(7) : undefined;
 }
 
 export async function requireAdmin(
@@ -45,15 +35,9 @@ export async function requireAdmin(
     await reply.code(401).send({ error: "authentication_required" });
     return null;
   }
-
   const result = await db.query<AdminIdentity>(
-    `SELECT a.id, a.email, a.role
-       FROM admin_sessions s
-       JOIN admins a ON a.id = s.admin_id
-      WHERE s.token_hash = $1
-        AND s.revoked_at IS NULL
-        AND s.expires_at > now()
-        AND a.is_active = true`,
+    `SELECT a.id, a.email, a.role FROM admin_sessions s JOIN admins a ON a.id = s.admin_id
+      WHERE s.token_hash = $1 AND s.revoked_at IS NULL AND s.expires_at > now() AND a.is_active = true`,
     [tokenHash(token, config.tokenPepper)]
   );
   const admin = result.rows[0];
@@ -69,7 +53,7 @@ export async function requireAdmin(
 }
 
 export async function writeAudit(
-  db: Database,
+  db: Pick<Database, "query">,
   request: FastifyRequest,
   adminId: string,
   action: string,
