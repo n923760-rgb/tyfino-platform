@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TYFINO Dev</string>
+    <string name="destination_foundation">Foundation</string>
+    <string name="destination_settings">Settings</string>
+    <string name="foundation_title">TYFINO Android foundation</string>
+    <string name="foundation_description">A lightweight, adaptive application shell prepared for phones, tablets, foldables, and TV input. Product features will be added only through their approved contracts.</string>
+    <string name="open_settings">Open settings placeholder</string>
+    <string name="settings_title">Settings foundation</string>
+    <string name="settings_description">This destination validates navigation and adaptive presentation only. It contains no production settings or business logic.</string>
+</resources>
