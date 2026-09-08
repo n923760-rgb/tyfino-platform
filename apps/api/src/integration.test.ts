@@ -42,7 +42,8 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
       payload: { licenseKind: "one_year", customerName: "Test customer" }
     });
     assert.equal(issued.statusCode, 201);
-    const activationCode = issued.json().code as string;
+    const issuedBody = issued.json() as { id: string; code: string };
+    const activationCode = issuedBody.code;
     assert.match(activationCode, /^TYF-[0-9A-HJKMNP-TV-Z-]+$/);
 
     const installationA = "A".repeat(43);
@@ -78,6 +79,31 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     });
     assert.equal(secondDevice.statusCode, 409);
     assert.equal(secondDevice.json().error.code, "DEVICE_LIMIT_REACHED");
+
+    const reset = await app.inject({
+      method: "POST",
+      url: `/v1/admin/activation-codes/${issuedBody.id}/reset-device`,
+      headers: { cookie: `tyfino_admin_session=${cookie.value}` },
+      payload: { reason: "Customer replaced the device" }
+    });
+    assert.equal(reset.statusCode, 200);
+
+    const replacementDevice = await app.inject({
+      method: "POST",
+      url: "/v1/licensing/activations",
+      payload: { activationCode, installationId: installationB, platform: "android", appVersion: "1.0.0" }
+    });
+    assert.equal(replacementDevice.statusCode, 200);
+    const replacementSession = replacementDevice.json().session.token as string;
+
+    const refreshed = await app.inject({
+      method: "POST",
+      url: "/v1/licensing/entitlements/refresh",
+      headers: { authorization: `Bearer ${replacementSession}` },
+      payload: { installationId: installationB, platform: "android", appVersion: "1.0.1" }
+    });
+    assert.equal(refreshed.statusCode, 200);
+    assert.equal(refreshed.json().entitlement.kind, "one_year");
 
     const legacyPlayer = await app.inject({ method: "GET", url: "/v1/player/config" });
     assert.equal(legacyPlayer.statusCode, 404);

@@ -132,7 +132,7 @@ export async function registerAdminRoutes(app: FastifyInstance, db: Database, co
       await client.query("UPDATE license_sessions SET revoked_at = now() WHERE activation_code_id = $1 AND revoked_at IS NULL", [params.data.id]);
       await client.query("UPDATE activation_codes SET bound_installation_id = NULL, updated_at = now() WHERE id = $1", [params.data.id]);
       await writeAudit(client, request, admin.id, "activation.reset_device", "activation_code", params.data.id, {
-        reason: body.data.reason,
+        reasonProvided: body.data.reason.length > 0,
         previousBinding: current.bound_installation_id ? "present" : "none"
       });
       await client.query("COMMIT");
