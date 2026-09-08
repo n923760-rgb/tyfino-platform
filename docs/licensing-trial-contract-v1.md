@@ -8,7 +8,7 @@ Scope: TYFINO application licensing, trial authority, activation boundaries, and
 
 This contract defines the minimum product and engineering boundary for TYFINO application licensing. It does not define IPTV authentication, IPTV subscription state, catalog access, media playback, deployment, or billing.
 
-Once explicitly approved, this scoped contract overrides general documentation and the legacy API/backend implementation for licensing behavior. Until approval, it is a proposal and does not authorize production implementation or deployment.
+This approved contract overrides general documentation and the legacy API/backend implementation for licensing behavior. Approval does not authorize production deployment.
 
 Decision labels used here are:
 
@@ -91,13 +91,9 @@ The following are **DECIDED**:
 
 The following are **OPEN**:
 
-- whether seven days means 168 hours or a calendar-based interval;
-- the exact one-year calendar calculation;
-- the product/legal definition of Lifetime;
-- activation-code pre-activation expiry, if any;
-- eligibility controls and rate limits for administrator-initiated device reset;
-- refresh cadence and session duration;
-- behavior after reinstall, factory reset, or app-data deletion;
+- exact rate-limit thresholds for administrator-initiated device reset;
+- session duration and token rotation details;
+- factory-reset handling beyond the approved new-installation identity behavior;
 - the exact user-facing experience during and after offline grace.
 
 No implementation may disguise these choices as technical defaults.
@@ -117,9 +113,7 @@ The following are **DECIDED**:
 
 The following are **OPEN**:
 
-- device or installation identity mechanism;
 - signals used to reduce repeated-trial abuse;
-- attestation use, if any;
 - privacy retention and deletion periods;
 - handling of rooted, cloned, or restored installations.
 
@@ -138,18 +132,15 @@ The following are **DECIDED**:
 
 The following are **OPEN**:
 
-- code format, entropy, normalization, and storage representation;
-- single-use versus controlled reuse semantics;
 - delivery and recovery procedures;
-- rate limits and lockout behavior;
-- administrator role permissions;
-- whether optional administrative metadata attaches to a code, a license grant, or another administrative record.
+- exact rate limits and lockout thresholds;
+- administrator role permissions.
 
 ## 8. Licensing API boundary
 
-Exact routes, request schemas, response schemas, status codes, tokens, and endpoints are **OPEN**.
+The routes, request schemas, response schemas, stable error codes, installation identity, Activation Code format/storage, and refresh rules are **DECIDED** in `docs/api.md`.
 
-Any future API design must satisfy these **DECIDED** rules:
+The implemented API must satisfy these **DECIDED** rules:
 
 - accept only data required for application licensing and approved device enforcement;
 - never accept or return IPTV credentials or provider connection data;
@@ -163,7 +154,7 @@ Any future API design must satisfy these **DECIDED** rules:
 - avoid uncontrolled polling;
 - support commit-time ownership validation in the Android client.
 
-The current `/v1/player/config` provider-connection response and provider-account administration routes are legacy behavior and are not an approved basis for the licensing API.
+The current `/v1/player/config` provider-connection response and provider-account administration routes are legacy behavior and must be absent from the replacement licensing service.
 
 ## 9. Android integration boundary
 
@@ -185,7 +176,7 @@ The licensing UI presentation, navigation destinations, storage mechanism, and o
 
 ## 10. Administration boundary
 
-The V1 administration areas remain **PROPOSED** as:
+The V1 administration areas are **DECIDED** as:
 
 - Dashboard;
 - Activation Codes;
@@ -220,7 +211,7 @@ The following are **DECIDED**:
 - dependencies require a current concrete need;
 - performance and failure behavior must be measured rather than guessed.
 
-The 72-hour offline grace limit is **DECIDED**. Refresh intervals, retry scheduling, cached-entitlement representation, and the precise server-outage UI remain **OPEN**.
+The 72-hour offline grace limit and 12-hour active-app refresh threshold are **DECIDED**. Exact token rotation, cached-entitlement representation, backoff parameters, and the precise server-outage UI remain **OPEN**.
 
 ## 12. Security and privacy qualification
 
@@ -235,7 +226,7 @@ Before production use, the licensing implementation must prove:
 - rate limits and abuse controls are bounded and testable;
 - account, installation, and device removal follow the approved retention policy.
 
-Exact hashing, token, session, secret-storage, attestation, backup, and deletion designs remain **OPEN**.
+Activation Code HMAC storage and the non-hardware installation identity boundary are **DECIDED** in `docs/api.md`. Exact session-token storage/rotation, backup, retention, and deletion designs remain **OPEN**.
 
 ## 13. Legacy remediation gate
 
@@ -291,11 +282,10 @@ The following are **DEFERRED** from this contract:
 
 Before backend remediation implementation:
 
-1. Approve this contract or explicitly resolve requested changes.
-2. Resolve only the OPEN decisions required by the first remediation task.
-3. Inspect whether any database or environment contains live data.
-4. Approve a non-destructive migration and rollback plan.
-5. Define the smallest licensing API slice to implement.
-6. Define its required boundary and lifecycle tests.
+1. Inspect whether any database or environment contains live data.
+2. Resolve only the remaining OPEN decisions required by the first remediation task.
+3. Approve a non-destructive migration and rollback plan if live data exists.
+4. Implement the smallest licensing API slice defined by `docs/api.md`.
+5. Run its required boundary, authorization, privacy, and lifecycle tests.
 
 Approval of this document does not authorize deployment, signing, release, destructive migration, or merge.
