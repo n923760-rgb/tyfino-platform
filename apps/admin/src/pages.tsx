@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { api, errorMessage } from "./api";
-import { Button, EmptyState, Field, formatDate, Loading, Modal, PageHeader, protocolName, Status } from "./components";
-import type { Activation, AuditLog, Customer, Device, Host, ProviderAccount } from "./types";
+import { Button, EmptyState, Field, formatDate, licenseName, Loading, Modal, PageHeader, Status } from "./components";
+import type { Activation, Admin, AuditLog } from "./types";
 
 type Notify = (message: string, kind?: "success" | "error") => void;
 
@@ -9,217 +9,145 @@ function useData<T>(loader: () => Promise<T>, key = 0) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
-    let active = true;
-    setError("");
-    loader().then((value) => active && setData(value)).catch((reason) => active && setError(errorMessage(reason)));
+    let active = true; setError(""); setData(null);
+    loader().then((value) => { if (active) setData(value); }).catch((reason) => { if (active) setError(errorMessage(reason)); });
     return () => { active = false; };
   }, [key]);
   return { data, error };
 }
 
-export function DashboardPage() {
+export function DashboardPage({ role }: { role: Admin["role"] }) {
   const { data, error } = useData(async () => {
-    const [customers, hosts, accounts, activations, devices] = await Promise.all([
-      api.customers(), api.hosts(), api.accounts(), api.activations(), api.devices()
+    const [codes, settings, health, audit] = await Promise.all([
+      api.activations(), api.settings(), api.health(),
+      role === "support" ? Promise.resolve({ auditLogs: [] as AuditLog[] }) : api.auditLogs()
     ]);
-    return {
-      customers: customers.customers,
-      hosts: hosts.hosts,
-      accounts: accounts.providerAccounts,
-      activations: activations.activationCodes,
-      devices: devices.devices
-    };
+    return { codes: codes.activationCodes, settings, health, audit: audit.auditLogs };
   });
   if (error) return <EmptyState title="تعذر تحميل لوحة المؤشرات" text={error} />;
   if (!data) return <Loading />;
   const stats = [
-    ["العملاء النشطون", data.customers.filter((x) => x.status === "active").length, "عميل"],
-    ["أكواد التفعيل", data.activations.filter((x) => ["unused", "active"].includes(x.status)).length, "كود"],
-    ["الأجهزة النشطة", data.devices.filter((x) => x.status === "active").length, "جهاز"],
-    ["اشتراكات المزود", data.accounts.filter((x) => x.isActive).length, "اشتراك"]
+    { label: "الأكواد المتاحة", value: data.codes.filter((x) => x.status === "unused").length, note: "جاهزة للتفعيل", tone: "blue" },
+    { label: "التراخيص النشطة", value: data.codes.filter((x) => x.status === "active").length, note: "سنة أو مدى الحياة", tone: "violet" },
+    { label: "الأجهزة المرتبطة", value: data.codes.filter((x) => x.deviceBound).length, note: "جهاز واحد لكل كود", tone: "cyan" },
+    { label: "التجربة المجانية", value: data.settings.trialEnabled ? "مفعّلة" : "متوقفة", note: "7 أيام", tone: data.settings.trialEnabled ? "green" : "gray" }
   ];
-  const expiring = data.activations.filter((x) => x.expiresAt && new Date(x.expiresAt).getTime() < Date.now() + 7 * 86400000 && new Date(x.expiresAt) > new Date());
   return <>
-    <PageHeader title="نظرة عامة" description="حالة منصة TYFINO واشتراكات عملاء Techify." />
-    <div className="stats-grid">{stats.map(([label, value, unit]) => <article className="stat-card" key={String(label)}>
-      <span>{label}</span><strong>{value}</strong><small>{unit}</small>
-    </article>)}</div>
+    <PageHeader title="الرئيسية" description="ملخص حالة تراخيص تطبيق TYFINO." />
+    <div className="stats-grid">{stats.map((item) => <article className={`stat-card tone-${item.tone}`} key={item.label}><span>{item.label}</span><strong>{item.value}</strong><small>{item.note}</small></article>)}</div>
     <div className="dashboard-grid">
-      <section className="panel"><div className="panel-title"><h2>تنبيهات قريبة</h2><span>{expiring.length}</span></div>
-        {expiring.length ? <div className="simple-list">{expiring.slice(0, 6).map((item) => <div key={item.id}>
-          <div><strong>{item.customerName}</strong><small>ينتهي {formatDate(item.expiresAt)}</small></div><Status value={item.status} />
-        </div>)}</div> : <p className="muted">لا توجد أكواد تنتهي خلال 7 أيام.</p>}
+      <section className="panel"><div className="panel-title"><h2>أحدث الأكواد</h2><span>{data.codes.length}</span></div>
+        {data.codes.length ? <div className="simple-list">{data.codes.slice(0, 5).map((item) => <div key={item.id}><div><strong>{item.customerName || item.adminLabel || "بدون اسم"}</strong><small className="ltr">TYF-•••••-•••••-{item.codeSuffix}</small></div><Status value={item.status} /></div>)}</div> : <p className="muted">لم تُنشأ أكواد بعد.</p>}
       </section>
-      <section className="panel"><div className="panel-title"><h2>حالة الربط</h2></div>
-        <div className="health-list"><div><span className="health-dot ok" />Backend API</div><b>متصل</b>
-          <div><span className="health-dot ok" />Provider hosts</div><b>{data.hosts.filter((x) => x.isActive).length} نشط</b>
-          <div><span className="health-dot ok" />Database</div><b>جاهزة</b></div>
-      </section>
+      <section className="panel"><div className="panel-title"><h2>حالة النظام</h2></div><div className="health-list">
+        <div><span className="health-dot ok" />Licensing API</div><b>{data.health.status === "ready" ? "جاهز" : data.health.status}</b>
+        <div><span className="health-dot ok" />قاعدة البيانات</div><b>{data.health.database === "connected" ? "متصلة" : data.health.database}</b>
+        <div><span className="health-dot ok" />آخر نشاط إداري</div><b>{data.audit[0] ? formatDate(data.audit[0].createdAt) : "لا يوجد"}</b>
+      </div></section>
     </div>
   </>;
 }
 
-export function CustomersPage({ notify }: { notify: Notify }) {
+export function ActivationsPage({ notify, role }: { notify: Notify; role: Admin["role"] }) {
+  const canManage = role === "owner" || role === "admin";
   const [reload, setReload] = useState(0);
-  const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createdCode, setCreatedCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const { data, error } = useData(async () => (await api.customers()).customers, reload);
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | Activation["status"]>("all");
+  const [resetTarget, setResetTarget] = useState<Activation | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<Activation | null>(null);
+  const { data, error } = useData(async () => (await api.activations()).activationCodes, reload);
+  const filtered = useMemo(() => (data ?? []).filter((item) => {
+    const matchesFilter = filter === "all" || item.status === filter;
+    const needle = query.trim().toLowerCase();
+    const matchesQuery = !needle || [item.customerName, item.phoneNumber, item.adminLabel, item.externalReference, item.codeSuffix].some((value) => value?.toLowerCase().includes(needle));
+    return matchesFilter && matchesQuery;
+  }), [data, filter, query]);
+
+  async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true);
     const values = Object.fromEntries(new FormData(event.currentTarget));
     try {
-      await api.createCustomer({ displayName: values.displayName, phone: values.phone || null, whatsapp: values.whatsapp || null, notes: values.notes || null });
-      setOpen(false); setReload((x) => x + 1); notify("تمت إضافة العميل.");
-    } catch (reason) { notify(errorMessage(reason), "error"); } finally { setBusy(false); }
+      const result = await api.createActivation({
+        licenseKind: values.licenseKind,
+        preActivationExpiresAt: values.preActivationExpiresAt ? new Date(String(values.preActivationExpiresAt)).toISOString() : null,
+        customerName: values.customerName || null,
+        phoneNumber: values.phoneNumber || null,
+        externalReference: values.externalReference || null,
+        adminLabel: values.adminLabel || null,
+        internalNote: values.internalNote || null
+      });
+      setCreateOpen(false); setCreatedCode(result.code); setReload((x) => x + 1); notify("تم إنشاء كود التفعيل.");
+    } catch (reason) { notify(errorMessage(reason), "error"); }
+    finally { setBusy(false); }
   }
-  async function status(customer: Customer, value: Customer["status"]) {
-    try { await api.updateCustomer(customer.id, { status: value }); setReload((x) => x + 1); notify("تم تحديث حالة العميل."); }
+
+  async function revoke() {
+    if (!revokeTarget) return; setBusy(true);
+    try { await api.revokeActivation(revokeTarget.id); setRevokeTarget(null); setReload((x) => x + 1); notify("تم إلغاء الكود وجلساته."); }
     catch (reason) { notify(errorMessage(reason), "error"); }
+    finally { setBusy(false); }
   }
+
+  async function reset(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); if (!resetTarget) return; setBusy(true);
+    const reason = String(new FormData(event.currentTarget).get("reason") ?? "");
+    try { await api.resetDevice(resetTarget.id, reason); setResetTarget(null); setReload((x) => x + 1); notify("تم فصل الجهاز السابق ويمكن التفعيل على جهاز بديل."); }
+    catch (cause) { notify(errorMessage(cause), "error"); }
+    finally { setBusy(false); }
+  }
+
   return <>
-    <PageHeader title="العملاء" description="سجل عملاء Techify وربط حالاتهم." action={<Button onClick={() => setOpen(true)}>+ إضافة عميل</Button>} />
-    {error ? <EmptyState title="تعذر تحميل العملاء" text={error} /> : !data ? <Loading /> : data.length === 0 ?
-      <EmptyState title="لا يوجد عملاء بعد" text="أضف أول عميل لربطه باشتراك المزود وكود TYF." /> :
-      <div className="table-wrap"><table><thead><tr><th>العميل</th><th>التواصل</th><th>الحالة</th><th>تاريخ الإضافة</th><th /></tr></thead><tbody>
-        {data.map((item) => <tr key={item.id}><td><strong>{item.displayName}</strong><small>{item.notes || "بدون ملاحظات"}</small></td>
-          <td>{item.whatsapp || item.phone || "—"}</td><td><Status value={item.status} /></td><td>{formatDate(item.createdAt)}</td>
-          <td><select className="compact-select" value={item.status} onChange={(e) => void status(item, e.target.value as Customer["status"])}>
-            <option value="active">نشط</option><option value="suspended">موقوف</option><option value="archived">مؤرشف</option>
-          </select></td></tr>)}</tbody></table></div>}
-    {open && <Modal title="إضافة عميل جديد" onClose={() => setOpen(false)}><form className="form" onSubmit={submit}>
-      <Field label="اسم العميل"><input name="displayName" required minLength={2} /></Field>
-      <div className="form-row"><Field label="رقم الجوال"><input name="phone" inputMode="tel" /></Field><Field label="واتساب"><input name="whatsapp" inputMode="tel" /></Field></div>
-      <Field label="ملاحظات"><textarea name="notes" rows={3} /></Field>
-      <div className="form-actions"><Button type="button" variant="secondary" onClick={() => setOpen(false)}>إلغاء</Button><Button type="submit" busy={busy}>حفظ العميل</Button></div>
+    <PageHeader title="أكواد التفعيل" description="أنشئ تراخيص التطبيق وتابعها وأدر الجهاز المرتبط." action={canManage ? <Button onClick={() => setCreateOpen(true)}>+ كود جديد</Button> : undefined} />
+    <div className="toolbar"><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ابحث بالاسم أو الجوال أو آخر 6 خانات" aria-label="بحث في الأكواد" />
+      <select value={filter} onChange={(event) => setFilter(event.target.value as typeof filter)} aria-label="تصفية حسب الحالة"><option value="all">كل الحالات</option><option value="unused">جديد</option><option value="active">نشط</option><option value="revoked">ملغي</option></select></div>
+    {error ? <EmptyState title="تعذر تحميل الأكواد" text={error} /> : !data ? <Loading /> : filtered.length === 0 ? <EmptyState title={data.length ? "لا توجد نتائج" : "لا توجد أكواد بعد"} text={data.length ? "غيّر البحث أو الفلتر." : "أنشئ أول كود تفعيل لمدة سنة أو مدى الحياة."} /> :
+      <div className="table-wrap"><table><thead><tr><th>الكود</th><th>العميل</th><th>المدة</th><th>الجهاز</th><th>الحالة</th><th>التفعيل / الانتهاء</th><th>الإجراءات</th></tr></thead><tbody>{filtered.map((item) => <tr key={item.id}>
+        <td><strong className="code-cell ltr">••••••-{item.codeSuffix}</strong><small>{item.adminLabel || "—"}</small></td>
+        <td><strong>{item.customerName || "بدون اسم"}</strong><small className="ltr">{item.phoneNumber || item.externalReference || "—"}</small></td>
+        <td>{licenseName(item.licenseKind)}</td><td><span className={`device-pill ${item.deviceBound ? "bound" : "free"}`}>{item.deviceBound ? "مرتبط" : "متاح"}</span></td>
+        <td><Status value={item.status} /></td><td><span>{formatDate(item.activatedAt)}</span><small>{item.grantExpiresAt ? `ينتهي ${formatDate(item.grantExpiresAt)}` : item.licenseKind === "lifetime" ? "بدون انتهاء" : "لم يُفعّل"}</small></td>
+        <td><div className="row-actions"><Button variant="ghost" disabled={!item.deviceBound || item.status !== "active"} onClick={() => setResetTarget(item)}>تغيير الجهاز</Button>{canManage && <Button variant="danger" disabled={item.status === "revoked"} onClick={() => setRevokeTarget(item)}>إلغاء</Button>}</div></td>
+      </tr>)}</tbody></table></div>}
+
+    {createOpen && <Modal title="إنشاء كود تفعيل" onClose={() => setCreateOpen(false)} width="wide"><form className="form" onSubmit={create}>
+      <div className="choice-grid"><label><input type="radio" name="licenseKind" value="one_year" defaultChecked /><span><b>سنة واحدة</b><small>365 يومًا من أول تفعيل</small></span></label><label><input type="radio" name="licenseKind" value="lifetime" /><span><b>مدى الحياة</b><small>بدون تاريخ انتهاء</small></span></label></div>
+      <div className="form-row"><Field label="اسم العميل"><input name="customerName" maxLength={120} /></Field><Field label="رقم الجوال"><input className="ltr" name="phoneNumber" inputMode="tel" maxLength={30} /></Field></div>
+      <div className="form-row"><Field label="مرجع خارجي"><input name="externalReference" maxLength={200} /></Field><Field label="تصنيف إداري"><input name="adminLabel" maxLength={120} /></Field></div>
+      <Field label="انتهاء الكود قبل استخدامه" hint="اختياري؛ لا يؤثر بعد التفعيل."><input className="ltr" type="datetime-local" name="preActivationExpiresAt" /></Field>
+      <Field label="ملاحظة داخلية"><textarea name="internalNote" rows={3} maxLength={2000} /></Field>
+      <div className="security-note">بيانات العميل داخلية ولا تُرسل إلى تطبيق Android.</div>
+      <div className="form-actions"><Button type="button" variant="secondary" onClick={() => setCreateOpen(false)}>إلغاء</Button><Button type="submit" busy={busy}>إنشاء الكود</Button></div>
     </form></Modal>}
+    {createdCode && <Modal title="تم إنشاء الكود" onClose={() => setCreatedCode("")}><div className="code-result"><p>انسخه الآن؛ لن يظهر كاملًا مرة أخرى.</p><strong className="ltr">{createdCode}</strong><Button onClick={() => { void navigator.clipboard.writeText(createdCode); notify("تم نسخ الكود."); }}>نسخ الكود</Button></div></Modal>}
+    {resetTarget && <Modal title="تغيير الجهاز المرتبط" onClose={() => setResetTarget(null)}><form className="form" onSubmit={reset}><p className="modal-text">سيتم إلغاء جلسة الجهاز السابق مع الحفاظ على مدة الترخيص.</p><Field label="سبب التغيير"><textarea name="reason" minLength={3} maxLength={500} rows={3} required /></Field><div className="form-actions"><Button type="button" variant="secondary" onClick={() => setResetTarget(null)}>رجوع</Button><Button type="submit" busy={busy}>تأكيد التغيير</Button></div></form></Modal>}
+    {revokeTarget && <Modal title="إلغاء كود التفعيل" onClose={() => setRevokeTarget(null)}><div className="confirm-content"><p>سيُلغى الترخيص وجميع جلساته فورًا. لا يمكن استخدام الكود بعد ذلك.</p><div className="form-actions"><Button variant="secondary" onClick={() => setRevokeTarget(null)}>رجوع</Button><Button variant="danger" busy={busy} onClick={() => void revoke()}>إلغاء نهائي</Button></div></div></Modal>}
   </>;
 }
 
-export function HostsPage({ notify }: { notify: Notify }) {
-  const [reload, setReload] = useState(0); const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false);
-  const { data, error } = useData(async () => (await api.hosts()).hosts, reload);
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); const values = Object.fromEntries(new FormData(event.currentTarget));
-    try { await api.createHost({ label: values.label, protocol: values.protocol, baseUrl: values.baseUrl }); setOpen(false); setReload((x) => x + 1); notify("تمت إضافة الهوست."); }
-    catch (reason) { notify(errorMessage(reason), "error"); } finally { setBusy(false); }
-  }
-  async function toggle(item: Host) {
-    try { await api.updateHost(item.id, { isActive: !item.isActive }); setReload((x) => x + 1); notify("تم تحديث الهوست."); }
+export function SettingsPage({ notify, role }: { notify: Notify; role: Admin["role"] }) {
+  const canManage = role === "owner" || role === "admin";
+  const [reload, setReload] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const { data, error } = useData(() => api.settings(), reload);
+  async function toggle() {
+    if (!data) return; setBusy(true);
+    try { await api.updateSettings(!data.trialEnabled); setReload((x) => x + 1); notify(!data.trialEnabled ? "تم تفعيل التجربة المجانية." : "تم إيقاف التجربة المجانية."); }
     catch (reason) { notify(errorMessage(reason), "error"); }
+    finally { setBusy(false); }
   }
-  return <>
-    <PageHeader title="الهوستات" description="عناوين مزودي Xtream وM3U وStalker." action={<Button onClick={() => setOpen(true)}>+ إضافة هوست</Button>} />
-    {error ? <EmptyState title="تعذر تحميل الهوستات" text={error} /> : !data ? <Loading /> : data.length === 0 ? <EmptyState title="لا توجد هوستات" text="أضف عنوان مزودك قبل إنشاء اشتراك للعميل." /> :
-      <div className="cards-grid">{data.map((item) => <article className="item-card" key={item.id}><div className="item-card-head"><span className="protocol">{protocolName(item.protocol)}</span><Status value={item.isActive ? "active" : "suspended"} /></div>
-        <h3>{item.label}</h3><p className="ltr url">{item.baseUrl}</p><footer><small>أضيف {formatDate(item.createdAt)}</small><Button variant="ghost" onClick={() => void toggle(item)}>{item.isActive ? "تعطيل" : "تفعيل"}</Button></footer></article>)}</div>}
-    {open && <Modal title="إضافة هوست" onClose={() => setOpen(false)}><form className="form" onSubmit={submit}>
-      <Field label="اسم تعريفي"><input name="label" placeholder="Main Provider" required /></Field>
-      <Field label="نوع الاتصال"><select name="protocol"><option value="xtream">Xtream Codes</option><option value="m3u">M3U</option><option value="stalker">Stalker / MAC</option></select></Field>
-      <Field label="رابط الهوست" hint="مثال: https://provider.example.com"><input className="ltr" name="baseUrl" type="url" required /></Field>
-      <div className="form-actions"><Button type="button" variant="secondary" onClick={() => setOpen(false)}>إلغاء</Button><Button type="submit" busy={busy}>حفظ الهوست</Button></div>
-    </form></Modal>}
-  </>;
-}
-
-export function AccountsPage({ notify }: { notify: Notify }) {
-  const [reload, setReload] = useState(0); const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false); const [hostId, setHostId] = useState("");
-  const { data, error } = useData(async () => {
-    const [accounts, customers, hosts] = await Promise.all([api.accounts(), api.customers(), api.hosts()]);
-    return { accounts: accounts.providerAccounts, customers: customers.customers, hosts: hosts.hosts.filter((x) => x.isActive) };
-  }, reload);
-  const selectedHost = data?.hosts.find((x) => x.id === hostId);
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); const values = Object.fromEntries(new FormData(event.currentTarget));
-    try {
-      await api.createAccount({ customerId: values.customerId, hostId: values.hostId, externalReference: values.externalReference || null,
-        username: values.username || null, password: values.password || null, playlistUrl: values.playlistUrl || null,
-        portalData: values.portalData || null, expiresAt: values.expiresAt ? new Date(String(values.expiresAt)).toISOString() : null,
-        maxConnections: values.maxConnections ? Number(values.maxConnections) : null });
-      setOpen(false); setHostId(""); setReload((x) => x + 1); notify("تم حفظ الاشتراك وتشفير بياناته.");
-    } catch (reason) { notify(errorMessage(reason), "error"); } finally { setBusy(false); }
-  }
-  async function toggle(item: ProviderAccount) {
-    try { await api.updateAccount(item.id, { isActive: !item.isActive }); setReload((x) => x + 1); notify("تم تحديث الاشتراك."); }
-    catch (reason) { notify(errorMessage(reason), "error"); }
-  }
-  return <>
-    <PageHeader title="اشتراكات المزود" description="ربط بيانات مزود IPTV بكل عميل بشكل مشفّر." action={<Button onClick={() => setOpen(true)}>+ ربط اشتراك</Button>} />
-    {error ? <EmptyState title="تعذر تحميل الاشتراكات" text={error} /> : !data ? <Loading /> : data.accounts.length === 0 ? <EmptyState title="لا توجد اشتراكات مربوطة" text="اربط حساب المزود بالعميل، ثم أنشئ له كود TYF." /> :
-      <div className="table-wrap"><table><thead><tr><th>العميل</th><th>الهوست</th><th>النوع</th><th>الانتهاء</th><th>الحالة</th><th /></tr></thead><tbody>{data.accounts.map((item) =>
-        <tr key={item.id}><td><strong>{item.customerName}</strong><small>{item.externalReference || "بدون مرجع"}</small></td><td>{item.hostLabel}</td><td>{protocolName(item.protocol)}</td><td>{formatDate(item.expiresAt)}</td><td><Status value={item.isActive ? "active" : "suspended"} /></td>
-          <td><Button variant="ghost" onClick={() => void toggle(item)}>{item.isActive ? "تعطيل" : "تفعيل"}</Button></td></tr>)}</tbody></table></div>}
-    {open && <Modal title="ربط اشتراك مزود" width="wide" onClose={() => setOpen(false)}><form className="form" onSubmit={submit}>
-      <div className="form-row"><Field label="العميل"><select name="customerId" required defaultValue=""><option value="" disabled>اختر العميل</option>{data?.customers.filter((x) => x.status === "active").map((x) => <option value={x.id} key={x.id}>{x.displayName}</option>)}</select></Field>
-        <Field label="الهوست"><select name="hostId" required value={hostId} onChange={(e) => setHostId(e.target.value)}><option value="" disabled>اختر الهوست</option>{data?.hosts.map((x) => <option value={x.id} key={x.id}>{x.label} — {protocolName(x.protocol)}</option>)}</select></Field></div>
-      {selectedHost?.protocol === "xtream" && <div className="form-row"><Field label="اسم المستخدم"><input className="ltr" name="username" required autoComplete="off" /></Field><Field label="كلمة مرور الاشتراك"><input className="ltr" name="password" required autoComplete="new-password" /></Field></div>}
-      {selectedHost?.protocol === "m3u" && <Field label="رابط M3U"><input className="ltr" name="playlistUrl" type="url" required /></Field>}
-      {selectedHost?.protocol === "stalker" && <Field label="بيانات MAC / Portal"><textarea className="ltr" name="portalData" rows={3} required /></Field>}
-      <div className="form-row"><Field label="تاريخ الانتهاء"><input name="expiresAt" type="datetime-local" /></Field><Field label="عدد الاتصالات"><input name="maxConnections" type="number" min="1" max="100" /></Field></div>
-      <Field label="مرجع داخلي"><input name="externalReference" placeholder="رقم الطلب أو ملاحظة مختصرة" /></Field>
-      <div className="security-note">بيانات الدخول تُشفّر قبل تخزينها ولا تظهر في قوائم الإدارة.</div>
-      <div className="form-actions"><Button type="button" variant="secondary" onClick={() => setOpen(false)}>إلغاء</Button><Button type="submit" busy={busy} disabled={!selectedHost}>حفظ وتشفير</Button></div>
-    </form></Modal>}
-  </>;
-}
-
-export function ActivationsPage({ notify }: { notify: Notify }) {
-  const [reload, setReload] = useState(0); const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false); const [customerId, setCustomerId] = useState(""); const [code, setCode] = useState("");
-  const { data, error } = useData(async () => {
-    const [activations, customers, accounts] = await Promise.all([api.activations(), api.customers(), api.accounts()]);
-    return { activations: activations.activationCodes, customers: customers.customers, accounts: accounts.providerAccounts.filter((x) => x.isActive) };
-  }, reload);
-  const matchingAccounts = useMemo(() => data?.accounts.filter((x) => x.customerId === customerId) ?? [], [data, customerId]);
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); const values = Object.fromEntries(new FormData(event.currentTarget));
-    try {
-      const result = await api.createActivation({ customerId: values.customerId, providerAccountId: values.providerAccountId,
-        deviceLimit: Number(values.deviceLimit), expiresAt: values.expiresAt ? new Date(String(values.expiresAt)).toISOString() : null });
-      setOpen(false); setCode(result.code); setReload((x) => x + 1); notify("تم إنشاء كود التفعيل.");
-    } catch (reason) { notify(errorMessage(reason), "error"); } finally { setBusy(false); }
-  }
-  async function revoke(item: Activation) {
-    if (!window.confirm(`إلغاء كود العميل ${item.customerName}؟ ستتوقف جلسات أجهزته.`)) return;
-    try { await api.revokeActivation(item.id); setReload((x) => x + 1); notify("تم إلغاء الكود وجلساته."); }
-    catch (reason) { notify(errorMessage(reason), "error"); }
-  }
-  return <>
-    <PageHeader title="أكواد التفعيل" description="أكواد TYF المستقلة عن اسم مستخدم المزود." action={<Button onClick={() => setOpen(true)}>+ إنشاء كود</Button>} />
-    {error ? <EmptyState title="تعذر تحميل الأكواد" text={error} /> : !data ? <Loading /> : data.activations.length === 0 ? <EmptyState title="لا توجد أكواد" text="أنشئ كودًا بعد ربط اشتراك المزود بالعميل." /> :
-      <div className="table-wrap"><table><thead><tr><th>العميل</th><th>الكود</th><th>الأجهزة</th><th>الانتهاء</th><th>الحالة</th><th /></tr></thead><tbody>{data.activations.map((item) =>
-        <tr key={item.id}><td><strong>{item.customerName}</strong></td><td className="ltr code-cell">TYF-••••-{item.codeSuffix}</td><td>{item.deviceCount} / {item.deviceLimit}</td><td>{formatDate(item.expiresAt)}</td><td><Status value={item.status} /></td>
-          <td>{!(["revoked", "expired"].includes(item.status)) && <Button variant="danger" onClick={() => void revoke(item)}>إلغاء</Button>}</td></tr>)}</tbody></table></div>}
-    {open && <Modal title="إنشاء كود TYF" onClose={() => setOpen(false)}><form className="form" onSubmit={submit}>
-      <Field label="العميل"><select name="customerId" value={customerId} onChange={(e) => setCustomerId(e.target.value)} required><option value="" disabled>اختر العميل</option>{data?.customers.filter((x) => x.status === "active").map((x) => <option key={x.id} value={x.id}>{x.displayName}</option>)}</select></Field>
-      <Field label="اشتراك المزود"><select name="providerAccountId" required defaultValue=""><option value="" disabled>اختر الاشتراك</option>{matchingAccounts.map((x) => <option key={x.id} value={x.id}>{x.hostLabel} — {protocolName(x.protocol)}</option>)}</select></Field>
-      <div className="form-row"><Field label="عدد الأجهزة"><input name="deviceLimit" type="number" min="1" max="10" defaultValue="1" required /></Field><Field label="انتهاء الكود"><input name="expiresAt" type="datetime-local" /></Field></div>
-      <div className="form-actions"><Button type="button" variant="secondary" onClick={() => setOpen(false)}>إلغاء</Button><Button type="submit" busy={busy}>إنشاء الكود</Button></div>
-    </form></Modal>}
-    {code && <Modal title="تم إنشاء كود التفعيل" onClose={() => setCode("")}><div className="code-result"><p>انسخ الكود الآن؛ لن يظهر كاملًا مرة أخرى.</p><strong className="ltr">{code}</strong><Button onClick={() => { void navigator.clipboard.writeText(code); notify("تم نسخ الكود."); }}>نسخ الكود</Button></div></Modal>}
-  </>;
-}
-
-export function DevicesPage({ notify }: { notify: Notify }) {
-  const [reload, setReload] = useState(0); const { data, error } = useData(async () => (await api.devices()).devices, reload);
-  async function toggle(item: Device) {
-    const status = item.status === "active" ? "blocked" : "active";
-    try { await api.updateDevice(item.id, status); setReload((x) => x + 1); notify(status === "blocked" ? "تم حظر الجهاز وإلغاء جلسته." : "تمت إعادة تفعيل الجهاز."); }
-    catch (reason) { notify(errorMessage(reason), "error"); }
-  }
-  return <>
-    <PageHeader title="الأجهزة" description="الأجهزة المسجلة وآخر اتصال وحدود الاستخدام." />
-    {error ? <EmptyState title="تعذر تحميل الأجهزة" text={error} /> : !data ? <Loading /> : data.length === 0 ? <EmptyState title="لا توجد أجهزة مسجلة" text="ستظهر الأجهزة هنا بعد إدخال العميل كود التفعيل." /> :
-      <div className="table-wrap"><table><thead><tr><th>العميل</th><th>الجهاز</th><th>النظام</th><th>آخر اتصال</th><th>الحالة</th><th /></tr></thead><tbody>{data.map((item) =>
-        <tr key={item.id}><td><strong>{item.customerName}</strong><small className="ltr">••••-{item.codeSuffix}</small></td><td>{item.model || "غير محدد"}<small>v{item.appVersion}</small></td><td>{item.platform}</td><td>{formatDate(item.lastSeenAt)}</td><td><Status value={item.status} /></td>
-          <td><Button variant={item.status === "active" ? "danger" : "ghost"} onClick={() => void toggle(item)}>{item.status === "active" ? "حظر" : "استعادة"}</Button></td></tr>)}</tbody></table></div>}
+  return <><PageHeader title="إعدادات التطبيق" description="التحكم في خيارات الترخيص العامة." />
+    {error ? <EmptyState title="تعذر تحميل الإعدادات" text={error} /> : !data ? <Loading /> : <section className="settings-panel"><div className="setting-row"><div><h2>التجربة المجانية لمدة 7 أيام</h2><p>عند تفعيلها يستطيع المستخدم بدء 168 ساعة من التطبيق. تثبيت التطبيق أو تسجيل Xtream لا يبدأ التجربة تلقائيًا.</p></div><button className={`switch ${data.trialEnabled ? "on" : ""}`} role="switch" aria-checked={data.trialEnabled} aria-label="التجربة المجانية" disabled={busy || !canManage} title={canManage ? undefined : "متاح للمالك والمدير فقط"} onClick={() => void toggle()}><span /></button></div>
+      <div className="setting-facts"><div><span>عدد الأجهزة</span><b>جهاز واحد لكل كود</b></div><div><span>العمل دون اتصال</span><b>حتى 72 ساعة</b></div><div><span>تحديث الترخيص</span><b>كل 12 ساعة عند الاستخدام</b></div></div></section>}
   </>;
 }
 
 export function AuditPage() {
   const { data, error } = useData(async () => (await api.auditLogs()).auditLogs);
-  const action: Record<string, string> = { "admin.login": "تسجيل دخول", "admin.logout": "تسجيل خروج", "customer.create": "إضافة عميل", "customer.update": "تحديث عميل", "host.create": "إضافة هوست", "host.update": "تحديث هوست", "provider_account.create": "ربط اشتراك", "provider_account.update": "تحديث اشتراك", "activation.create": "إنشاء كود", "activation.revoke": "إلغاء كود", "device.status": "تغيير جهاز" };
-  return <>
-    <PageHeader title="سجل العمليات" description="أثر تدقيقي للعمليات الإدارية الحساسة." />
-    {error ? <EmptyState title="تعذر تحميل السجل" text={error} /> : !data ? <Loading /> : data.length === 0 ? <EmptyState title="السجل فارغ" text="ستظهر العمليات الإدارية هنا تلقائيًا." /> :
-      <div className="timeline">{data.map((item: AuditLog) => <article key={item.id}><span className="timeline-dot" /><div><strong>{action[item.action] ?? item.action}</strong><p>{item.adminEmail || "النظام"} · {item.ipAddress || "—"}</p></div><time>{formatDate(item.createdAt)}</time></article>)}</div>}
+  const action: Record<string, string> = { "admin.login": "تسجيل دخول", "admin.logout": "تسجيل خروج", "activation.create": "إنشاء كود", "activation.revoke": "إلغاء كود", "activation.reset_device": "تغيير الجهاز", "settings.update": "تحديث الإعدادات" };
+  return <><PageHeader title="سجل العمليات" description="أثر تدقيقي للعمليات الإدارية الحساسة." />
+    {error ? <EmptyState title="تعذر تحميل السجل" text={error} /> : !data ? <Loading /> : data.length === 0 ? <EmptyState title="السجل فارغ" text="ستظهر العمليات الإدارية هنا تلقائيًا." /> : <div className="timeline">{data.map((item: AuditLog) => <article key={item.id}><span className="timeline-dot" /><div><strong>{action[item.action] ?? item.action}</strong><p>{item.adminEmail || "النظام"} · {item.ipAddress || "—"}</p></div><time>{formatDate(item.createdAt)}</time></article>)}</div>}
   </>;
 }
