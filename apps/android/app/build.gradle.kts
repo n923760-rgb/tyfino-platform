@@ -42,6 +42,8 @@ android {
         abortOnError = true
         checkReleaseBuilds = true
         warningsAsErrors = true
+        // Toolchain upgrades are reviewed deliberately; version availability is not a code defect.
+        disable += "AndroidGradlePluginVersion"
     }
 }
 
