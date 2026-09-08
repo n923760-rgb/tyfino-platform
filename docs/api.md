@@ -1,12 +1,12 @@
 # TYFINO Licensing API Contract v1
 
-Status: PROPOSED — awaiting explicit approval  
+Status: DECIDED — approved 2026-09-08  
 Last reviewed: 2026-09-08  
 Scope: application trial, paid activation, entitlement refresh, and licensing administration
 
 ## 1. Authority and boundary
 
-This document replaces the legacy provider-account API description. It proposes the smallest V1 API for TYFINO application licensing.
+This document replaces the legacy provider-account API description. It defines the smallest V1 API for TYFINO application licensing.
 
 The approved product rule remains:
 
@@ -22,7 +22,7 @@ The licensing API must never accept, validate, store, proxy, or return:
 
 The Android app communicates directly with the user's IPTV provider. Licensing authority belongs only to the TYFINO licensing service.
 
-This proposal does not authorize production deployment, DNS, database deletion, signing, release, or Android integration.
+Approval of this contract does not authorize production deployment, DNS, database deletion, signing, release, or Android integration.
 
 ## 2. Common transport rules
 
@@ -42,7 +42,7 @@ The service must:
 - return explicit non-success HTTP status codes for failure;
 - avoid revealing whether a guessed Activation Code exists.
 
-## 3. Proposed Android licensing endpoints
+## 3. Android licensing endpoints
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -55,7 +55,7 @@ There is no player configuration endpoint. In particular, the legacy `/v1/player
 
 ### 3.1 Installation envelope
 
-Each Android request contains only the proposed minimum licensing envelope:
+Each Android request contains only the minimum licensing envelope:
 
 ```json
 {
@@ -65,7 +65,7 @@ Each Android request contains only the proposed minimum licensing envelope:
 }
 ```
 
-Proposed rules:
+The following rules are **DECIDED**:
 
 - `installationId` is generated randomly by the app and is not a MAC address, advertising ID, serial number, IMEI, Android ID, IPTV username, or hardware fingerprint.
 - It is stored with Android platform-supported protected storage and is excluded from backups.
@@ -73,7 +73,7 @@ Proposed rules:
 - Raw identity values are not shown in routine Admin UI or ordinary logs.
 - Hardware attestation and Play Integrity are deferred until a measured abuse case justifies them.
 
-These rules are PROPOSED and require approval before implementation.
+
 
 ### 3.2 Start trial
 
@@ -93,7 +93,7 @@ Request:
 
 Success returns an entitlement envelope. The service commits the start exactly once for the eligible installation. A failed, timed-out, or uncommitted request does not consume trial time.
 
-Proposed lifecycle detail: seven days means exactly 168 hours from the server-recorded `startsAt`.
+The following lifecycle rule is **DECIDED**: seven days means exactly 168 hours from the server-recorded `startsAt`.
 
 ### 3.3 Activate
 
@@ -121,7 +121,7 @@ Activation must:
 - reject a different installation while the current binding remains active;
 - revoke older sessions after an authorized Admin device reset.
 
-Proposed duration details:
+The following duration rules are **DECIDED**:
 
 - **1 Year** expires exactly 365 days after the server-recorded activation time.
 - **Lifetime** has no time-based expiry but may be revoked by an authorized administrator for refund, fraud, abuse, or operational correction.
@@ -173,7 +173,7 @@ Rules:
 - Client clock changes and failed requests never extend offline use.
 - Administrative metadata is never returned.
 
-Proposed refresh behavior:
+The following refresh behavior is **DECIDED**:
 
 - refresh when the app becomes active if the last successful verification is older than 12 hours;
 - while the app remains active, do not refresh more often than once every 12 hours unless a user explicitly retries after a failure;
@@ -201,7 +201,7 @@ Before committing a result, Android must verify that:
 
 Cancellation is an efficiency mechanism, not the correctness check.
 
-## 5. Proposed Admin endpoints
+## 5. Admin endpoints
 
 Admin authentication and authorization are enforced server-side on every route.
 
@@ -221,7 +221,7 @@ Forbidden Admin routes include provider hosts, provider accounts, IPTV credentia
 
 ### 5.1 Create Activation Code
 
-Proposed request:
+Request:
 
 ```json
 {
@@ -237,7 +237,7 @@ Proposed request:
 
 `licenseKind` is `one_year` or `lifetime`.
 
-The plaintext Activation Code is returned exactly once. The proposed format encodes at least 128 bits from a cryptographically secure random generator using human-safe uppercase Base32 groups; normalization may remove separators and fold case but must reject all other transformations. Proposed storage uses a keyed server-side HMAC-SHA-256 digest plus a non-secret suffix for Admin identification. The HMAC key lives outside source control and outside the database.
+The plaintext Activation Code is returned exactly once. The format encodes at least 128 bits from a cryptographically secure random generator using human-safe uppercase Base32 groups; normalization may remove separators and fold case but must reject all other transformations. Storage uses a keyed server-side HMAC-SHA-256 digest plus a non-secret suffix for Admin identification. The HMAC key lives outside source control and outside the database.
 
 Administrative-only metadata must never enter Android responses.
 
@@ -253,7 +253,7 @@ Resetting a device must be an explicit POST action and must:
 - not alter paid duration or resurrect an expired/revoked license;
 - be idempotent when no binding exists.
 
-No fixed customer reset limit is proposed for V1; authorized administrators control resets and every reset is audited. Rate limiting still protects the endpoint from automated misuse.
+No fixed customer reset limit applies in V1; authorized administrators control resets and every reset is audited. Rate limiting still protects the endpoint from automated misuse.
 
 ## 6. Error contract
 
@@ -322,15 +322,15 @@ Before implementation is merged, automated tests must prove:
 
 Unexecuted checks are `SKIPPED` or `BLOCKED`, never `PASS`.
 
-## 9. Approval effects
+## 9. Decision effects
 
-Approving this proposal would:
+Approval of this contract:
 
-- make these routes and payload boundaries authoritative for the first backend remediation slice;
-- approve the explicitly labeled proposed duration, installation identity, refresh, Activation Code storage, and reset details;
-- authorize a separate implementation PR with tests.
+- makes these routes and payload boundaries authoritative for the first backend remediation slice;
+- makes the duration, installation identity, refresh, Activation Code storage, and reset details in this document mandatory;
+- authorizes a separate implementation PR with tests.
 
-Approval would not authorize:
+Approval does not authorize:
 
 - deleting or migrating a live database;
 - production deployment, DNS, secrets, signing, release, or distribution;
