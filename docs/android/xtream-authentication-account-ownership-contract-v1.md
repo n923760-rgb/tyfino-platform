@@ -18,7 +18,7 @@ Within Android IPTV authentication and account ownership, this contract override
 - Android V1 supports M3U or Stalker/MAC authentication;
 - Flutter is the Android client technology.
 
-Those statements remain legacy repository conflicts outside this atomic documentation task. This contract does not modify or migrate the existing backend.
+The general repository documents are aligned in the same documentation task. The existing backend and database implementation remain a known legacy mismatch; this contract does not modify or migrate them.
 
 ## 2. Product boundary
 
