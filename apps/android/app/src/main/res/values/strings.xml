@@ -8,4 +8,26 @@
     <string name="open_settings">Open settings placeholder</string>
     <string name="settings_title">Settings foundation</string>
     <string name="settings_description">This destination validates navigation and adaptive presentation only. It contains no production settings or business logic.</string>
+    <string name="licensing_title">Unlock TYFINO</string>
+    <string name="licensing_description">Start your 7-day free trial or activate the app now. Your IPTV account stays only on this device.</string>
+    <string name="start_trial">Start 7-Day Free Trial</string>
+    <string name="activate_now">Activate Now</string>
+    <string name="activation_code">Activation code</string>
+    <string name="activation_code_hint">TYF-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX</string>
+    <string name="activate">Activate</string>
+    <string name="back">Back</string>
+    <string name="retry">Try again</string>
+    <string name="licensing_checking">Checking your TYFINO license…</string>
+    <string name="licensing_working">Securing your license…</string>
+    <string name="licensing_error_title">License check unavailable</string>
+    <string name="licensing_error_default">Connect to the internet and try again.</string>
+    <string name="licensing_error_trial_used">The free trial has already been used on this installation.</string>
+    <string name="licensing_error_trial_unavailable">The free trial is currently unavailable. You can activate with a code.</string>
+    <string name="licensing_error_device_limit">This code is linked to another device. Contact support to reset it.</string>
+    <string name="licensing_error_activation">The activation code could not be accepted.</string>
+    <string name="licensing_error_expired">This license has expired.</string>
+    <string name="licensing_error_revoked">This license has been revoked.</string>
+    <string name="licensing_error_session">Your license session must be verified again.</string>
+    <string name="licensing_error_invalid_code">Enter a complete TYFINO activation code.</string>
+    <string name="licensing_privacy">TYFINO licensing never receives your IPTV host, username, password, catalog, or viewing history.</string>
 </resources>
