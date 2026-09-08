@@ -5,6 +5,7 @@ import android.provider.Settings
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.os.SystemClock
+import androidx.core.content.edit
 import java.security.KeyStore
 import java.util.UUID
 import javax.crypto.Cipher
@@ -88,7 +89,7 @@ internal class SecureLicensingStore(context: Context) : LicensingStore {
             cipher.init(Cipher.DECRYPT_MODE, secretKey(), GCMParameterSpec(128, iv))
             JSONObject(String(cipher.doFinal(encrypted), Charsets.UTF_8))
         }.getOrElse {
-            preferences.edit().remove(PAYLOAD).apply()
+            preferences.edit { remove(PAYLOAD) }
             null
         }
     }
@@ -101,7 +102,7 @@ internal class SecureLicensingStore(context: Context) : LicensingStore {
         val encrypted = android.util.Base64.encodeToString(
             cipher.doFinal(payload.toString().toByteArray(Charsets.UTF_8)), encoder,
         )
-        preferences.edit().putString(PAYLOAD, "$iv.$encrypted").apply()
+        preferences.edit { putString(PAYLOAD, "$iv.$encrypted") }
     }
 
     private fun secretKey(): SecretKey {
