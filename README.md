@@ -53,4 +53,4 @@ That legacy implementation is not approved for production use or Android integra
 
 Scoped approved contracts override general documents for their scope. Architecture and security documents override component READMEs. When documentation and implementation disagree, report the mismatch; do not silently change production behavior.
 
-Read `AGENTS.md` when present on the working branch, then read the relevant files under `docs/` before repository work.
+Read `AGENTS.md`, then read the relevant files under `docs/` before repository work.
