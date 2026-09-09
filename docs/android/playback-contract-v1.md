@@ -1,6 +1,6 @@
 # Android Playback Contract v1
 
-Status: **PROPOSED — awaiting explicit approval**  
+Status: **DECIDED — explicitly approved on 2026-09-09**  
 Scope: Android playback for Live TV and Movies from the single active Xtream account  
 Authoritative owners: active Account ID, credential generation, foreground playback session, and resume repository
 
