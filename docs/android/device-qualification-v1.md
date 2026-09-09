@@ -8,13 +8,15 @@ This document is the evidence ledger and compatibility backlog for the approved 
 
 | Surface | Configuration | Required evidence | Status |
 | --- | --- | --- | --- |
-| Compile and package | minSdk 24, target/compile SDK 37 | `assembleDebug` on CI | BLOCKED |
-| Repository unit suite | JVM tests for ownership, URI policy, resume, catalog, and previous channel | `testDebugUnitTest` on CI | BLOCKED |
-| Static Android checks | Debug variant with warnings as errors | `lintDebug` on CI | BLOCKED |
-| Compact phone runtime | Pixel 2 profile, AOSP API 27 | Managed-device `androidTest` | BLOCKED |
-| Large-screen runtime | Nexus 9 profile, AOSP API 35 | Managed-device `androidTest` | BLOCKED |
+| Compile and package | minSdk 24, target/compile SDK 37 | `assembleDebug` on CI | PASS |
+| Repository unit suite | JVM tests for ownership, URI policy, resume, catalog, and previous channel | `testDebugUnitTest` on CI | PASS |
+| Static Android checks | Debug variant with warnings as errors | `lintDebug` on CI | PASS |
+| Compact phone runtime | Pixel 2 profile, AOSP API 27 | Managed-device `androidTest` | PASS |
+| Large-screen runtime | Nexus 9 profile, AOSP API 35 | Managed-device `androidTest` | PASS |
 
 The two managed devices run from clean emulator state in GitHub Actions. API 27 is the lowest API supported by Android build-managed devices; it does not replace the required API 24-class physical-device check. The CI uses software rendering as required for headless servers.
+
+Recorded automated evidence: [Validate run 81](https://github.com/n923760-rgb/tyfino-platform/actions/runs/34392935134) on commit `04fcd50a8e5cafe039bfa9201d20268f67a8e07a`. All five automated rows above completed successfully. This evidence does not qualify any physical-device or real-media row below.
 
 ## Required physical and media qualification
 
