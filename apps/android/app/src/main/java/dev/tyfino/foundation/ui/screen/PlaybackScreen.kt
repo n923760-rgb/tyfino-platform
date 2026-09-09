@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -143,7 +144,7 @@ private fun PlayerSurface(
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
-    val displayLocale = context.resources.configuration.locales[0] ?: Locale.getDefault()
+    val displayLocale = LocalConfiguration.current.locales[0]
     val unknownAudio = stringResource(R.string.playback_unknown_audio)
     val unknownSubtitle = stringResource(R.string.playback_unknown_subtitle)
     var retryAttempt by remember { mutableIntStateOf(0) }
