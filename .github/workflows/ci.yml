@@ -93,8 +93,17 @@ jobs:
         run: ./gradlew --no-daemon :app:lintDebug
 
   android-instrumentation:
+    name: android-instrumentation (${{ matrix.device }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: phone-api-27
+            task: phoneApi27DebugAndroidTest
+          - device: tablet-api-35
+            task: tabletApi35DebugAndroidTest
     defaults:
       run:
         working-directory: apps/android
@@ -112,11 +121,7 @@ jobs:
         run: |
           test -e /dev/kvm
           sudo chmod 666 /dev/kvm
-      - name: Run API 27 phone instrumentation
+      - name: Run managed-device instrumentation
         run: >-
-          ./gradlew --no-daemon :app:phoneApi27DebugAndroidTest
-          -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
-      - name: Run API 35 tablet instrumentation
-        run: >-
-          ./gradlew --no-daemon :app:tabletApi35DebugAndroidTest
+          ./gradlew --no-daemon --stacktrace :app:${{ matrix.task }}
           -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
