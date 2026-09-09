@@ -43,6 +43,12 @@ import dev.tyfino.foundation.licensing.SecureLicensingStore
 import dev.tyfino.foundation.ui.screen.FoundationScreen
 import dev.tyfino.foundation.ui.screen.LicensingScreen
 import dev.tyfino.foundation.ui.screen.SettingsScreen
+import dev.tyfino.foundation.ui.screen.XtreamLoginScreen
+import dev.tyfino.foundation.xtream.HttpXtreamApi
+import dev.tyfino.foundation.xtream.SecureXtreamAccountStore
+import dev.tyfino.foundation.xtream.XtreamController
+import dev.tyfino.foundation.xtream.XtreamRepository
+import dev.tyfino.foundation.xtream.XtreamUiState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -55,6 +61,14 @@ internal fun TyfinoApp() {
                 api = HttpLicensingApi(BuildConfig.LICENSING_API_BASE_URL),
                 clock = AndroidLicenseClock(context),
                 appVersion = BuildConfig.VERSION_NAME,
+            ),
+        )
+    }
+    val xtreamController = remember {
+        XtreamController(
+            XtreamRepository(
+                store = SecureXtreamAccountStore(context),
+                api = HttpXtreamApi(context),
             ),
         )
     }
@@ -73,7 +87,7 @@ internal fun TyfinoApp() {
     }
 
     if (licensingState is LicensingUiState.Active) {
-        LicensedAppShell()
+        XtreamGate(xtreamController)
     } else {
         LicensingScreen(
             state = licensingState,
@@ -87,7 +101,34 @@ internal fun TyfinoApp() {
 }
 
 @Composable
-private fun LicensedAppShell() {
+private fun XtreamGate(controller: XtreamController) {
+    var state by remember { mutableStateOf(controller.state) }
+    val scope = rememberCoroutineScope()
+    val publish: (XtreamUiState) -> Unit = { state = it }
+
+    LaunchedEffect(controller) { controller.initialize(publish) }
+    DisposableEffect(controller) {
+        onDispose { controller.deactivate() }
+    }
+
+    if (state is XtreamUiState.SignedIn) {
+        LicensedAppShell(
+            onRemoveXtreamAccount = { scope.launch { controller.logout(publish) } },
+        )
+    } else {
+        XtreamLoginScreen(
+            state = state,
+            onSignIn = { input -> scope.launch { controller.signIn(input, publish) } },
+            onConfirmCleartext = {
+                scope.launch { controller.confirmCleartext(publish) }
+            },
+            onCancelCleartext = { controller.cancelCleartext(publish) },
+        )
+    }
+}
+
+@Composable
+private fun LicensedAppShell(onRemoveXtreamAccount: () -> Unit) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -123,6 +164,7 @@ private fun LicensedAppShell() {
                 navController = navController,
                 modifier = Modifier.padding(contentPadding),
                 onOpenSettings = { navigateTo(AppDestination.Settings) },
+                onRemoveXtreamAccount = onRemoveXtreamAccount,
             )
         }
     } else {
@@ -141,6 +183,7 @@ private fun LicensedAppShell() {
                     .weight(1f)
                     .padding(WindowInsets.safeDrawing.asPaddingValues()),
                 onOpenSettings = { navigateTo(AppDestination.Settings) },
+                onRemoveXtreamAccount = onRemoveXtreamAccount,
             )
         }
     }
@@ -151,6 +194,7 @@ private fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier,
     onOpenSettings: () -> Unit,
+    onRemoveXtreamAccount: () -> Unit,
 ) {
     NavHost(
         navController = navController,
@@ -161,7 +205,7 @@ private fun AppNavHost(
             FoundationScreen(onOpenSettings = onOpenSettings)
         }
         composable(AppDestination.Settings.route) {
-            SettingsScreen()
+            SettingsScreen(onRemoveXtreamAccount = onRemoveXtreamAccount)
         }
     }
 }
