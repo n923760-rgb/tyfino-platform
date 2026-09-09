@@ -62,6 +62,8 @@ internal enum class CatalogFailure {
     MalformedResponse,
     UnsupportedResponse,
     ResponseTooLarge,
+    LocalStorage,
+    Unknown,
 }
 
 internal sealed interface CatalogResult<out T> {
