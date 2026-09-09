@@ -37,6 +37,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
+import dev.tyfino.foundation.playback.ContinueWatchingItem
+import dev.tyfino.foundation.playback.MovieResumeListResult
+import dev.tyfino.foundation.playback.MovieResumePresentation
+import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.xtream.CatalogCategory
 import dev.tyfino.foundation.xtream.CatalogFailure
@@ -50,6 +54,7 @@ import kotlinx.coroutines.launch
 internal fun CatalogScreen(
     section: CatalogSection,
     repository: CatalogRepository,
+    resumeRepository: MovieResumeRepository,
     onPlay: (CatalogItem) -> Unit,
 ) {
     var categories by remember(section) {
@@ -60,7 +65,28 @@ internal fun CatalogScreen(
     var catalogItems by remember(section) {
         mutableStateOf<CatalogState<CatalogItem>>(CatalogState.Empty)
     }
+    var continueWatching by remember(section) {
+        mutableStateOf(emptyList<ContinueWatchingItem>())
+    }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(repository, resumeRepository, section, catalogItems) {
+        if (section != CatalogSection.Movies) {
+            continueWatching = emptyList()
+            return@LaunchedEffect
+        }
+        val resumeResult = resumeRepository.continueWatching()
+        if (resumeResult !is MovieResumeListResult.Ready) {
+            continueWatching = emptyList()
+            return@LaunchedEffect
+        }
+        val ids = resumeResult.records.mapTo(linkedSetOf()) { it.providerItemId }
+        val currentCatalog = repository.cachedItems(CatalogSection.Movies, ids)
+        continueWatching = MovieResumePresentation.assemble(
+            records = resumeResult.records,
+            currentCatalog = currentCatalog,
+        )
+    }
 
     LaunchedEffect(repository, section) {
         repository.categories(section, publish = { categories = it })
@@ -99,6 +125,10 @@ internal fun CatalogScreen(
                     }
                 },
             )
+        }
+
+        if (continueWatching.isNotEmpty()) {
+            ContinueWatchingStrip(continueWatching, onPlay)
         }
 
         CategoryStrip(
@@ -151,6 +181,38 @@ internal fun CatalogScreen(
             },
             modifier = Modifier.weight(1f),
         )
+    }
+}
+
+@Composable
+private fun ContinueWatchingStrip(
+    records: List<ContinueWatchingItem>,
+    onPlay: (CatalogItem) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.continue_watching_title),
+            style = MaterialTheme.typography.titleLarge,
+        )
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("continue-watching"),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(records, key = { it.catalogItem.providerId }) { record ->
+                val supporting = record.progressPercent?.let { percent ->
+                    stringResource(R.string.continue_watching_progress, percent)
+                } ?: stringResource(R.string.continue_watching_resume)
+                CatalogTile(
+                    label = record.catalogItem.name,
+                    supporting = supporting,
+                    selected = false,
+                    onClick = { onPlay(record.catalogItem) },
+                    modifier = Modifier.widthIn(min = 180.dp, max = 260.dp),
+                )
+            }
+        }
     }
 }
 

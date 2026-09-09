@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +59,9 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.BoundedRedirectDataSource
+import dev.tyfino.foundation.playback.MovieResumeLoadResult
+import dev.tyfino.foundation.playback.MovieResumePresentation
+import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.playback.PlaybackOperationGate
 import dev.tyfino.foundation.playback.PlaybackReferenceFailure
 import dev.tyfino.foundation.playback.PlaybackReferenceResult
@@ -66,15 +70,20 @@ import dev.tyfino.foundation.playback.PlaybackTrackLabel
 import dev.tyfino.foundation.playback.SecretPlaybackReference
 import dev.tyfino.foundation.playback.XtreamPlaybackReferenceBuilder
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.XtreamAccountStore
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
 internal fun PlaybackScreen(
     selection: PlaybackSelection,
     accountStore: XtreamAccountStore,
+    resumeRepository: MovieResumeRepository,
     onBack: () -> Unit,
 ) {
     val gate = remember { PlaybackOperationGate().also(PlaybackOperationGate::activateDestination) }
@@ -94,10 +103,19 @@ internal fun PlaybackScreen(
             if (account == null) {
                 PlaybackPreparation.Failure(PlaybackReferenceFailure.AccountChanged)
             } else {
+                val resumePositionMillis = if (selection.section == CatalogSection.Movies) {
+                    when (val resume = resumeRepository.load(selection)) {
+                        is MovieResumeLoadResult.Ready -> resume.record?.positionMillis
+                        is MovieResumeLoadResult.Failure -> null
+                    }
+                } else {
+                    null
+                }
                 when (val result = XtreamPlaybackReferenceBuilder.build(account, selection)) {
                     is PlaybackReferenceResult.Ready -> PlaybackPreparation.Ready(
                         reference = result.reference,
                         cleartextConsent = account.cleartextConsent,
+                        resumePositionMillis = resumePositionMillis,
                     )
                     is PlaybackReferenceResult.Failure -> PlaybackPreparation.Failure(result.reason)
                 }
@@ -131,6 +149,10 @@ internal fun PlaybackScreen(
         is PlaybackPreparation.Ready -> PlayerSurface(
             reference = state.reference,
             cleartextConsent = state.cleartextConsent,
+            selection = selection,
+            accountStore = accountStore,
+            resumeRepository = resumeRepository,
+            resumePositionMillis = state.resumePositionMillis,
             onBack = onBack,
         )
     }
@@ -140,10 +162,15 @@ internal fun PlaybackScreen(
 private fun PlayerSurface(
     reference: SecretPlaybackReference,
     cleartextConsent: Boolean,
+    selection: PlaybackSelection,
+    accountStore: XtreamAccountStore,
+    resumeRepository: MovieResumeRepository,
+    resumePositionMillis: Long?,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
     val displayLocale = LocalConfiguration.current.locales[0]
     val unknownAudio = stringResource(R.string.playback_unknown_audio)
     val unknownSubtitle = stringResource(R.string.playback_unknown_subtitle)
@@ -156,6 +183,64 @@ private fun PlayerSurface(
     var subtitleAutomatic by remember { mutableStateOf(true) }
     var subtitlesDisabled by remember { mutableStateOf(false) }
     var activeMenu by remember { mutableStateOf<TrackMenu?>(null) }
+    var restartPositionMillis by remember(reference) { mutableStateOf(resumePositionMillis) }
+    var hasStartedPlayer by remember(reference) { mutableStateOf(false) }
+    var exitRequested by remember { mutableStateOf(false) }
+
+    fun progressSnapshot(current: ExoPlayer): PlaybackProgressSnapshot? {
+        if (selection.section != CatalogSection.Movies) return null
+        val duration = current.duration.takeIf { it != C.TIME_UNSET && it > 0L }
+        val position = current.currentPosition
+            .coerceAtLeast(0L)
+            .let { value -> duration?.let(value::coerceAtMost) ?: value }
+        return PlaybackProgressSnapshot(position, duration)
+    }
+
+    fun persist(current: ExoPlayer, checkpoint: Boolean, surviveDisposal: Boolean = false) {
+        val snapshot = progressSnapshot(current) ?: return
+        restartPositionMillis = snapshot.positionMillis
+        val jobContext = if (surviveDisposal) {
+            NonCancellable + Dispatchers.IO
+        } else {
+            Dispatchers.IO
+        }
+        scope.launch(jobContext) {
+            if (checkpoint) {
+                resumeRepository.checkpoint(
+                    selection,
+                    snapshot.positionMillis,
+                    snapshot.durationMillis,
+                )
+            } else {
+                resumeRepository.saveImmediately(
+                    selection,
+                    snapshot.positionMillis,
+                    snapshot.durationMillis,
+                )
+            }
+        }
+    }
+
+    fun requestExit() {
+        if (exitRequested) return
+        exitRequested = true
+        val current = player
+        current?.playWhenReady = false
+        val snapshot = current?.let(::progressSnapshot)
+        scope.launch {
+            try {
+                snapshot?.let {
+                    resumeRepository.saveImmediately(
+                        selection,
+                        it.positionMillis,
+                        it.durationMillis,
+                    )
+                }
+            } finally {
+                onBack()
+            }
+        }
+    }
 
     fun refreshTracks(current: ExoPlayer, tracks: Tracks = current.currentTracks) {
         val parameters = current.trackSelectionParameters
@@ -210,18 +295,54 @@ private fun PlayerSurface(
             activeMenu = null
             audioTracks = emptyList()
             subtitleTracks = emptyList()
-            current?.release()
+            current?.let {
+                persist(it, checkpoint = false, surviveDisposal = true)
+                it.stop()
+                it.clearMediaItems()
+                it.release()
+            }
         }
         fun startPlayer() {
             if (player != null) return
             playbackFailed = false
+            val startPosition = restartPositionMillis
+            val autoPlay = !hasStartedPlayer
             player = createPlayer(
                 context = context,
                 reference = reference,
                 cleartextConsent = cleartextConsent,
+                waitForResume = startPosition != null,
+                autoPlay = autoPlay,
+                onReady = { current ->
+                    if (startPosition != null) {
+                        scope.launch {
+                            val activeAccount = withContext(Dispatchers.IO) { accountStore.load() }
+                            if (
+                                player === current &&
+                                activeAccount?.accountId == selection.accountId &&
+                                activeAccount.generation == selection.accountGeneration
+                            ) {
+                                val currentDuration = current.duration.takeIf {
+                                    it != C.TIME_UNSET && it > 0L
+                                }
+                                current.seekTo(
+                                    MovieResumePresentation.resumePosition(
+                                        startPosition,
+                                        currentDuration,
+                                    ),
+                                )
+                                current.playWhenReady = autoPlay
+                            }
+                        }
+                    }
+                },
+                onPause = { current ->
+                    if (!exitRequested) persist(current, checkpoint = false)
+                },
                 onFailure = { playbackFailed = true },
                 onTracksChanged = { current, tracks -> refreshTracks(current, tracks) },
             )
+            hasStartedPlayer = true
         }
 
         val observer = LifecycleEventObserver { _, event ->
@@ -241,11 +362,19 @@ private fun PlayerSurface(
         }
     }
 
+    LaunchedEffect(player, selection) {
+        while (true) {
+            delay(10_000)
+            val current = player
+            if (current?.isPlaying == true) persist(current, checkpoint = true)
+        }
+    }
+
     BackHandler {
         if (activeMenu != null) {
             activeMenu = null
         } else {
-            onBack()
+            requestExit()
         }
     }
 
@@ -269,7 +398,7 @@ private fun PlayerSurface(
         )
         FocusVisibleButton(
             label = stringResource(R.string.playback_back),
-            onClick = onBack,
+            onClick = ::requestExit,
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(WindowInsets.safeDrawing.asPaddingValues())
@@ -303,7 +432,7 @@ private fun PlayerSurface(
             PlaybackFailure(
                 message = R.string.playback_error_failed,
                 onRetry = { retryAttempt++ },
-                onBack = onBack,
+                onBack = ::requestExit,
                 modifier = Modifier.align(Alignment.Center),
             )
         }
@@ -428,6 +557,10 @@ private fun createPlayer(
     context: android.content.Context,
     reference: SecretPlaybackReference,
     cleartextConsent: Boolean,
+    waitForResume: Boolean,
+    autoPlay: Boolean,
+    onReady: (ExoPlayer) -> Unit,
+    onPause: (ExoPlayer) -> Unit,
     onFailure: () -> Unit,
     onTracksChanged: (ExoPlayer, Tracks) -> Unit,
 ): ExoPlayer {
@@ -443,13 +576,24 @@ private fun createPlayer(
                         onFailure()
                     }
 
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        if (playbackState == Player.STATE_READY) onReady(this@apply)
+                    }
+
+                    override fun onPlayWhenReadyChanged(
+                        playWhenReady: Boolean,
+                        reason: Int,
+                    ) {
+                        if (!playWhenReady) onPause(this@apply)
+                    }
+
                     override fun onTracksChanged(tracks: Tracks) {
                         onTracksChanged(this@apply, tracks)
                     }
                 },
             )
             setMediaItem(MediaItem.fromUri(reference.uri.toASCIIString()))
-            playWhenReady = true
+            playWhenReady = autoPlay && !waitForResume
             prepare()
         }
 }
@@ -568,12 +712,18 @@ private fun PlaybackReferenceFailure.messageResource(): Int = when (this) {
     PlaybackReferenceFailure.CleartextNotApproved -> R.string.playback_error_cleartext
 }
 
+private data class PlaybackProgressSnapshot(
+    val positionMillis: Long,
+    val durationMillis: Long?,
+)
+
 private sealed interface PlaybackPreparation {
     data object Loading : PlaybackPreparation
 
     class Ready(
         val reference: SecretPlaybackReference,
         val cleartextConsent: Boolean,
+        val resumePositionMillis: Long?,
     ) : PlaybackPreparation
 
     data class Failure(val reason: PlaybackReferenceFailure) : PlaybackPreparation

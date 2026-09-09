@@ -95,4 +95,7 @@
     <string name="playback_no_subtitles">لا توجد مسارات ترجمة مضمّنة ومدعومة.</string>
     <string name="playback_unknown_audio">مسار صوت</string>
     <string name="playback_unknown_subtitle">مسار ترجمة</string>
+    <string name="continue_watching_title">متابعة المشاهدة</string>
+    <string name="continue_watching_progress">تمت مشاهدة %1$d%%</string>
+    <string name="continue_watching_resume">متابعة الفيلم</string>
 </resources>
