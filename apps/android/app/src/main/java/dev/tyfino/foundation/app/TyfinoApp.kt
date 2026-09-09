@@ -40,7 +40,9 @@ import dev.tyfino.foundation.licensing.LicensingController
 import dev.tyfino.foundation.licensing.LicensingRepository
 import dev.tyfino.foundation.licensing.LicensingUiState
 import dev.tyfino.foundation.licensing.SecureLicensingStore
+import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.playback.PlaybackSelection
+import dev.tyfino.foundation.playback.SQLiteMovieResumeStore
 import dev.tyfino.foundation.ui.screen.PlaybackScreen
 import dev.tyfino.foundation.ui.screen.CatalogScreen
 import dev.tyfino.foundation.ui.screen.FoundationScreen
@@ -89,6 +91,12 @@ internal fun TyfinoApp() {
             store = SQLiteCatalogStore(context),
         )
     }
+    val movieResumeRepository = remember {
+        MovieResumeRepository(
+            accountStore = xtreamStore,
+            store = SQLiteMovieResumeStore(context),
+        )
+    }
     var licensingState by remember { mutableStateOf(controller.state) }
     val scope = rememberCoroutineScope()
     val publish: (LicensingUiState) -> Unit = { licensingState = it }
@@ -104,7 +112,7 @@ internal fun TyfinoApp() {
     }
 
     if (licensingState is LicensingUiState.Active) {
-        XtreamGate(xtreamController, catalogRepository, xtreamStore)
+        XtreamGate(xtreamController, catalogRepository, movieResumeRepository, xtreamStore)
     } else {
         LicensingScreen(
             state = licensingState,
@@ -121,6 +129,7 @@ internal fun TyfinoApp() {
 private fun XtreamGate(
     controller: XtreamController,
     catalogRepository: CatalogRepository,
+    movieResumeRepository: MovieResumeRepository,
     accountStore: XtreamAccountStore,
 ) {
     var state by remember { mutableStateOf(controller.state) }
@@ -139,9 +148,13 @@ private fun XtreamGate(
             onRemoveXtreamAccount = {
                 scope.launch {
                     try {
-                        catalogRepository.clearActiveAccount()
+                        movieResumeRepository.clearActiveAccount()
                     } finally {
-                        controller.logout(publish)
+                        try {
+                            catalogRepository.clearActiveAccount()
+                        } finally {
+                            controller.logout(publish)
+                        }
                     }
                 }
             },
