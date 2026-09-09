@@ -51,6 +51,23 @@ android {
         // Toolchain upgrades are reviewed deliberately; version availability is not a code defect.
         disable += "AndroidGradlePluginVersion"
     }
+
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("phoneApi27") {
+                    device = "Pixel 2"
+                    apiLevel = 27
+                    systemImageSource = "aosp"
+                }
+                create("tabletApi35") {
+                    device = "Nexus 9"
+                    apiLevel = 35
+                    systemImageSource = "aosp"
+                }
+            }
+        }
+    }
 }
 
 dependencies {
