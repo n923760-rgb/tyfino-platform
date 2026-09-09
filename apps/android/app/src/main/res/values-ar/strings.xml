@@ -89,6 +89,7 @@
     <string name="playback_error_cleartext">لم تتم الموافقة على التشغيل عبر HTTP لهذا الحساب.</string>
     <string name="playback_error_failed">توقف التشغيل. تحقق من الاتصال أو جرّب بثًا متوافقًا آخر.</string>
     <string name="playback_audio">الصوت</string>
+    <string name="playback_previous_live">القناة السابقة</string>
     <string name="playback_subtitles">الترجمة</string>
     <string name="playback_automatic">تلقائي</string>
     <string name="playback_off">إيقاف</string>
