@@ -6,15 +6,35 @@ internal enum class CatalogSection(
     val itemIdField: String,
     val artworkField: String,
 ) {
-    Live("get_live_categories", "get_live_streams", "stream_id", "stream_icon"),
-    Movies("get_vod_categories", "get_vod_streams", "stream_id", "stream_icon"),
-    Series("get_series_categories", "get_series", "series_id", "cover"),
+    Live(
+        categoriesAction = "get_live_categories",
+        itemsAction = "get_live_streams",
+        itemIdField = "stream_id",
+        artworkField = "stream_icon",
+    ),
+    Movies(
+        categoriesAction = "get_vod_categories",
+        itemsAction = "get_vod_streams",
+        itemIdField = "stream_id",
+        artworkField = "stream_icon",
+    ),
+    Series(
+        categoriesAction = "get_series_categories",
+        itemsAction = "get_series",
+        itemIdField = "series_id",
+        artworkField = "cover",
+    ),
 }
 
 internal sealed interface CatalogRequest {
     val section: CatalogSection
+
     data class Categories(override val section: CatalogSection) : CatalogRequest
-    data class Items(override val section: CatalogSection, val categoryId: String) : CatalogRequest
+
+    data class Items(
+        override val section: CatalogSection,
+        val categoryId: String,
+    ) : CatalogRequest
 }
 
 internal data class CatalogCategory(
@@ -47,6 +67,10 @@ internal enum class CatalogFailure {
 }
 
 internal sealed interface CatalogResult<out T> {
-    data class Success<T>(val records: List<T>, val skippedEntries: Int) : CatalogResult<T>
+    data class Success<T>(
+        val records: List<T>,
+        val skippedEntries: Int,
+    ) : CatalogResult<T>
+
     data class Failure(val reason: CatalogFailure) : CatalogResult<Nothing>
 }
