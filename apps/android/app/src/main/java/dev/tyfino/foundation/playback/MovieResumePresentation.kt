@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.playback
 
 import dev.tyfino.foundation.xtream.CatalogItem
+import kotlin.math.roundToInt
 
 internal data class ContinueWatchingItem(
     val catalogItem: CatalogItem,
@@ -13,31 +14,26 @@ internal object MovieResumePresentation {
         currentCatalog: List<CatalogItem>,
     ): List<ContinueWatchingItem> {
         val catalogById = currentCatalog.associateBy(CatalogItem::providerId)
-        return records.asSequence()
+        return records
+            .asSequence()
             .filter(MovieResumePolicy::isContinueWatching)
             .mapNotNull { record ->
                 catalogById[record.providerItemId]?.let { item ->
-                    ContinueWatchingItem(
-                        catalogItem = item,
-                        progressPercent = progressPercent(record),
-                    )
+                    ContinueWatchingItem(item, record.progressPercent())
                 }
             }
+            .distinctBy { it.catalogItem.providerId }
             .toList()
     }
 
-    fun resumePosition(savedPositionMillis: Long, currentDurationMillis: Long?): Long {
-        require(savedPositionMillis >= 0L)
-        return currentDurationMillis
-            ?.takeIf { it > 0L }
-            ?.let { duration -> savedPositionMillis.coerceAtMost(duration) }
-            ?: savedPositionMillis
-    }
+    fun resumePosition(savedPositionMillis: Long, currentDurationMillis: Long?): Long =
+        if (currentDurationMillis != null && currentDurationMillis > 0L) {
+            savedPositionMillis.coerceIn(0L, currentDurationMillis)
+        } else {
+            savedPositionMillis.coerceAtLeast(0L)
+        }
 
-    private fun progressPercent(record: MovieResumeRecord): Int? {
-        val duration = record.durationMillis?.takeIf { it > 0L } ?: return null
-        return ((record.positionMillis.toDouble() / duration.toDouble()) * 100.0)
-            .toInt()
-            .coerceIn(0, 94)
-    }
+    private fun MovieResumeRecord.progressPercent(): Int? = durationMillis
+        ?.takeIf { it > 0L }
+        ?.let { ((positionMillis.toDouble() / it) * 100.0).roundToInt().coerceIn(0, 94) }
 }

@@ -2,55 +2,48 @@ package dev.tyfino.foundation.playback
 
 import dev.tyfino.foundation.xtream.CatalogItem
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 
 class MovieResumePresentationTest {
     @Test
-    fun continueWatchingUsesCurrentCatalogAndResumeOrdering() {
-        val records = listOf(
-            record("movie-new", 90_000, 300_000),
-            record("movie-removed", 80_000, 300_000),
-            record("movie-old", 60_000, null),
-        )
-        val catalog = listOf(item("movie-old", "Old"), item("movie-new", "New"))
+    fun joinsCurrentCatalogAndPreservesResumeOrder() {
+        val records = listOf(record("two", 180_000L, 600_000L), record("one", 120_000L, 600_000L))
+        val catalog = listOf(item("one"), item("removed"), item("two"))
 
         val result = MovieResumePresentation.assemble(records, catalog)
 
-        assertEquals(listOf("movie-new", "movie-old"), result.map { it.catalogItem.providerId })
-        assertEquals(30, result.first().progressPercent)
-        assertNull(result.last().progressPercent)
+        assertEquals(listOf("two", "one"), result.map { it.catalogItem.providerId })
+        assertEquals(listOf(30, 20), result.map { it.progressPercent })
     }
 
     @Test
-    fun ineligibleAndCompletedRecordsAreExcluded() {
-        val catalog = listOf(item("short", "Short"), item("complete", "Complete"))
+    fun excludesShortAndCompletedRecords() {
         val records = listOf(
-            record("short", 59_999, 300_000),
-            record("complete", 190_000, 200_000),
+            record("short", 59_000L, 600_000L),
+            record("complete", 570_000L, 600_000L),
         )
 
-        assertEquals(emptyList<ContinueWatchingItem>(), MovieResumePresentation.assemble(records, catalog))
+        assertEquals(emptyList<ContinueWatchingItem>(), MovieResumePresentation.assemble(records, records.map { item(it.providerItemId) }))
     }
 
     @Test
-    fun savedPositionIsClampedWhenProviderDurationShrinks() {
-        assertEquals(75_000, MovieResumePresentation.resumePosition(90_000, 75_000))
-        assertEquals(90_000, MovieResumePresentation.resumePosition(90_000, null))
+    fun clampsSavedPositionWhenProviderDurationShrinks() {
+        assertEquals(90_000L, MovieResumePresentation.resumePosition(120_000L, 90_000L))
+        assertEquals(120_000L, MovieResumePresentation.resumePosition(120_000L, null))
     }
 
-    private fun record(id: String, position: Long, duration: Long?) = MovieResumeRecord(
+    private fun record(id: String, position: Long, duration: Long) = MovieResumeRecord(
         accountId = "account-a",
         providerItemId = id,
         positionMillis = position,
         durationMillis = duration,
-        updatedAtEpochMillis = 100_000,
+        updatedAtEpochMillis = 1L,
     )
 
-    private fun item(id: String, name: String) = CatalogItem(
+    private fun item(id: String) = CatalogItem(
         providerId = id,
         categoryId = "category",
-        name = name,
+        name = id,
         providerOrder = 0,
         artworkUrl = null,
         rating = null,

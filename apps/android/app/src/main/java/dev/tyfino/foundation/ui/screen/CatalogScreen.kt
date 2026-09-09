@@ -65,28 +65,8 @@ internal fun CatalogScreen(
     var catalogItems by remember(section) {
         mutableStateOf<CatalogState<CatalogItem>>(CatalogState.Empty)
     }
-    var continueWatching by remember(section) {
-        mutableStateOf(emptyList<ContinueWatchingItem>())
-    }
+    var continueWatching by remember(section) { mutableStateOf(emptyList<ContinueWatchingItem>()) }
     val scope = rememberCoroutineScope()
-
-    LaunchedEffect(repository, resumeRepository, section, catalogItems) {
-        if (section != CatalogSection.Movies) {
-            continueWatching = emptyList()
-            return@LaunchedEffect
-        }
-        val resumeResult = resumeRepository.continueWatching()
-        if (resumeResult !is MovieResumeListResult.Ready) {
-            continueWatching = emptyList()
-            return@LaunchedEffect
-        }
-        val ids = resumeResult.records.mapTo(linkedSetOf()) { it.providerItemId }
-        val currentCatalog = repository.cachedItems(CatalogSection.Movies, ids)
-        continueWatching = MovieResumePresentation.assemble(
-            records = resumeResult.records,
-            currentCatalog = currentCatalog,
-        )
-    }
 
     LaunchedEffect(repository, section) {
         repository.categories(section, publish = { categories = it })
@@ -97,6 +77,22 @@ internal fun CatalogScreen(
             catalogItems = CatalogState.Empty
         } else {
             repository.items(section, categoryId, publish = { catalogItems = it })
+        }
+    }
+    LaunchedEffect(repository, resumeRepository, section) {
+        continueWatching = if (section == CatalogSection.Movies) {
+            when (val result = resumeRepository.continueWatching()) {
+                is MovieResumeListResult.Ready -> {
+                    val ids = result.records.mapTo(linkedSetOf()) { it.providerItemId }
+                    MovieResumePresentation.assemble(
+                        records = result.records,
+                        currentCatalog = repository.cachedItems(section, ids),
+                    )
+                }
+                is MovieResumeListResult.Failure -> emptyList()
+            }
+        } else {
+            emptyList()
         }
     }
 
@@ -189,27 +185,27 @@ private fun ContinueWatchingStrip(
     records: List<ContinueWatchingItem>,
     onPlay: (CatalogItem) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.fillMaxWidth().testTag("continue-watching"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Text(
             text = stringResource(R.string.continue_watching_title),
             style = MaterialTheme.typography.titleLarge,
         )
         LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag("continue-watching"),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(records, key = { it.catalogItem.providerId }) { record ->
-                val supporting = record.progressPercent?.let { percent ->
-                    stringResource(R.string.continue_watching_progress, percent)
-                } ?: stringResource(R.string.continue_watching_resume)
                 CatalogTile(
                     label = record.catalogItem.name,
-                    supporting = supporting,
+                    supporting = record.progressPercent?.let {
+                        stringResource(R.string.continue_watching_progress, it)
+                    } ?: stringResource(R.string.continue_watching_resume),
                     selected = false,
                     onClick = { onPlay(record.catalogItem) },
-                    modifier = Modifier.widthIn(min = 180.dp, max = 260.dp),
+                    modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
                 )
             }
         }

@@ -90,7 +90,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
     ): List<CatalogItem> = synchronized(helper) {
         if (providerItemIds.isEmpty()) return@synchronized emptyList()
         val ids = providerItemIds.toList()
-        val placeholders = List(ids.size) { "?" }.joinToString(",")
+        val placeholders = ids.joinToString(",") { "?" }
         helper.readableDatabase.query(
             ITEM_TABLE,
             arrayOf(
@@ -103,7 +103,11 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                 RELEASE_YEAR,
                 CONTAINER_EXTENSION,
             ),
-            "$ACCOUNT_ID = ? AND $SECTION = ? AND $PROVIDER_ID IN ($placeholders)",
+            "$ACCOUNT_ID = ? AND $SECTION = ? AND $PROVIDER_ID IN ($placeholders) AND " +
+                "EXISTS (SELECT 1 FROM $CATEGORY_TABLE WHERE " +
+                "$CATEGORY_TABLE.$ACCOUNT_ID = $ITEM_TABLE.$ACCOUNT_ID AND " +
+                "$CATEGORY_TABLE.$SECTION = $ITEM_TABLE.$SECTION AND " +
+                "$CATEGORY_TABLE.$PROVIDER_ID = $ITEM_TABLE.$CATEGORY_ID)",
             arrayOf(accountId, section.name, *ids.toTypedArray()),
             null,
             null,
@@ -116,9 +120,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                             providerId = cursor.text(PROVIDER_ID),
                             categoryId = cursor.text(CATEGORY_ID),
                             name = cursor.text(DISPLAY_NAME),
-                            providerOrder = cursor.getInt(
-                                cursor.getColumnIndexOrThrow(PROVIDER_ORDER),
-                            ),
+                            providerOrder = cursor.getInt(cursor.getColumnIndexOrThrow(PROVIDER_ORDER)),
                             artworkUrl = cursor.nullableText(ARTWORK_URL),
                             rating = cursor.nullableText(RATING),
                             releaseYear = cursor.nullableText(RELEASE_YEAR),

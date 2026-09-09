@@ -15,6 +15,11 @@ internal data class CatalogSnapshot<T>(
 internal interface CatalogStore {
     fun loadCategories(accountId: String, section: CatalogSection): CatalogSnapshot<CatalogCategory>?
     fun loadItems(accountId: String, section: CatalogSection, categoryId: String): CatalogSnapshot<CatalogItem>?
+    fun loadItemsByProviderIds(
+        accountId: String,
+        section: CatalogSection,
+        providerItemIds: Set<String>,
+    ): List<CatalogItem> = emptyList()
     fun replaceCategories(
         accountId: String,
         section: CatalogSection,
@@ -27,12 +32,6 @@ internal interface CatalogStore {
         snapshot: CatalogSnapshot<CatalogItem>,
     )
     fun clearAccount(accountId: String)
-
-    fun loadItemsByProviderIds(
-        accountId: String,
-        section: CatalogSection,
-        providerItemIds: Set<String>,
-    ): List<CatalogItem> = emptyList()
 }
 
 internal interface CatalogClock {
@@ -104,29 +103,16 @@ internal class CatalogRepository(
         publish = publish,
     )
 
-    suspend fun clearActiveAccount() = withContext(Dispatchers.IO) {
-        mutex.withLock {
-            val accountId = accountStore.load()?.accountId ?: return@withLock
-            latestOperations.clear()
-            monotonicRefreshes.keys.removeAll { it.accountId == accountId }
-            store.clearAccount(accountId)
-        }
-    }
-
     suspend fun cachedItems(
         section: CatalogSection,
         providerItemIds: Set<String>,
     ): List<CatalogItem> = withContext(Dispatchers.IO) {
+        if (
+            providerItemIds.isEmpty() ||
+            providerItemIds.size > MAX_CACHED_ITEM_LOOKUP ||
+            providerItemIds.any { it.isBlank() || it.codePointCount(0, it.length) > MAX_PROVIDER_ID_CODE_POINTS }
+        ) return@withContext emptyList()
         mutex.withLock {
-            if (providerItemIds.isEmpty() || providerItemIds.size > MAX_CACHED_ITEM_LOOKUP) {
-                return@withLock emptyList()
-            }
-            if (providerItemIds.any { id ->
-                    id.isBlank() || id.codePointCount(0, id.length) > MAX_PROVIDER_ID_CODE_POINTS
-                }
-            ) {
-                return@withLock emptyList()
-            }
             val account = accountStore.load() ?: return@withLock emptyList()
             val records = runCatching {
                 store.loadItemsByProviderIds(account.accountId, section, providerItemIds)
@@ -135,10 +121,16 @@ internal class CatalogRepository(
             if (
                 current?.accountId != account.accountId ||
                 current.generation != account.generation
-            ) {
-                return@withLock emptyList()
-            }
-            records
+            ) emptyList() else records
+        }
+    }
+
+    suspend fun clearActiveAccount() = withContext(Dispatchers.IO) {
+        mutex.withLock {
+            val accountId = accountStore.load()?.accountId ?: return@withLock
+            latestOperations.clear()
+            monotonicRefreshes.keys.removeAll { it.accountId == accountId }
+            store.clearAccount(accountId)
         }
     }
 
