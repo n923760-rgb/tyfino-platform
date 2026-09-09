@@ -50,6 +50,7 @@ import kotlinx.coroutines.launch
 internal fun CatalogScreen(
     section: CatalogSection,
     repository: CatalogRepository,
+    onPlay: (CatalogItem) -> Unit,
 ) {
     var categories by remember(section) {
         mutableStateOf<CatalogState<CatalogCategory>>(CatalogState.Empty)
@@ -139,7 +140,9 @@ internal fun CatalogScreen(
 
         ItemContent(
             state = catalogItems,
+            section = section,
             hasSelection = selectedCategoryId != null,
+            onPlay = onPlay,
             onRetry = {
                 val categoryId = selectedCategoryId ?: return@ItemContent
                 scope.launch {
@@ -197,7 +200,9 @@ private fun Categories(
 @Composable
 private fun ItemContent(
     state: CatalogState<CatalogItem>,
+    section: CatalogSection,
     hasSelection: Boolean,
+    onPlay: (CatalogItem) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier,
 ) {
@@ -210,11 +215,11 @@ private fun ItemContent(
             is CatalogState.Error -> ErrorState(state.failure, onRetry)
             is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_items)
             is CatalogState.Content -> {
-                ItemGrid(state.records)
+                ItemGrid(state.records, section, onPlay)
                 if (state.isRefreshing) RefreshingNotice(Modifier.align(Alignment.TopCenter))
             }
             is CatalogState.StaleContent -> {
-                ItemGrid(state.records)
+                ItemGrid(state.records, section, onPlay)
                 StaleNotice(state.failure, Modifier.align(Alignment.TopCenter))
             }
         }
@@ -222,7 +227,11 @@ private fun ItemContent(
 }
 
 @Composable
-private fun ItemGrid(records: List<CatalogItem>) {
+private fun ItemGrid(
+    records: List<CatalogItem>,
+    section: CatalogSection,
+    onPlay: (CatalogItem) -> Unit,
+) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 168.dp),
         modifier = Modifier.fillMaxSize().testTag("catalog-items"),
@@ -234,7 +243,8 @@ private fun ItemGrid(records: List<CatalogItem>) {
                 label = item.name,
                 supporting = listOfNotNull(item.releaseYear, item.rating).joinToString(" • "),
                 selected = false,
-                onClick = {},
+                enabled = section != CatalogSection.Series,
+                onClick = { onPlay(item) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -248,10 +258,12 @@ private fun CatalogTile(
     onClick: () -> Unit,
     modifier: Modifier,
     supporting: String = "",
+    enabled: Boolean = true,
 ) {
     var focused by remember { mutableStateOf(false) }
     Card(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier
             .heightIn(min = 88.dp)
             .onFocusChanged { focused = it.isFocused }

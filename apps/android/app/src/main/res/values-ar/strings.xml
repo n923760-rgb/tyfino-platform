@@ -78,4 +78,11 @@
     <string name="catalog_error_too_large">يتجاوز هذا المحتوى الحد الآمن للجهاز.</string>
     <string name="catalog_error_storage">تعذر الوصول إلى المحتوى المحفوظ على هذا الجهاز.</string>
     <string name="catalog_error_unknown">تعذر تحميل المحتوى بشكل آمن.</string>
+    <string name="playback_back">العودة إلى المحتوى</string>
+    <string name="playback_loading">جارٍ تجهيز التشغيل…</string>
+    <string name="playback_retry">إعادة محاولة التشغيل</string>
+    <string name="playback_error_account">تغيّر حساب IPTV. ارجع إلى المحتوى ثم حاول مرة أخرى.</string>
+    <string name="playback_error_metadata">لا يحتوي هذا العنصر على بيانات تشغيل آمنة وصالحة.</string>
+    <string name="playback_error_cleartext">لم تتم الموافقة على التشغيل عبر HTTP لهذا الحساب.</string>
+    <string name="playback_error_failed">توقف التشغيل. تحقق من الاتصال أو جرّب بثًا متوافقًا آخر.</string>
 </resources>

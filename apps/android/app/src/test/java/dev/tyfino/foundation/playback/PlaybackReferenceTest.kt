@@ -136,6 +136,10 @@ class PlaybackReferenceTest {
         var published = false
         assertTrue(gate.commit(second, account()) { published = true })
         assertTrue(published)
+
+        var failurePublished = false
+        assertTrue(gate.commitFailure(second) { failurePublished = true })
+        assertTrue(failurePublished)
         gate.deactivateDestination()
         assertFalse(gate.isCurrent(second, account()))
     }
