@@ -36,6 +36,10 @@ internal fun FoundationScreen(onOpenSettings: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        Text(
+            text = stringResource(R.string.home_catalog_hint),
+            style = MaterialTheme.typography.titleMedium,
+        )
         FocusVisibleButton(
             label = stringResource(R.string.open_settings),
             onClick = onOpenSettings,

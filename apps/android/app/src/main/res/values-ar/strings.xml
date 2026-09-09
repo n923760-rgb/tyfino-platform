@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TYFINO Dev</string>
-    <string name="destination_foundation">الأساس</string>
+    <string name="destination_home">الرئيسية</string>
+    <string name="destination_live">البث المباشر</string>
+    <string name="destination_movies">الأفلام</string>
+    <string name="destination_series">المسلسلات</string>
     <string name="destination_settings">الإعدادات</string>
-    <string name="foundation_title">الأساس التقني لتطبيق TYFINO على أندرويد</string>
-    <string name="foundation_description">هيكل تطبيق خفيف ومتكيّف أُعِدّ للهواتف والأجهزة اللوحية والقابلة للطي وشاشات التلفاز والتحكم عن بُعد، مع نص عربي طويل للتأكد من الالتفاف السليم وعدم القص الكارثي. لن تُضاف خصائص المنتج إلا وفق العقود المعتمدة الخاصة بها.</string>
-    <string name="open_settings">فتح نموذج الإعدادات</string>
+    <string name="foundation_title">مرحبًا بك في TYFINO</string>
+    <string name="foundation_description">مشغل IPTV خفيف وسريع للهواتف والأجهزة اللوحية والقابلة للطي وAndroid TV وGoogle TV.</string>
+    <string name="home_catalog_hint">اختر البث المباشر أو الأفلام أو المسلسلات من قائمة التنقل.</string>
+    <string name="open_settings">فتح الإعدادات</string>
     <string name="settings_title">أساس الإعدادات</string>
     <string name="settings_description">هذه الوجهة مخصّصة للتحقق من التنقل والعرض المتكيّف فقط، ولا تحتوي على إعدادات إنتاجية أو منطق أعمال.</string>
     <string name="licensing_title">فعّل TYFINO</string>
@@ -54,4 +58,24 @@
     <string name="xtream_error_unsupported">استجابة هذا المزود غير مدعومة بشكل آمن.</string>
     <string name="xtream_logout">إزالة حساب IPTV</string>
     <string name="xtream_logout_description">يحذف حساب Xtream المشفر من هذا الجهاز، وستحتاج إلى إدخاله مرة أخرى.</string>
+    <string name="catalog_live_title">البث المباشر</string>
+    <string name="catalog_movies_title">الأفلام</string>
+    <string name="catalog_series_title">المسلسلات</string>
+    <string name="catalog_refresh">تحديث الأقسام</string>
+    <string name="catalog_refresh_items">تحديث المحتوى</string>
+    <string name="catalog_refreshing">جارٍ التحديث في الخلفية…</string>
+    <string name="catalog_loading">جارٍ تحميل المحتوى…</string>
+    <string name="catalog_choose_category">اختر قسمًا لعرض محتواه.</string>
+    <string name="catalog_no_categories">لا توجد أقسام متاحة.</string>
+    <string name="catalog_no_items">هذا القسم فارغ.</string>
+    <string name="catalog_stale">يتم عرض المحتوى المحفوظ. تعذر التحديث: %1$s</string>
+    <string name="catalog_error_network">لا يوجد اتصال إنترنت صالح حاليًا.</string>
+    <string name="catalog_error_timeout">استغرق المزود وقتًا طويلًا في الاستجابة.</string>
+    <string name="catalog_error_provider">تعذر الوصول إلى مزود الخدمة.</string>
+    <string name="catalog_error_authentication">أعد ربط حساب IPTV.</string>
+    <string name="catalog_error_malformed">أعاد المزود قائمة محتوى غير صالحة.</string>
+    <string name="catalog_error_unsupported">قائمة هذا المزود غير مدعومة بشكل آمن.</string>
+    <string name="catalog_error_too_large">يتجاوز هذا المحتوى الحد الآمن للجهاز.</string>
+    <string name="catalog_error_storage">تعذر الوصول إلى المحتوى المحفوظ على هذا الجهاز.</string>
+    <string name="catalog_error_unknown">تعذر تحميل المحتوى بشكل آمن.</string>
 </resources>
