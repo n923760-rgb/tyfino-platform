@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -276,33 +275,21 @@ private fun PlayerSurface(
                 .padding(12.dp),
         )
         if (player != null && !playbackFailed) {
-            Row(
+            Column(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(WindowInsets.safeDrawing.asPaddingValues())
                     .padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 FocusVisibleButton(
-                    label = stringResource(
-                        R.string.playback_track_summary,
-                        stringResource(R.string.playback_audio),
-                        audioTracks.selectedLabel()
-                            ?: stringResource(R.string.playback_automatic),
-                    ),
+                    label = stringResource(R.string.playback_audio),
                     onClick = { activeMenu = TrackMenu.Audio },
                     modifier = Modifier.testTag("playback-audio"),
                 )
                 FocusVisibleButton(
-                    label = stringResource(
-                        R.string.playback_track_summary,
-                        stringResource(R.string.playback_subtitles),
-                        when {
-                            subtitlesDisabled -> stringResource(R.string.playback_off)
-                            else -> subtitleTracks.selectedLabel()
-                                ?: stringResource(R.string.playback_automatic)
-                        },
-                    ),
+                    label = stringResource(R.string.playback_subtitles),
                     onClick = { activeMenu = TrackMenu.Subtitles },
                     modifier = Modifier.testTag("playback-subtitles"),
                 )
@@ -499,9 +486,6 @@ private fun Tracks.supportedOptions(
 
 private fun TrackSelectionParameters.isAutomatic(trackType: Int): Boolean =
     trackType !in disabledTrackTypes && overrides.values.none { it.type == trackType }
-
-private fun List<EmbeddedTrackOption>.selectedLabel(): String? =
-    firstOrNull(EmbeddedTrackOption::selected)?.label
 
 private fun selectionLabel(label: String, selected: Boolean, selectedSuffix: String): String =
     if (selected) "$label — $selectedSuffix" else label

@@ -91,7 +91,6 @@
     <string name="playback_off">Off</string>
     <string name="playback_close">Close</string>
     <string name="playback_selected">selected</string>
-    <string name="playback_track_summary">%1$s: %2$s</string>
     <string name="playback_no_audio">No supported embedded audio tracks are available.</string>
     <string name="playback_no_subtitles">No supported embedded subtitle tracks are available.</string>
     <string name="playback_unknown_audio">Audio track</string>

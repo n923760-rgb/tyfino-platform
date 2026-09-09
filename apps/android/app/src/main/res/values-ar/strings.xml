@@ -91,7 +91,6 @@
     <string name="playback_off">إيقاف</string>
     <string name="playback_close">إغلاق</string>
     <string name="playback_selected">محدد</string>
-    <string name="playback_track_summary">%1$s: %2$s</string>
     <string name="playback_no_audio">لا توجد مسارات صوت مضمّنة ومدعومة.</string>
     <string name="playback_no_subtitles">لا توجد مسارات ترجمة مضمّنة ومدعومة.</string>
     <string name="playback_unknown_audio">مسار صوت</string>
