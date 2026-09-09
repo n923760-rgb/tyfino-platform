@@ -1,9 +1,9 @@
 # Xtream Authentication & Account Ownership Contract v1
 
-Status: PROPOSED — awaiting approval  
+Status: DECIDED — approved for Android V1  
 Scope: TYFINO Android client  
 Version: 1.0  
-Last reviewed: 2026-09-08
+Last reviewed: 2026-09-09
 
 ## 1. Purpose and authority
 
@@ -49,11 +49,11 @@ The single IPTV account whose data may currently drive account-scoped UI and wor
 
 ### Account generation
 
-A monotonically changing ownership version associated with the authoritative active-account context. This is a behavioral concept; its concrete Kotlin representation remains **OPEN**.
+A monotonically changing ownership version associated with the authoritative active-account context. Android V1 represents it as a `Long` inside the immutable owner token defined in section 15.
 
 ### Operation identity
 
-An identity or version that distinguishes a currently authoritative operation from an older operation for the same account and generation. Its concrete representation remains **OPEN**.
+An identity or version that distinguishes a currently authoritative operation from an older operation for the same account and generation. Android V1 represents it as a monotonically increasing operation ID defined in section 15.
 
 ## 4. Account model
 
@@ -79,7 +79,7 @@ Account-scoped data includes, when implemented:
 - pending catalog, EPG, detail, and playback-related work;
 - last and previous live channel state.
 
-Multiple saved accounts in the user interface are **PROPOSED**. The isolation model is mandatory regardless of when that UI is introduced.
+Android V1 exposes exactly one saved active IPTV account. Multiple-account UI is **DEFERRED**. The stable Account ID and isolation model remain mandatory so later expansion cannot mix account-scoped data.
 
 ## 5. Authentication input
 
@@ -93,7 +93,7 @@ The following are **DECIDED**:
 - User-visible errors must not echo the password or a secret-bearing full URL.
 - Authentication begins only from an explicit user action; it must not run during application startup merely because the screen is displayed.
 
-Exact host canonicalization, accepted schemes, path handling, internationalized hosts, and duplicate matching are **OPEN**.
+The approved V1 host canonicalization and duplicate rules are defined in section 15.
 
 ## 6. Authentication result taxonomy
 
@@ -112,7 +112,7 @@ The result taxonomy and the rule against collapsing failures are **DECIDED**. Au
 
 Additional internal diagnostic detail may exist, but UI mapping must preserve the meaningful category and must redact sensitive values.
 
-Exact Xtream response-field mappings and provider compatibility exceptions are **OPEN** pending an evidence-based integration task.
+The approved V1 response mapping is defined in section 15. Unknown provider variants must return `Unsupported provider response`; they must not be guessed into a successful login.
 
 ## 7. Asynchronous ownership invariant
 
@@ -140,7 +140,7 @@ Required behavior:
 - Callbacks and player events introduced later must follow the same commit-time rule.
 - Licensing refreshes must validate their own licensing owner/version and must never use or mutate IPTV credential ownership.
 
-The exact implementation type—generation counter, immutable owner token, request token, reducer guard, or equivalent—is **OPEN**. The implementation must be explicit, inspectable, and race-testable.
+Android V1 uses the immutable ownership token defined in section 15. It must remain explicit, inspectable, and race-testable.
 
 ## 8. State ownership
 
@@ -153,7 +153,7 @@ The following are **DECIDED**:
 - Authentication success is not committed until the response is classified and ownership is revalidated.
 - Persisted active-account selection must never expose another account's scoped state during restoration.
 
-The exact ViewModel, reducer, repository, and persistence types remain **OPEN** until implementation design is approved.
+Concrete class names may follow the existing small Android module, but the ownership and persistence behavior in section 15 is mandatory.
 
 ## 9. Credential security and privacy
 
@@ -168,11 +168,11 @@ The following are **DECIDED**:
 - Account removal must prevent credentials and account-scoped state from leaking into another account.
 - Production endpoints and secrets must not be embedded in source control.
 
-The credential storage mechanism is **OPEN** and blocks persisted-account implementation.
+The approved Android V1 credential storage and recovery behavior is defined in section 15.
 
 ## 10. Transport policy
 
-TLS preference and the prohibition on silently weakening transport security are **DECIDED**. Whether TYFINO will support provider Hosts using cleartext HTTP is **OPEN**.
+TLS preference and the prohibition on silently weakening transport security are **DECIDED**. Android V1 may support a user-entered cleartext HTTP provider only under the explicit-consent policy in section 15.
 
 This decision is a blocking product/security decision because:
 
@@ -181,7 +181,7 @@ This decision is a blocking product/security decision because:
 - the Android foundation currently disables cleartext traffic;
 - per-domain exceptions cannot be known before the user supplies a Host.
 
-Implementation must not globally enable cleartext, add a permissive network-security configuration, or silently upgrade/downgrade schemes until this decision is approved.
+Implementation must never silently upgrade or downgrade schemes. Enabling platform cleartext capability is permitted only for the isolated provider client, while application code must continue rejecting cleartext for licensing and every non-provider destination.
 
 Certificate pinning, custom trust stores, hostname-verification bypasses, and acceptance of invalid certificates are **DEFERRED** and must not be introduced implicitly.
 
@@ -195,7 +195,7 @@ The following are **DECIDED**:
 - Network loss and timeout must remain distinguishable where evidence permits.
 - Work must run off the main thread without blocking first usable UI.
 
-Exact timeout durations, redirect policy, retry count, backoff, HTTP client, serializer, and connection-pool policy are **OPEN** and require official dependency review.
+The Android V1 network profile is defined in section 15 and introduces no new networking or serialization dependency.
 
 ## 12. Account switching and removal
 
@@ -209,7 +209,7 @@ The following are **DECIDED**:
 - Removal must target an exact stable Account ID.
 - Removal must not delete or alter another account whose username or host happens to match.
 
-Removal retention, undo, re-authentication, and partial-cache cleanup policies are **OPEN**.
+Android V1 logout/removal invalidates ownership synchronously, then deletes the encrypted credential payload and all implemented data for the exact Account ID. There is no undo; re-entry and authentication are required.
 
 ## 13. Performance requirements
 
@@ -243,7 +243,62 @@ Required automated coverage:
 
 Device/instrumentation coverage for lifecycle recreation, RTL, TV focus, and process restoration is required when the corresponding implementation exists.
 
-## 15. Decision register
+## 15. Approved Android V1 implementation profile
+
+The following profile is **DECIDED**:
+
+### Transport and explicit HTTP consent
+
+- `https://` is preferred and requires no transport warning.
+- `http://` is accepted only when the user entered that scheme and explicitly confirms a warning that the provider credentials and IPTV traffic are not encrypted in transit.
+- Consent is scoped to the exact canonical provider base URL and is stored inside the encrypted IPTV account payload.
+- No implicit scheme insertion, HTTP fallback, HTTPS downgrade, certificate-verification bypass, redirect, or provider-specific trust exception is allowed.
+- TYFINO licensing remains HTTPS-only. HTTP capability must never permit IPTV credentials to enter licensing, analytics, crash metadata, logs, or support exports.
+
+### Host validation and canonicalization
+
+- Surrounding whitespace is removed from the Host field only. Username and Password are preserved exactly.
+- The Host must be an absolute `http://` or `https://` URI with a non-empty DNS name, IPv4 address, or bracketed IPv6 address.
+- User-info, query, fragment, control characters, backslashes, and dot-segment paths are rejected.
+- Scheme and DNS host are lowercased; an internationalized DNS host is converted with the platform IDN ASCII conversion; default ports are removed.
+- A non-root provider base path is permitted, normalized without a trailing slash, and `player_api.php` is appended to that base path by the client.
+- Duplicate matching uses canonical provider base URL plus exact case-sensitive Username.
+
+### One-account update policy
+
+- A successful login matching the current canonical base URL and exact Username keeps its stable Account ID, replaces its encrypted credentials, and increments its generation.
+- A successful login for a different pair creates a new random Account ID, invalidates the prior ownership context, removes the prior account and implemented account-scoped state, then commits the new account.
+- Failed authentication never replaces the currently saved account.
+
+### Credential persistence and recovery
+
+- Host, Username, Password, HTTP consent, and Account ID are stored together in an AES-GCM payload protected by a non-exportable Android Keystore key.
+- The IPTV key alias and preferences namespace are separate from TYFINO licensing storage.
+- The payload is excluded from Android backup and must never be copied to another installation.
+- If the key is invalidated or the payload fails authenticated decryption or parsing, the payload is deleted and the user must sign in again. No plaintext recovery copy is retained.
+
+### Request and response profile
+
+- Authentication calls the canonical base path's `player_api.php` endpoint directly from Android.
+- Xtream Username and Password are percent-encoded as request parameters only for that provider request. The complete request URL is treated as secret and never logged, persisted, redirected, or surfaced in errors.
+- The platform `HttpURLConnection` is used off the main thread with an 8-second connect timeout, 12-second read timeout, redirects disabled, and a 256 KiB response limit.
+- Authentication has no automatic retry. The user may explicitly retry after a network-unavailable or timeout result.
+- HTTP `401` or `403`, or `user_info.auth` equal to numeric/string zero, maps to `Invalid credentials`.
+- `user_info.auth` must equal numeric/string one for a successful authentication candidate.
+- A case-insensitive `user_info.status` of `Active` maps to success; `Expired` maps to `Account expired`; and `Disabled`, `Banned`, or `Inactive` maps to `Account disabled`.
+- Invalid JSON, a non-object root, or missing required `user_info`, `auth`, or `status` maps to `Malformed provider response`.
+- A syntactically valid authenticated response with an unknown status or incompatible field type maps to `Unsupported provider response`.
+- HTTP transport failure with platform-confirmed no usable network maps to `Network unavailable`; bounded deadline exhaustion maps to `Timeout`; invalid URI or prohibited transport maps to `Invalid host`.
+- No catalog, categories, EPG, playlist, artwork, or stream request occurs inside the authentication transaction.
+
+### Ownership representation
+
+- The authoritative account owner contains `{accountId, generation}` where generation is a monotonically increasing `Long`.
+- Each login attempt also captures a monotonically increasing operation ID.
+- A result commits only when Account ID, generation, operation ID, and destination-active state still match under one serialized commit section.
+- Starting a newer attempt invalidates the prior operation ID. Logout, replacement, or removal invalidates generation before cancellation or cleanup.
+
+## 16. Decision register
 
 ### DECIDED
 
@@ -258,21 +313,17 @@ Device/instrumentation coverage for lifecycle recreation, RTL, TV focus, and pro
 - Sensitive-data logging prohibitions.
 - Bounded, explicit network behavior.
 - No startup-blocking authentication or catalog work.
+- HTTPS preference with explicit per-provider consent before HTTP.
+- One saved active account in the V1 UI.
+- Keystore-backed AES-GCM credential storage with fail-closed recovery.
+- Canonical host plus exact Username duplicate matching.
+- Platform networking with fixed timeouts, no redirects, and no automatic retry.
+- Immutable Account ID, generation, and operation-ID commit guard.
 
-### PROPOSED
+### OPEN
 
-- Multiple saved accounts exposed in the V1 user interface.
-
-### OPEN — must be resolved before implementation
-
-- Cleartext HTTP provider compatibility policy.
-- Android credential-storage mechanism and recovery behavior.
-- Host validation and canonicalization rules.
-- Duplicate-account matching and update policy.
-- Exact Xtream authentication response mapping and compatibility evidence.
-- HTTP client, serializer, timeout, redirect, and retry policy.
-- Concrete account-generation and operation-identity representation.
-- Account removal retention and cleanup semantics.
+- No implementation-blocking decisions remain for the scoped Android V1 authentication slice.
+- Provider-specific compatibility exceptions require future evidence and separate approval.
 
 ### DEFERRED
 
@@ -285,14 +336,14 @@ Device/instrumentation coverage for lifecycle recreation, RTL, TV focus, and pro
 - Certificate pinning or provider-specific trust exceptions.
 - Cloud sync, profiles, downloads, and recommendations.
 
-## 16. Implementation entry gate
+## 17. Implementation entry gate
 
 Once this contract is approved, the following entry gate is **DECIDED**.
 
 Xtream authentication implementation must not begin until:
 
 1. This contract is approved.
-2. Blocking OPEN decisions required by the selected implementation slice are resolved explicitly.
+2. No implementation-blocking OPEN decision remains for the selected slice.
 3. Dependencies and their stable versions are verified against official sources.
 4. A single atomic implementation scope and branch are defined.
 5. Tests for ownership races and error classification are designed before production code is committed.
