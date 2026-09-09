@@ -99,6 +99,7 @@ internal class SQLiteMovieResumeStore(context: Context) : MovieResumeStore {
                 "$ACCOUNT_ID = ? AND $SECTION = ?",
                 arrayOf(accountId, MOVIES_SECTION),
             )
+            Unit
         }
     }
 
