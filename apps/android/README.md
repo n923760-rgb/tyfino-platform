@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the first approved licensing-client slice. It intentionally contains no IPTV, Xtream, player, catalog, EPG, media, analytics, or provider-backend implementation.
+This directory contains the native Android client foundation, the approved licensing client, and the approved Xtream authentication slice. It intentionally contains no catalog, EPG, player, media, analytics, or provider-backend implementation.
 
 ## Implemented licensing slice
 
@@ -19,6 +19,19 @@ The production licensing origin remains OPEN. Development builds accept it only 
 ```
 
 Without that property, the UI remains usable but licensing network actions fail safely as unavailable.
+
+## Implemented Xtream authentication slice
+
+- Explicit Host, Username, and Password entry after TYFINO licensing succeeds.
+- Direct Android-to-provider authentication through the provider's `player_api.php` endpoint; IPTV credentials never enter TYFINO licensing.
+- HTTPS preferred. A user-entered HTTP provider requires an explicit interception-risk confirmation, with no automatic downgrade, redirect, or certificate bypass.
+- Strict host canonicalization, 8-second connect timeout, 12-second read timeout, 256 KiB response limit, and no automatic authentication retry.
+- Distinct invalid-host, offline, timeout, provider-unavailable, invalid-credential, expired, disabled, malformed, and unsupported result states.
+- One saved active IPTV account. Credentials and HTTP consent are encrypted in a separate AES-GCM payload protected by Android Keystore and excluded from backup.
+- Account ID, generation, and operation identity are checked at commit time so a stale completion cannot overwrite a newer login, logout, removal, or destination owner.
+- Account removal invalidates ownership before deleting the encrypted credential payload.
+
+Catalog, categories, EPG, playback URLs, and streams are not fetched by authentication and remain deferred.
 
 ## Foundation decisions
 
