@@ -13,21 +13,81 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dev.tyfino.foundation.BuildConfig
+import dev.tyfino.foundation.licensing.AndroidLicenseClock
+import dev.tyfino.foundation.licensing.HttpLicensingApi
+import dev.tyfino.foundation.licensing.LicensingController
+import dev.tyfino.foundation.licensing.LicensingRepository
+import dev.tyfino.foundation.licensing.LicensingUiState
+import dev.tyfino.foundation.licensing.SecureLicensingStore
 import dev.tyfino.foundation.ui.screen.FoundationScreen
+import dev.tyfino.foundation.ui.screen.LicensingScreen
 import dev.tyfino.foundation.ui.screen.SettingsScreen
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun TyfinoApp() {
+    val context = LocalContext.current.applicationContext
+    val controller = remember {
+        LicensingController(
+            LicensingRepository(
+                store = SecureLicensingStore(context),
+                api = HttpLicensingApi(BuildConfig.LICENSING_API_BASE_URL),
+                clock = AndroidLicenseClock(context),
+                appVersion = BuildConfig.VERSION_NAME,
+            ),
+        )
+    }
+    var licensingState by remember { mutableStateOf(controller.state) }
+    val scope = rememberCoroutineScope()
+    val publish: (LicensingUiState) -> Unit = { licensingState = it }
+
+    LaunchedEffect(controller) { controller.initialize(publish) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, controller) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) scope.launch { controller.onForeground(publish) }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    if (licensingState is LicensingUiState.Active) {
+        LicensedAppShell()
+    } else {
+        LicensingScreen(
+            state = licensingState,
+            onStartTrial = { scope.launch { controller.startTrial(publish) } },
+            onShowActivation = { controller.showActivation(publish) },
+            onBack = { controller.showChoice(publish) },
+            onActivate = { code -> scope.launch { controller.activate(code, publish) } },
+            onRetry = { scope.launch { controller.retry(publish) } },
+        )
+    }
+}
+
+@Composable
+private fun LicensedAppShell() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination

@@ -8,4 +8,26 @@
     <string name="open_settings">فتح نموذج الإعدادات</string>
     <string name="settings_title">أساس الإعدادات</string>
     <string name="settings_description">هذه الوجهة مخصّصة للتحقق من التنقل والعرض المتكيّف فقط، ولا تحتوي على إعدادات إنتاجية أو منطق أعمال.</string>
+    <string name="licensing_title">فعّل TYFINO</string>
+    <string name="licensing_description">ابدأ تجربتك المجانية لمدة 7 أيام أو فعّل التطبيق مباشرة. يبقى حساب IPTV على جهازك فقط.</string>
+    <string name="start_trial">ابدأ التجربة المجانية 7 أيام</string>
+    <string name="activate_now">التفعيل الآن</string>
+    <string name="activation_code">كود التفعيل</string>
+    <string name="activation_code_hint">TYF-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX</string>
+    <string name="activate">تفعيل</string>
+    <string name="back">رجوع</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="licensing_checking">جارٍ التحقق من ترخيص TYFINO…</string>
+    <string name="licensing_working">جارٍ تأمين الترخيص…</string>
+    <string name="licensing_error_title">تعذر التحقق من الترخيص</string>
+    <string name="licensing_error_default">اتصل بالإنترنت ثم حاول مرة أخرى.</string>
+    <string name="licensing_error_trial_used">سبق استخدام التجربة المجانية على هذا التثبيت.</string>
+    <string name="licensing_error_trial_unavailable">التجربة المجانية غير متاحة حاليًا. يمكنك التفعيل باستخدام كود.</string>
+    <string name="licensing_error_device_limit">هذا الكود مرتبط بجهاز آخر. تواصل مع الدعم لإعادة تعيينه.</string>
+    <string name="licensing_error_activation">تعذر قبول كود التفعيل.</string>
+    <string name="licensing_error_expired">انتهت صلاحية هذا الترخيص.</string>
+    <string name="licensing_error_revoked">تم إلغاء هذا الترخيص.</string>
+    <string name="licensing_error_session">يجب التحقق من جلسة الترخيص مرة أخرى.</string>
+    <string name="licensing_error_invalid_code">أدخل كود تفعيل TYFINO كاملًا.</string>
+    <string name="licensing_privacy">خدمة ترخيص TYFINO لا تستقبل الهوست أو اسم المستخدم أو كلمة المرور أو المحتوى أو سجل المشاهدة.</string>
 </resources>

@@ -1,6 +1,24 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation. It intentionally contains no IPTV, Xtream, player, licensing, activation, networking, persistence, analytics, or backend implementation.
+This directory contains the native Android client foundation and the first approved licensing-client slice. It intentionally contains no IPTV, Xtream, player, catalog, EPG, media, analytics, or provider-backend implementation.
+
+## Implemented licensing slice
+
+- Explicit **Start 7-Day Free Trial** and **Activate Now** entry points; opening or installing the app never starts the trial.
+- Random opaque installation identity and entitlement/session storage encrypted with Android Keystore and excluded from backup.
+- HTTPS-only calls to the approved `/v1/licensing/*` contract, with bounded timeouts, response size, retry count, exponential delay, and jitter.
+- One authoritative operation generation per action so stale network results cannot overwrite newer intent.
+- Server-time entitlement evaluation, 12-hour refresh scheduling, and a maximum 72-hour offline window. Offline access fails closed after a reboot until the server can verify the session, preventing device-clock rollback from extending access.
+- Activation Codes are normalized locally, sent only to the activation endpoint, cleared from UI state immediately, and never persisted or logged.
+- No IPTV Host, Username, Password, catalog, stream URL, or viewing data crosses the licensing boundary.
+
+The production licensing origin remains OPEN. Development builds accept it only as an explicit Gradle property:
+
+```shell
+./gradlew :app:assembleDebug -PTYFINO_LICENSING_API_BASE_URL=https://approved-origin.example
+```
+
+Without that property, the UI remains usable but licensing network actions fail safely as unavailable.
 
 ## Foundation decisions
 
@@ -52,4 +70,4 @@ An Android SDK and JDK 17 are required. Instrumentation smoke tests live under `
 
 ## Deferred contracts
 
-Player, Xtream, authentication, licensing, persistence/security, TV screen focus, release, and full testing contracts remain deferred until their respective scoped work begins. This foundation must not be used to infer those designs.
+Player, Xtream, IPTV-account persistence/security, full TV focus qualification, release, and full testing contracts remain deferred until their respective scoped work begins. This foundation must not be used to infer those designs.
