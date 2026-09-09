@@ -96,8 +96,13 @@ internal class XtreamOperationGate {
             destinationEpoch == owner.destinationEpoch
 
     @Synchronized
-    fun commit(owner: XtreamOperationOwner, committedGeneration: Long): Boolean {
+    fun commit(
+        owner: XtreamOperationOwner,
+        committedGeneration: Long,
+        persist: () -> Unit,
+    ): Boolean {
         if (!isCurrent(owner)) return false
+        persist()
         generation = committedGeneration
         candidateAccountId = owner.accountId
         return true

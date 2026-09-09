@@ -65,8 +65,7 @@ internal class XtreamRepository(
                             password = password,
                             cleartextConsent = cleartextConsent,
                         )
-                        store.save(account)
-                        if (!gate.commit(prepared.owner, nextGeneration)) {
+                        if (!gate.commit(prepared.owner, nextGeneration) { store.save(account) }) {
                             return@withLock XtreamOutcome.Stale
                         }
                         XtreamOutcome.Authenticated(account.summary())
@@ -77,10 +76,12 @@ internal class XtreamRepository(
         }
     }
 
-    suspend fun logout() = withContext(Dispatchers.IO) {
-        commitMutex.withLock {
-            gate.invalidateAccount()
-            store.clear()
+    suspend fun logout() {
+        gate.invalidateAccount()
+        withContext(Dispatchers.IO) {
+            commitMutex.withLock {
+                store.clear()
+            }
         }
     }
 
