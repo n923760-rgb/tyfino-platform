@@ -68,6 +68,9 @@
     <string name="catalog_choose_category">اختر قسمًا لعرض محتواه.</string>
     <string name="catalog_no_categories">لا توجد أقسام متاحة.</string>
     <string name="catalog_no_items">هذا القسم فارغ.</string>
+    <string name="continue_watching_title">متابعة المشاهدة</string>
+    <string name="continue_watching_progress">تمت مشاهدة %1$d%%</string>
+    <string name="continue_watching_resume">استئناف</string>
     <string name="catalog_stale">يتم عرض المحتوى المحفوظ. تعذر التحديث: %1$s</string>
     <string name="catalog_error_network">لا يوجد اتصال إنترنت صالح حاليًا.</string>
     <string name="catalog_error_timeout">استغرق المزود وقتًا طويلًا في الاستجابة.</string>

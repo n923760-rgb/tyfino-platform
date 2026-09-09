@@ -15,6 +15,11 @@ internal data class CatalogSnapshot<T>(
 internal interface CatalogStore {
     fun loadCategories(accountId: String, section: CatalogSection): CatalogSnapshot<CatalogCategory>?
     fun loadItems(accountId: String, section: CatalogSection, categoryId: String): CatalogSnapshot<CatalogItem>?
+    fun loadItemsByProviderIds(
+        accountId: String,
+        section: CatalogSection,
+        providerItemIds: Set<String>,
+    ): List<CatalogItem> = emptyList()
     fun replaceCategories(
         accountId: String,
         section: CatalogSection,
@@ -97,6 +102,28 @@ internal class CatalogRepository(
         replace = { accountId, snapshot -> store.replaceItems(accountId, section, categoryId, snapshot) },
         publish = publish,
     )
+
+    suspend fun cachedItems(
+        section: CatalogSection,
+        providerItemIds: Set<String>,
+    ): List<CatalogItem> = withContext(Dispatchers.IO) {
+        if (
+            providerItemIds.isEmpty() ||
+            providerItemIds.size > MAX_CACHED_ITEM_LOOKUP ||
+            providerItemIds.any { it.isBlank() || it.codePointCount(0, it.length) > MAX_PROVIDER_ID_CODE_POINTS }
+        ) return@withContext emptyList()
+        mutex.withLock {
+            val account = accountStore.load() ?: return@withLock emptyList()
+            val records = runCatching {
+                store.loadItemsByProviderIds(account.accountId, section, providerItemIds)
+            }.getOrElse { return@withLock emptyList() }
+            val current = accountStore.load()
+            if (
+                current?.accountId != account.accountId ||
+                current.generation != account.generation
+            ) emptyList() else records
+        }
+    }
 
     suspend fun clearActiveAccount() = withContext(Dispatchers.IO) {
         mutex.withLock {
@@ -229,5 +256,7 @@ internal class CatalogRepository(
     private companion object {
         const val CATEGORY_FRESHNESS_MILLIS = 12L * 60L * 60L * 1_000L
         const val ITEM_FRESHNESS_MILLIS = 6L * 60L * 60L * 1_000L
+        const val MAX_CACHED_ITEM_LOOKUP = 200
+        const val MAX_PROVIDER_ID_CODE_POINTS = 256
     }
 }

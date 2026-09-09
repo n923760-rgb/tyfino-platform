@@ -37,6 +37,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
+import dev.tyfino.foundation.playback.ContinueWatchingItem
+import dev.tyfino.foundation.playback.MovieResumeListResult
+import dev.tyfino.foundation.playback.MovieResumePresentation
+import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.xtream.CatalogCategory
 import dev.tyfino.foundation.xtream.CatalogFailure
@@ -50,6 +54,7 @@ import kotlinx.coroutines.launch
 internal fun CatalogScreen(
     section: CatalogSection,
     repository: CatalogRepository,
+    resumeRepository: MovieResumeRepository,
     onPlay: (CatalogItem) -> Unit,
 ) {
     var categories by remember(section) {
@@ -60,6 +65,7 @@ internal fun CatalogScreen(
     var catalogItems by remember(section) {
         mutableStateOf<CatalogState<CatalogItem>>(CatalogState.Empty)
     }
+    var continueWatching by remember(section) { mutableStateOf(emptyList<ContinueWatchingItem>()) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(repository, section) {
@@ -71,6 +77,22 @@ internal fun CatalogScreen(
             catalogItems = CatalogState.Empty
         } else {
             repository.items(section, categoryId, publish = { catalogItems = it })
+        }
+    }
+    LaunchedEffect(repository, resumeRepository, section) {
+        continueWatching = if (section == CatalogSection.Movies) {
+            when (val result = resumeRepository.continueWatching()) {
+                is MovieResumeListResult.Ready -> {
+                    val ids = result.records.mapTo(linkedSetOf()) { it.providerItemId }
+                    MovieResumePresentation.assemble(
+                        records = result.records,
+                        currentCatalog = repository.cachedItems(section, ids),
+                    )
+                }
+                is MovieResumeListResult.Failure -> emptyList()
+            }
+        } else {
+            emptyList()
         }
     }
 
@@ -99,6 +121,10 @@ internal fun CatalogScreen(
                     }
                 },
             )
+        }
+
+        if (continueWatching.isNotEmpty()) {
+            ContinueWatchingStrip(continueWatching, onPlay)
         }
 
         CategoryStrip(
@@ -151,6 +177,38 @@ internal fun CatalogScreen(
             },
             modifier = Modifier.weight(1f),
         )
+    }
+}
+
+@Composable
+private fun ContinueWatchingStrip(
+    records: List<ContinueWatchingItem>,
+    onPlay: (CatalogItem) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth().testTag("continue-watching"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.continue_watching_title),
+            style = MaterialTheme.typography.titleLarge,
+        )
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(records, key = { it.catalogItem.providerId }) { record ->
+                CatalogTile(
+                    label = record.catalogItem.name,
+                    supporting = record.progressPercent?.let {
+                        stringResource(R.string.continue_watching_progress, it)
+                    } ?: stringResource(R.string.continue_watching_resume),
+                    selected = false,
+                    onClick = { onPlay(record.catalogItem) },
+                    modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
+                )
+            }
+        }
     }
 }
 

@@ -83,6 +83,55 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
         CatalogSnapshot(metadata.generation, metadata.refreshedAtMillis, records)
     }
 
+    override fun loadItemsByProviderIds(
+        accountId: String,
+        section: CatalogSection,
+        providerItemIds: Set<String>,
+    ): List<CatalogItem> = synchronized(helper) {
+        if (providerItemIds.isEmpty()) return@synchronized emptyList()
+        val ids = providerItemIds.toList()
+        val placeholders = ids.joinToString(",") { "?" }
+        helper.readableDatabase.query(
+            ITEM_TABLE,
+            arrayOf(
+                CATEGORY_ID,
+                PROVIDER_ID,
+                DISPLAY_NAME,
+                PROVIDER_ORDER,
+                ARTWORK_URL,
+                RATING,
+                RELEASE_YEAR,
+                CONTAINER_EXTENSION,
+            ),
+            "$ACCOUNT_ID = ? AND $SECTION = ? AND $PROVIDER_ID IN ($placeholders) AND " +
+                "EXISTS (SELECT 1 FROM $CATEGORY_TABLE WHERE " +
+                "$CATEGORY_TABLE.$ACCOUNT_ID = $ITEM_TABLE.$ACCOUNT_ID AND " +
+                "$CATEGORY_TABLE.$SECTION = $ITEM_TABLE.$SECTION AND " +
+                "$CATEGORY_TABLE.$PROVIDER_ID = $ITEM_TABLE.$CATEGORY_ID)",
+            arrayOf(accountId, section.name, *ids.toTypedArray()),
+            null,
+            null,
+            "$PROVIDER_ORDER ASC",
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(
+                        CatalogItem(
+                            providerId = cursor.text(PROVIDER_ID),
+                            categoryId = cursor.text(CATEGORY_ID),
+                            name = cursor.text(DISPLAY_NAME),
+                            providerOrder = cursor.getInt(cursor.getColumnIndexOrThrow(PROVIDER_ORDER)),
+                            artworkUrl = cursor.nullableText(ARTWORK_URL),
+                            rating = cursor.nullableText(RATING),
+                            releaseYear = cursor.nullableText(RELEASE_YEAR),
+                            containerExtension = cursor.nullableText(CONTAINER_EXTENSION),
+                        ),
+                    )
+                }
+            }.distinctBy(CatalogItem::providerId)
+        }
+    }
+
     override fun replaceCategories(
         accountId: String,
         section: CatalogSection,

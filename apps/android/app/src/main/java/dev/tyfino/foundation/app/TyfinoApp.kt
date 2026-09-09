@@ -144,6 +144,7 @@ private fun XtreamGate(
     if (state is XtreamUiState.SignedIn) {
         LicensedAppShell(
             catalogRepository = catalogRepository,
+            movieResumeRepository = movieResumeRepository,
             accountStore = accountStore,
             onRemoveXtreamAccount = {
                 scope.launch {
@@ -174,6 +175,7 @@ private fun XtreamGate(
 @Composable
 private fun LicensedAppShell(
     catalogRepository: CatalogRepository,
+    movieResumeRepository: MovieResumeRepository,
     accountStore: XtreamAccountStore,
     onRemoveXtreamAccount: () -> Unit,
 ) {
@@ -206,6 +208,7 @@ private fun LicensedAppShell(
             navController = navController,
             modifier = modifier,
             catalogRepository = catalogRepository,
+            movieResumeRepository = movieResumeRepository,
             accountStore = accountStore,
             playbackSelection = playbackSelection,
             onPlay = play,
@@ -256,6 +259,7 @@ private fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier,
     catalogRepository: CatalogRepository,
+    movieResumeRepository: MovieResumeRepository,
     accountStore: XtreamAccountStore,
     playbackSelection: PlaybackSelection?,
     onPlay: (CatalogSection, CatalogItem) -> Unit,
@@ -275,6 +279,7 @@ private fun AppNavHost(
             CatalogScreen(
                 section = CatalogSection.Live,
                 repository = catalogRepository,
+                resumeRepository = movieResumeRepository,
                 onPlay = { item -> onPlay(CatalogSection.Live, item) },
             )
         }
@@ -282,6 +287,7 @@ private fun AppNavHost(
             CatalogScreen(
                 section = CatalogSection.Movies,
                 repository = catalogRepository,
+                resumeRepository = movieResumeRepository,
                 onPlay = { item -> onPlay(CatalogSection.Movies, item) },
             )
         }
@@ -289,6 +295,7 @@ private fun AppNavHost(
             CatalogScreen(
                 section = CatalogSection.Series,
                 repository = catalogRepository,
+                resumeRepository = movieResumeRepository,
                 onPlay = {},
             )
         }
@@ -306,6 +313,7 @@ private fun AppNavHost(
                 PlaybackScreen(
                     selection = selection,
                     accountStore = accountStore,
+                    resumeRepository = movieResumeRepository,
                     onBack = { navController.popBackStack() },
                 )
             }

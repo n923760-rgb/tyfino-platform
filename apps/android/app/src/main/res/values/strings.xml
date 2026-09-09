@@ -68,6 +68,9 @@
     <string name="catalog_choose_category">Choose a category to view its content.</string>
     <string name="catalog_no_categories">No categories are available.</string>
     <string name="catalog_no_items">This category is empty.</string>
+    <string name="continue_watching_title">Continue Watching</string>
+    <string name="continue_watching_progress">%1$d%% watched</string>
+    <string name="continue_watching_resume">Resume</string>
     <string name="catalog_stale">Showing saved content. Refresh failed: %1$s</string>
     <string name="catalog_error_network">No usable internet connection is available.</string>
     <string name="catalog_error_timeout">The provider took too long to respond.</string>
