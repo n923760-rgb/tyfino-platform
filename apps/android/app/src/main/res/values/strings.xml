@@ -78,4 +78,11 @@
     <string name="catalog_error_too_large">This catalog exceeds the safe device limit.</string>
     <string name="catalog_error_storage">Saved content could not be accessed on this device.</string>
     <string name="catalog_error_unknown">The catalog could not be loaded safely.</string>
+    <string name="playback_back">Back to catalog</string>
+    <string name="playback_loading">Preparing playback…</string>
+    <string name="playback_retry">Retry playback</string>
+    <string name="playback_error_account">The IPTV account changed. Return to the catalog and try again.</string>
+    <string name="playback_error_metadata">This item does not have safe playable metadata.</string>
+    <string name="playback_error_cleartext">Playback over HTTP has not been approved for this account.</string>
+    <string name="playback_error_failed">Playback stopped. Check your connection or try another compatible stream.</string>
 </resources>

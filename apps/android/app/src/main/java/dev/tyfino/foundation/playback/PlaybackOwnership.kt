@@ -41,13 +41,16 @@ internal class PlaybackOperationGate {
 
     @Synchronized
     fun isCurrent(owner: PlaybackOperationOwner, activeAccount: SavedXtreamAccount?): Boolean =
+        ownsOperation(owner) &&
+            activeAccount?.accountId == owner.accountId &&
+            activeAccount.generation == owner.accountGeneration
+
+    private fun ownsOperation(owner: PlaybackOperationOwner): Boolean =
         acceptingResults &&
             expectedAccountId == owner.accountId &&
             expectedAccountGeneration == owner.accountGeneration &&
             operationId == owner.operationId &&
-            destinationEpoch == owner.destinationEpoch &&
-            activeAccount?.accountId == owner.accountId &&
-            activeAccount.generation == owner.accountGeneration
+            destinationEpoch == owner.destinationEpoch
 
     @Synchronized
     fun commit(
@@ -56,6 +59,16 @@ internal class PlaybackOperationGate {
         publish: () -> Unit,
     ): Boolean {
         if (!isCurrent(owner, activeAccount)) return false
+        publish()
+        return true
+    }
+
+    @Synchronized
+    fun commitFailure(
+        owner: PlaybackOperationOwner,
+        publish: () -> Unit,
+    ): Boolean {
+        if (!ownsOperation(owner)) return false
         publish()
         return true
     }

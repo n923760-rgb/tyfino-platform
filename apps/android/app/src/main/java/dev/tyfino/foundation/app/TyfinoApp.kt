@@ -40,17 +40,21 @@ import dev.tyfino.foundation.licensing.LicensingController
 import dev.tyfino.foundation.licensing.LicensingRepository
 import dev.tyfino.foundation.licensing.LicensingUiState
 import dev.tyfino.foundation.licensing.SecureLicensingStore
+import dev.tyfino.foundation.playback.PlaybackSelection
+import dev.tyfino.foundation.ui.screen.PlaybackScreen
 import dev.tyfino.foundation.ui.screen.CatalogScreen
 import dev.tyfino.foundation.ui.screen.FoundationScreen
 import dev.tyfino.foundation.ui.screen.LicensingScreen
 import dev.tyfino.foundation.ui.screen.SettingsScreen
 import dev.tyfino.foundation.ui.screen.XtreamLoginScreen
+import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.CatalogRepository
 import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.HttpXtreamApi
 import dev.tyfino.foundation.xtream.HttpXtreamCatalogApi
 import dev.tyfino.foundation.xtream.SQLiteCatalogStore
 import dev.tyfino.foundation.xtream.SecureXtreamAccountStore
+import dev.tyfino.foundation.xtream.XtreamAccountStore
 import dev.tyfino.foundation.xtream.XtreamController
 import dev.tyfino.foundation.xtream.XtreamRepository
 import dev.tyfino.foundation.xtream.XtreamUiState
@@ -100,7 +104,7 @@ internal fun TyfinoApp() {
     }
 
     if (licensingState is LicensingUiState.Active) {
-        XtreamGate(xtreamController, catalogRepository)
+        XtreamGate(xtreamController, catalogRepository, xtreamStore)
     } else {
         LicensingScreen(
             state = licensingState,
@@ -117,6 +121,7 @@ internal fun TyfinoApp() {
 private fun XtreamGate(
     controller: XtreamController,
     catalogRepository: CatalogRepository,
+    accountStore: XtreamAccountStore,
 ) {
     var state by remember { mutableStateOf(controller.state) }
     val scope = rememberCoroutineScope()
@@ -130,6 +135,7 @@ private fun XtreamGate(
     if (state is XtreamUiState.SignedIn) {
         LicensedAppShell(
             catalogRepository = catalogRepository,
+            accountStore = accountStore,
             onRemoveXtreamAccount = {
                 scope.launch {
                     try {
@@ -155,6 +161,7 @@ private fun XtreamGate(
 @Composable
 private fun LicensedAppShell(
     catalogRepository: CatalogRepository,
+    accountStore: XtreamAccountStore,
     onRemoveXtreamAccount: () -> Unit,
 ) {
     val navController = rememberNavController()
@@ -162,6 +169,7 @@ private fun LicensedAppShell(
     val currentDestination = backStackEntry?.destination
     val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
     val navigationType = navigationTypeFor(windowSizeClass)
+    var playbackSelection by remember { mutableStateOf<PlaybackSelection?>(null) }
 
     val navigateTo: (AppDestination) -> Unit = { destination ->
         if (currentDestination?.route != destination.route) {
@@ -174,8 +182,29 @@ private fun LicensedAppShell(
             }
         }
     }
+    val play: (CatalogSection, CatalogItem) -> Unit = { section, item ->
+        accountStore.load()?.let { account ->
+            playbackSelection = PlaybackSelection.from(account, section, item)
+            navController.navigate(PLAYBACK_ROUTE) { launchSingleTop = true }
+        }
+    }
+    val navHost: @Composable (Modifier) -> Unit = { modifier ->
+        AppNavHost(
+            navController = navController,
+            modifier = modifier,
+            catalogRepository = catalogRepository,
+            accountStore = accountStore,
+            playbackSelection = playbackSelection,
+            onPlay = play,
+            onOpenSettings = { navigateTo(AppDestination.Settings) },
+            onPlaybackClosed = { playbackSelection = null },
+            onRemoveXtreamAccount = onRemoveXtreamAccount,
+        )
+    }
 
-    if (navigationType == AppNavigationType.BottomBar) {
+    if (currentDestination?.route == PLAYBACK_ROUTE) {
+        navHost(Modifier.fillMaxSize())
+    } else if (navigationType == AppNavigationType.BottomBar) {
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
@@ -188,13 +217,7 @@ private fun LicensedAppShell(
                 )
             },
         ) { contentPadding ->
-            AppNavHost(
-                navController = navController,
-                modifier = Modifier.padding(contentPadding),
-                catalogRepository = catalogRepository,
-                onOpenSettings = { navigateTo(AppDestination.Settings) },
-                onRemoveXtreamAccount = onRemoveXtreamAccount,
-            )
+            navHost(Modifier.padding(contentPadding))
         }
     } else {
         Row(
@@ -206,14 +229,10 @@ private fun LicensedAppShell(
                 selectedRoute = currentDestination?.route,
                 onDestinationSelected = navigateTo,
             )
-            AppNavHost(
-                navController = navController,
-                modifier = Modifier
+            navHost(
+                Modifier
                     .weight(1f)
                     .padding(WindowInsets.safeDrawing.asPaddingValues()),
-                catalogRepository = catalogRepository,
-                onOpenSettings = { navigateTo(AppDestination.Settings) },
-                onRemoveXtreamAccount = onRemoveXtreamAccount,
             )
         }
     }
@@ -224,7 +243,11 @@ private fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier,
     catalogRepository: CatalogRepository,
+    accountStore: XtreamAccountStore,
+    playbackSelection: PlaybackSelection?,
+    onPlay: (CatalogSection, CatalogItem) -> Unit,
     onOpenSettings: () -> Unit,
+    onPlaybackClosed: () -> Unit,
     onRemoveXtreamAccount: () -> Unit,
 ) {
     NavHost(
@@ -236,19 +259,48 @@ private fun AppNavHost(
             FoundationScreen(onOpenSettings = onOpenSettings)
         }
         composable(AppDestination.Live.route) {
-            CatalogScreen(CatalogSection.Live, catalogRepository)
+            CatalogScreen(
+                section = CatalogSection.Live,
+                repository = catalogRepository,
+                onPlay = { item -> onPlay(CatalogSection.Live, item) },
+            )
         }
         composable(AppDestination.Movies.route) {
-            CatalogScreen(CatalogSection.Movies, catalogRepository)
+            CatalogScreen(
+                section = CatalogSection.Movies,
+                repository = catalogRepository,
+                onPlay = { item -> onPlay(CatalogSection.Movies, item) },
+            )
         }
         composable(AppDestination.Series.route) {
-            CatalogScreen(CatalogSection.Series, catalogRepository)
+            CatalogScreen(
+                section = CatalogSection.Series,
+                repository = catalogRepository,
+                onPlay = {},
+            )
         }
         composable(AppDestination.Settings.route) {
             SettingsScreen(onRemoveXtreamAccount = onRemoveXtreamAccount)
         }
+        composable(PLAYBACK_ROUTE) {
+            val selection = playbackSelection
+            if (selection == null) {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            } else {
+                DisposableEffect(Unit) {
+                    onDispose(onPlaybackClosed)
+                }
+                PlaybackScreen(
+                    selection = selection,
+                    accountStore = accountStore,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+        }
     }
 }
+
+private const val PLAYBACK_ROUTE = "playback"
 
 @Composable
 private fun AppBottomBar(
