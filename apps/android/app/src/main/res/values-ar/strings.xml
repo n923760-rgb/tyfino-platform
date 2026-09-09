@@ -85,4 +85,14 @@
     <string name="playback_error_metadata">لا يحتوي هذا العنصر على بيانات تشغيل آمنة وصالحة.</string>
     <string name="playback_error_cleartext">لم تتم الموافقة على التشغيل عبر HTTP لهذا الحساب.</string>
     <string name="playback_error_failed">توقف التشغيل. تحقق من الاتصال أو جرّب بثًا متوافقًا آخر.</string>
+    <string name="playback_audio">الصوت</string>
+    <string name="playback_subtitles">الترجمة</string>
+    <string name="playback_automatic">تلقائي</string>
+    <string name="playback_off">إيقاف</string>
+    <string name="playback_close">إغلاق</string>
+    <string name="playback_selected">محدد</string>
+    <string name="playback_no_audio">لا توجد مسارات صوت مضمّنة ومدعومة.</string>
+    <string name="playback_no_subtitles">لا توجد مسارات ترجمة مضمّنة ومدعومة.</string>
+    <string name="playback_unknown_audio">مسار صوت</string>
+    <string name="playback_unknown_subtitle">مسار ترجمة</string>
 </resources>

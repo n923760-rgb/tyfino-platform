@@ -12,10 +12,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -27,18 +33,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
@@ -48,10 +62,12 @@ import dev.tyfino.foundation.playback.PlaybackOperationGate
 import dev.tyfino.foundation.playback.PlaybackReferenceFailure
 import dev.tyfino.foundation.playback.PlaybackReferenceResult
 import dev.tyfino.foundation.playback.PlaybackSelection
+import dev.tyfino.foundation.playback.PlaybackTrackLabel
 import dev.tyfino.foundation.playback.SecretPlaybackReference
 import dev.tyfino.foundation.playback.XtreamPlaybackReferenceBuilder
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.xtream.XtreamAccountStore
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -105,7 +121,6 @@ internal fun PlaybackScreen(
         }
     }
 
-    BackHandler(onBack = onBack)
     when (val state = preparation) {
         PlaybackPreparation.Loading -> PlaybackLoading(onBack)
         is PlaybackPreparation.Failure -> PlaybackFailure(
@@ -129,14 +144,72 @@ private fun PlayerSurface(
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
+    val displayLocale = LocalConfiguration.current.locales[0]
+    val unknownAudio = stringResource(R.string.playback_unknown_audio)
+    val unknownSubtitle = stringResource(R.string.playback_unknown_subtitle)
     var retryAttempt by remember { mutableIntStateOf(0) }
     var player by remember { mutableStateOf<ExoPlayer?>(null) }
     var playbackFailed by remember { mutableStateOf(false) }
+    var audioTracks by remember { mutableStateOf(emptyList<EmbeddedTrackOption>()) }
+    var subtitleTracks by remember { mutableStateOf(emptyList<EmbeddedTrackOption>()) }
+    var audioAutomatic by remember { mutableStateOf(true) }
+    var subtitleAutomatic by remember { mutableStateOf(true) }
+    var subtitlesDisabled by remember { mutableStateOf(false) }
+    var activeMenu by remember { mutableStateOf<TrackMenu?>(null) }
+
+    fun refreshTracks(current: ExoPlayer, tracks: Tracks = current.currentTracks) {
+        val parameters = current.trackSelectionParameters
+        audioTracks = tracks.supportedOptions(
+            trackType = C.TRACK_TYPE_AUDIO,
+            fallback = unknownAudio,
+            displayLocale = displayLocale,
+            parameters = parameters,
+        )
+        subtitleTracks = tracks.supportedOptions(
+            trackType = C.TRACK_TYPE_TEXT,
+            fallback = unknownSubtitle,
+            displayLocale = displayLocale,
+            parameters = parameters,
+        )
+        audioAutomatic = parameters.isAutomatic(C.TRACK_TYPE_AUDIO)
+        subtitlesDisabled = C.TRACK_TYPE_TEXT in parameters.disabledTrackTypes
+        subtitleAutomatic = !subtitlesDisabled && parameters.isAutomatic(C.TRACK_TYPE_TEXT)
+    }
+
+    fun select(trackType: Int, option: EmbeddedTrackOption?) {
+        val current = player ?: return
+        val builder = current.trackSelectionParameters
+            .buildUpon()
+            .setTrackTypeDisabled(trackType, false)
+            .clearOverridesOfType(trackType)
+        option?.let {
+            builder.addOverride(
+                TrackSelectionOverride(it.group.mediaTrackGroup, listOf(it.trackIndex)),
+            )
+        }
+        current.trackSelectionParameters = builder.build()
+        refreshTracks(current)
+        activeMenu = null
+    }
+
+    fun disableSubtitles() {
+        val current = player ?: return
+        current.trackSelectionParameters = current.trackSelectionParameters
+            .buildUpon()
+            .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+            .build()
+        refreshTracks(current)
+        activeMenu = null
+    }
 
     DisposableEffect(lifecycleOwner, reference, cleartextConsent, retryAttempt) {
         fun releasePlayer() {
             val current = player
             player = null
+            activeMenu = null
+            audioTracks = emptyList()
+            subtitleTracks = emptyList()
             current?.release()
         }
         fun startPlayer() {
@@ -147,6 +220,7 @@ private fun PlayerSurface(
                 reference = reference,
                 cleartextConsent = cleartextConsent,
                 onFailure = { playbackFailed = true },
+                onTracksChanged = { current, tracks -> refreshTracks(current, tracks) },
             )
         }
 
@@ -164,6 +238,14 @@ private fun PlayerSurface(
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             releasePlayer()
+        }
+    }
+
+    BackHandler {
+        if (activeMenu != null) {
+            activeMenu = null
+        } else {
+            onBack()
         }
     }
 
@@ -193,6 +275,27 @@ private fun PlayerSurface(
                 .padding(WindowInsets.safeDrawing.asPaddingValues())
                 .padding(12.dp),
         )
+        if (player != null && !playbackFailed) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(WindowInsets.safeDrawing.asPaddingValues())
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FocusVisibleButton(
+                    label = stringResource(R.string.playback_audio),
+                    onClick = { activeMenu = TrackMenu.Audio },
+                    modifier = Modifier.testTag("playback-audio"),
+                )
+                FocusVisibleButton(
+                    label = stringResource(R.string.playback_subtitles),
+                    onClick = { activeMenu = TrackMenu.Subtitles },
+                    modifier = Modifier.testTag("playback-subtitles"),
+                )
+            }
+        }
         if (player == null && !playbackFailed) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
@@ -205,6 +308,120 @@ private fun PlayerSurface(
             )
         }
     }
+
+    when (activeMenu) {
+        TrackMenu.Audio -> TrackPickerDialog(
+            title = stringResource(R.string.playback_audio),
+            options = audioTracks,
+            automaticSelected = audioAutomatic,
+            includeOff = false,
+            offSelected = false,
+            noTracksMessage = stringResource(R.string.playback_no_audio),
+            onAutomatic = { select(C.TRACK_TYPE_AUDIO, null) },
+            onOff = {},
+            onTrack = { select(C.TRACK_TYPE_AUDIO, it) },
+            onDismiss = { activeMenu = null },
+        )
+        TrackMenu.Subtitles -> TrackPickerDialog(
+            title = stringResource(R.string.playback_subtitles),
+            options = subtitleTracks,
+            automaticSelected = subtitleAutomatic,
+            includeOff = true,
+            offSelected = subtitlesDisabled,
+            noTracksMessage = stringResource(R.string.playback_no_subtitles),
+            onAutomatic = { select(C.TRACK_TYPE_TEXT, null) },
+            onOff = ::disableSubtitles,
+            onTrack = { select(C.TRACK_TYPE_TEXT, it) },
+            onDismiss = { activeMenu = null },
+        )
+        null -> Unit
+    }
+}
+
+@Composable
+private fun TrackPickerDialog(
+    title: String,
+    options: List<EmbeddedTrackOption>,
+    automaticSelected: Boolean,
+    includeOff: Boolean,
+    offSelected: Boolean,
+    noTracksMessage: String,
+    onAutomatic: () -> Unit,
+    onOff: () -> Unit,
+    onTrack: (EmbeddedTrackOption) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val firstFocus = remember { FocusRequester() }
+    val selectedSuffix = stringResource(R.string.playback_selected)
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 520.dp),
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = 8.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(title, style = MaterialTheme.typography.headlineSmall)
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 360.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    item {
+                        FocusVisibleButton(
+                            label = selectionLabel(
+                                stringResource(R.string.playback_automatic),
+                                automaticSelected,
+                                selectedSuffix,
+                            ),
+                            onClick = onAutomatic,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(firstFocus),
+                        )
+                    }
+                    if (includeOff) {
+                        item {
+                            FocusVisibleButton(
+                                label = selectionLabel(
+                                    stringResource(R.string.playback_off),
+                                    offSelected,
+                                    selectedSuffix,
+                                ),
+                                onClick = onOff,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                    itemsIndexed(options) { _, option ->
+                        FocusVisibleButton(
+                            label = selectionLabel(option.label, option.selected, selectedSuffix),
+                            onClick = { onTrack(option) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    if (options.isEmpty()) {
+                        item {
+                            Text(
+                                text = noTracksMessage,
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                    }
+                }
+                FocusVisibleButton(
+                    label = stringResource(R.string.playback_close),
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+    LaunchedEffect(Unit) { firstFocus.requestFocus() }
 }
 
 private fun createPlayer(
@@ -212,6 +429,7 @@ private fun createPlayer(
     reference: SecretPlaybackReference,
     cleartextConsent: Boolean,
     onFailure: () -> Unit,
+    onTracksChanged: (ExoPlayer, Tracks) -> Unit,
 ): ExoPlayer {
     val mediaSourceFactory = DefaultMediaSourceFactory(context)
         .setDataSourceFactory(BoundedRedirectDataSource.Factory(cleartextConsent))
@@ -224,6 +442,10 @@ private fun createPlayer(
                     override fun onPlayerError(error: PlaybackException) {
                         onFailure()
                     }
+
+                    override fun onTracksChanged(tracks: Tracks) {
+                        onTracksChanged(this@apply, tracks)
+                    }
                 },
             )
             setMediaItem(MediaItem.fromUri(reference.uri.toASCIIString()))
@@ -232,8 +454,58 @@ private fun createPlayer(
         }
 }
 
+private fun Tracks.supportedOptions(
+    trackType: Int,
+    fallback: String,
+    displayLocale: Locale,
+    parameters: TrackSelectionParameters,
+): List<EmbeddedTrackOption> = groups
+    .asSequence()
+    .filter { it.type == trackType }
+    .flatMap { group ->
+        (0 until group.length).asSequence()
+            .filter(group::isTrackSupported)
+            .map { index ->
+                val format = group.getTrackFormat(index)
+                val explicitlySelected = parameters.overrides[group.mediaTrackGroup]
+                    ?.trackIndices
+                    ?.contains(index) == true
+                EmbeddedTrackOption(
+                    group = group,
+                    trackIndex = index,
+                    label = PlaybackTrackLabel.resolve(
+                        language = format.language,
+                        mediaLabel = format.label,
+                        fallback = fallback,
+                        displayLocale = displayLocale,
+                    ),
+                    selected = explicitlySelected,
+                )
+            }
+    }
+    .toList()
+
+private fun TrackSelectionParameters.isAutomatic(trackType: Int): Boolean =
+    trackType !in disabledTrackTypes && overrides.values.none { it.type == trackType }
+
+private fun selectionLabel(label: String, selected: Boolean, selectedSuffix: String): String =
+    if (selected) "$label — $selectedSuffix" else label
+
+private data class EmbeddedTrackOption(
+    val group: Tracks.Group,
+    val trackIndex: Int,
+    val label: String,
+    val selected: Boolean,
+)
+
+private enum class TrackMenu {
+    Audio,
+    Subtitles,
+}
+
 @Composable
 private fun PlaybackLoading(onBack: () -> Unit) {
+    BackHandler(onBack = onBack)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -265,6 +537,7 @@ private fun PlaybackFailure(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    BackHandler(onBack = onBack)
     Column(
         modifier = modifier
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f))
