@@ -159,6 +159,7 @@ class XtreamTest {
             "password",
             false,
         )
+        Unit
     }
 
     @Test
