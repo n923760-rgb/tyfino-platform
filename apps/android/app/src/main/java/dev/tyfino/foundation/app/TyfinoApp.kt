@@ -12,6 +12,7 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -24,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -40,11 +40,16 @@ import dev.tyfino.foundation.licensing.LicensingController
 import dev.tyfino.foundation.licensing.LicensingRepository
 import dev.tyfino.foundation.licensing.LicensingUiState
 import dev.tyfino.foundation.licensing.SecureLicensingStore
+import dev.tyfino.foundation.ui.screen.CatalogScreen
 import dev.tyfino.foundation.ui.screen.FoundationScreen
 import dev.tyfino.foundation.ui.screen.LicensingScreen
 import dev.tyfino.foundation.ui.screen.SettingsScreen
 import dev.tyfino.foundation.ui.screen.XtreamLoginScreen
+import dev.tyfino.foundation.xtream.CatalogRepository
+import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.HttpXtreamApi
+import dev.tyfino.foundation.xtream.HttpXtreamCatalogApi
+import dev.tyfino.foundation.xtream.SQLiteCatalogStore
 import dev.tyfino.foundation.xtream.SecureXtreamAccountStore
 import dev.tyfino.foundation.xtream.XtreamController
 import dev.tyfino.foundation.xtream.XtreamRepository
@@ -64,12 +69,20 @@ internal fun TyfinoApp() {
             ),
         )
     }
+    val xtreamStore = remember { SecureXtreamAccountStore(context) }
     val xtreamController = remember {
         XtreamController(
             XtreamRepository(
-                store = SecureXtreamAccountStore(context),
+                store = xtreamStore,
                 api = HttpXtreamApi(context),
             ),
+        )
+    }
+    val catalogRepository = remember {
+        CatalogRepository(
+            accountStore = xtreamStore,
+            api = HttpXtreamCatalogApi(context),
+            store = SQLiteCatalogStore(context),
         )
     }
     var licensingState by remember { mutableStateOf(controller.state) }
@@ -87,7 +100,7 @@ internal fun TyfinoApp() {
     }
 
     if (licensingState is LicensingUiState.Active) {
-        XtreamGate(xtreamController)
+        XtreamGate(xtreamController, catalogRepository)
     } else {
         LicensingScreen(
             state = licensingState,
@@ -101,7 +114,10 @@ internal fun TyfinoApp() {
 }
 
 @Composable
-private fun XtreamGate(controller: XtreamController) {
+private fun XtreamGate(
+    controller: XtreamController,
+    catalogRepository: CatalogRepository,
+) {
     var state by remember { mutableStateOf(controller.state) }
     val scope = rememberCoroutineScope()
     val publish: (XtreamUiState) -> Unit = { state = it }
@@ -113,7 +129,16 @@ private fun XtreamGate(controller: XtreamController) {
 
     if (state is XtreamUiState.SignedIn) {
         LicensedAppShell(
-            onRemoveXtreamAccount = { scope.launch { controller.logout(publish) } },
+            catalogRepository = catalogRepository,
+            onRemoveXtreamAccount = {
+                scope.launch {
+                    try {
+                        catalogRepository.clearActiveAccount()
+                    } finally {
+                        controller.logout(publish)
+                    }
+                }
+            },
         )
     } else {
         XtreamLoginScreen(
@@ -128,7 +153,10 @@ private fun XtreamGate(controller: XtreamController) {
 }
 
 @Composable
-private fun LicensedAppShell(onRemoveXtreamAccount: () -> Unit) {
+private fun LicensedAppShell(
+    catalogRepository: CatalogRepository,
+    onRemoveXtreamAccount: () -> Unit,
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -163,6 +191,7 @@ private fun LicensedAppShell(onRemoveXtreamAccount: () -> Unit) {
             AppNavHost(
                 navController = navController,
                 modifier = Modifier.padding(contentPadding),
+                catalogRepository = catalogRepository,
                 onOpenSettings = { navigateTo(AppDestination.Settings) },
                 onRemoveXtreamAccount = onRemoveXtreamAccount,
             )
@@ -182,6 +211,7 @@ private fun LicensedAppShell(onRemoveXtreamAccount: () -> Unit) {
                 modifier = Modifier
                     .weight(1f)
                     .padding(WindowInsets.safeDrawing.asPaddingValues()),
+                catalogRepository = catalogRepository,
                 onOpenSettings = { navigateTo(AppDestination.Settings) },
                 onRemoveXtreamAccount = onRemoveXtreamAccount,
             )
@@ -193,6 +223,7 @@ private fun LicensedAppShell(onRemoveXtreamAccount: () -> Unit) {
 private fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier,
+    catalogRepository: CatalogRepository,
     onOpenSettings: () -> Unit,
     onRemoveXtreamAccount: () -> Unit,
 ) {
@@ -203,6 +234,15 @@ private fun AppNavHost(
     ) {
         composable(AppDestination.Foundation.route) {
             FoundationScreen(onOpenSettings = onOpenSettings)
+        }
+        composable(AppDestination.Live.route) {
+            CatalogScreen(CatalogSection.Live, catalogRepository)
+        }
+        composable(AppDestination.Movies.route) {
+            CatalogScreen(CatalogSection.Movies, catalogRepository)
+        }
+        composable(AppDestination.Series.route) {
+            CatalogScreen(CatalogSection.Series, catalogRepository)
         }
         composable(AppDestination.Settings.route) {
             SettingsScreen(onRemoveXtreamAccount = onRemoveXtreamAccount)
