@@ -1,6 +1,6 @@
 # Android Catalog Synchronization Contract v1
 
-Status: **PROPOSED — awaiting explicit approval**  
+Status: **DECIDED — explicitly approved on 2026-09-09**  
 Scope: Android client catalog metadata for the single active Xtream account  
 Authoritative owners: active Account ID, catalog repository, and published cache generation
 
