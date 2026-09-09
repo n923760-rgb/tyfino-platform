@@ -41,6 +41,7 @@ import dev.tyfino.foundation.licensing.LicensingRepository
 import dev.tyfino.foundation.licensing.LicensingUiState
 import dev.tyfino.foundation.licensing.SecureLicensingStore
 import dev.tyfino.foundation.playback.MovieResumeRepository
+import dev.tyfino.foundation.playback.PreviousLiveChannelController
 import dev.tyfino.foundation.playback.PlaybackSelection
 import dev.tyfino.foundation.playback.SQLiteMovieResumeStore
 import dev.tyfino.foundation.ui.screen.PlaybackScreen
@@ -97,6 +98,7 @@ internal fun TyfinoApp() {
             store = SQLiteMovieResumeStore(context),
         )
     }
+    val previousLiveChannelController = remember { PreviousLiveChannelController() }
     var licensingState by remember { mutableStateOf(controller.state) }
     val scope = rememberCoroutineScope()
     val publish: (LicensingUiState) -> Unit = { licensingState = it }
@@ -112,7 +114,13 @@ internal fun TyfinoApp() {
     }
 
     if (licensingState is LicensingUiState.Active) {
-        XtreamGate(xtreamController, catalogRepository, movieResumeRepository, xtreamStore)
+        XtreamGate(
+            controller = xtreamController,
+            catalogRepository = catalogRepository,
+            movieResumeRepository = movieResumeRepository,
+            previousLiveChannelController = previousLiveChannelController,
+            accountStore = xtreamStore,
+        )
     } else {
         LicensingScreen(
             state = licensingState,
@@ -130,6 +138,7 @@ private fun XtreamGate(
     controller: XtreamController,
     catalogRepository: CatalogRepository,
     movieResumeRepository: MovieResumeRepository,
+    previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
 ) {
     var state by remember { mutableStateOf(controller.state) }
@@ -145,8 +154,10 @@ private fun XtreamGate(
         LicensedAppShell(
             catalogRepository = catalogRepository,
             movieResumeRepository = movieResumeRepository,
+            previousLiveChannelController = previousLiveChannelController,
             accountStore = accountStore,
             onRemoveXtreamAccount = {
+                previousLiveChannelController.clear()
                 scope.launch {
                     try {
                         movieResumeRepository.clearActiveAccount()
@@ -176,6 +187,7 @@ private fun XtreamGate(
 private fun LicensedAppShell(
     catalogRepository: CatalogRepository,
     movieResumeRepository: MovieResumeRepository,
+    previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
     onRemoveXtreamAccount: () -> Unit,
 ) {
@@ -184,6 +196,7 @@ private fun LicensedAppShell(
     val currentDestination = backStackEntry?.destination
     val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
     val navigationType = navigationTypeFor(windowSizeClass)
+    val scope = rememberCoroutineScope()
     var playbackSelection by remember { mutableStateOf<PlaybackSelection?>(null) }
 
     val navigateTo: (AppDestination) -> Unit = { destination ->
@@ -203,15 +216,38 @@ private fun LicensedAppShell(
             navController.navigate(PLAYBACK_ROUTE) { launchSingleTop = true }
         }
     }
+    val playPreviousLive: (PlaybackSelection) -> Unit = { source ->
+        val request = previousLiveChannelController.beginPrevious(source)
+        if (request != null) {
+            scope.launch {
+                val target = catalogRepository.cachedItems(
+                    section = CatalogSection.Live,
+                    providerItemIds = setOf(request.targetProviderItemId),
+                ).singleOrNull { it.providerId == request.targetProviderItemId }
+                val account = accountStore.load()
+                if (
+                    target != null &&
+                    playbackSelection == source &&
+                    account?.accountId == request.accountId &&
+                    account.generation == request.accountGeneration &&
+                    previousLiveChannelController.isCurrent(request)
+                ) {
+                    playbackSelection = PlaybackSelection.from(account, CatalogSection.Live, target)
+                }
+            }
+        }
+    }
     val navHost: @Composable (Modifier) -> Unit = { modifier ->
         AppNavHost(
             navController = navController,
             modifier = modifier,
             catalogRepository = catalogRepository,
             movieResumeRepository = movieResumeRepository,
+            previousLiveChannelController = previousLiveChannelController,
             accountStore = accountStore,
             playbackSelection = playbackSelection,
             onPlay = play,
+            onPreviousLive = playPreviousLive,
             onOpenSettings = { navigateTo(AppDestination.Settings) },
             onPlaybackClosed = { playbackSelection = null },
             onRemoveXtreamAccount = onRemoveXtreamAccount,
@@ -260,9 +296,11 @@ private fun AppNavHost(
     modifier: Modifier,
     catalogRepository: CatalogRepository,
     movieResumeRepository: MovieResumeRepository,
+    previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
     playbackSelection: PlaybackSelection?,
     onPlay: (CatalogSection, CatalogItem) -> Unit,
+    onPreviousLive: (PlaybackSelection) -> Unit,
     onOpenSettings: () -> Unit,
     onPlaybackClosed: () -> Unit,
     onRemoveXtreamAccount: () -> Unit,
@@ -314,6 +352,8 @@ private fun AppNavHost(
                     selection = selection,
                     accountStore = accountStore,
                     resumeRepository = movieResumeRepository,
+                    previousLiveChannelController = previousLiveChannelController,
+                    onPreviousLive = { onPreviousLive(selection) },
                     onBack = { navController.popBackStack() },
                 )
             }

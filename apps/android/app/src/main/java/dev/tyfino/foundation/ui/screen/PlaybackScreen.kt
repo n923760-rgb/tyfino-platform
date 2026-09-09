@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,6 +63,7 @@ import dev.tyfino.foundation.playback.BoundedRedirectDataSource
 import dev.tyfino.foundation.playback.MovieResumeLoadResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
 import dev.tyfino.foundation.playback.MovieResumeRepository
+import dev.tyfino.foundation.playback.PreviousLiveChannelController
 import dev.tyfino.foundation.playback.PlaybackOperationGate
 import dev.tyfino.foundation.playback.PlaybackReferenceFailure
 import dev.tyfino.foundation.playback.PlaybackReferenceResult
@@ -83,8 +85,14 @@ internal fun PlaybackScreen(
     selection: PlaybackSelection,
     accountStore: XtreamAccountStore,
     resumeRepository: MovieResumeRepository,
+    previousLiveChannelController: PreviousLiveChannelController,
+    onPreviousLive: () -> Unit,
     onBack: () -> Unit,
 ) {
+    val previousLiveState by previousLiveChannelController.state.collectAsState()
+    val previousLiveAvailable = remember(selection, previousLiveState) {
+        previousLiveChannelController.beginPrevious(selection) != null
+    }
     val gate = remember { PlaybackOperationGate().also(PlaybackOperationGate::activateDestination) }
     var preparationAttempt by remember { mutableIntStateOf(0) }
     var preparation by remember(selection) {
@@ -153,6 +161,9 @@ internal fun PlaybackScreen(
             cleartextConsent = state.cleartextConsent,
             accountStore = accountStore,
             resumeRepository = resumeRepository,
+            previousLiveChannelController = previousLiveChannelController,
+            previousLiveAvailable = previousLiveAvailable,
+            onPreviousLive = onPreviousLive,
             resumePositionMillis = state.resumePositionMillis,
             onBack = onBack,
         )
@@ -166,6 +177,9 @@ private fun PlayerSurface(
     cleartextConsent: Boolean,
     accountStore: XtreamAccountStore,
     resumeRepository: MovieResumeRepository,
+    previousLiveChannelController: PreviousLiveChannelController,
+    previousLiveAvailable: Boolean,
+    onPreviousLive: () -> Unit,
     resumePositionMillis: Long,
     onBack: () -> Unit,
 ) {
@@ -321,6 +335,7 @@ private fun PlayerSurface(
                     ) {
                         val duration = current.duration.takeIf { it != C.TIME_UNSET && it > 0L }
                         current.seekTo(MovieResumePresentation.resumePosition(position, duration))
+                        previousLiveChannelController.recordSuccessfullyStarted(selection)
                         current.playWhenReady = autoPlay
                     } else {
                         playbackFailed = true
@@ -398,6 +413,13 @@ private fun PlayerSurface(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                if (previousLiveAvailable) {
+                    FocusVisibleButton(
+                        label = stringResource(R.string.playback_previous_live),
+                        onClick = onPreviousLive,
+                        modifier = Modifier.testTag("playback-previous-live"),
+                    )
+                }
                 FocusVisibleButton(
                     label = stringResource(R.string.playback_audio),
                     onClick = { activeMenu = TrackMenu.Audio },
