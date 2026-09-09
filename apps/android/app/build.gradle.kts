@@ -59,11 +59,13 @@ android {
                     device = "Pixel 2"
                     apiLevel = 27
                     systemImageSource = "aosp"
+                    testedAbi = "x86"
                 }
                 create("tabletApi35") {
                     device = "Nexus 9"
                     apiLevel = 35
                     systemImageSource = "aosp"
+                    testedAbi = "x86_64"
                 }
             }
         }
