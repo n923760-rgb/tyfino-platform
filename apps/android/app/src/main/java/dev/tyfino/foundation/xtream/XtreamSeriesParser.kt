@@ -194,9 +194,10 @@ internal class XtreamSeriesParser(
                 order++
                 continue
             }
-            parseSeason(json, artworkPolicy, order)?.let { advisory ->
-                advisories.putIfAbsent(advisory.number, advisory)
-            } ?: counters.skipped++
+            val advisory = parseSeason(json, artworkPolicy, order)
+            if (advisory == null || advisories.putIfAbsent(advisory.number, advisory) != null) {
+                counters.skipped++
+            }
             order++
         }
         json.endArray()
