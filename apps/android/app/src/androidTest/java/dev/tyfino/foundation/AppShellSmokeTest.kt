@@ -1,6 +1,7 @@
 package dev.tyfino.foundation
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -21,6 +22,7 @@ class AppShellSmokeTest {
         }
         composeRule.onNodeWithTag("licensing-screen").assertIsDisplayed()
         composeRule.onNodeWithTag("start-trial").assertIsDisplayed()
-        composeRule.onNodeWithTag("activate-now").assertIsDisplayed()
+        composeRule.onNodeWithTag("start-trial").assertHasClickAction()
+        composeRule.onNodeWithTag("activate-now").assertIsDisplayed().assertHasClickAction()
     }
 }

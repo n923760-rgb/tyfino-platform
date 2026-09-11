@@ -48,8 +48,25 @@ android {
         abortOnError = true
         checkReleaseBuilds = true
         warningsAsErrors = true
-        // Toolchain upgrades are reviewed deliberately; version availability is not a code defect.
-        disable += "AndroidGradlePluginVersion"
+        // Dependency and toolchain upgrades are reviewed deliberately; availability is not a code defect.
+        disable += setOf("AndroidGradlePluginVersion", "GradleDependency")
+    }
+
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("phoneApi27") {
+                    device = "Pixel 2"
+                    apiLevel = 27
+                    systemImageSource = "aosp"
+                }
+                create("tabletApi35") {
+                    device = "Nexus 9"
+                    apiLevel = 35
+                    systemImageSource = "aosp"
+                }
+            }
+        }
     }
 }
 

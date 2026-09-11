@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation, the approved licensing client, and the approved Xtream authentication slice. It intentionally contains no catalog, EPG, player, media, analytics, or provider-backend implementation.
+This directory contains the native Android client foundation and the approved licensing, Xtream authentication, catalog, and playback V1 slices. EPG, Series episode playback, search, favorites, broader history, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -77,10 +77,12 @@ The repository CI provisions Gradle 9.6.0 and runs:
 ./gradlew --no-daemon :app:assembleDebug
 ./gradlew --no-daemon :app:testDebugUnitTest
 ./gradlew --no-daemon :app:lintDebug
+./gradlew --no-daemon :app:phoneApi27DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+./gradlew --no-daemon :app:tabletApi35DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
 ```
 
-An Android SDK and JDK 17 are required. Instrumentation smoke tests live under `app/src/androidTest` and should be run on a qualified emulator or device; they are not part of the initial non-emulator CI job.
+An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation smoke tests run on clean API 27 phone and API 35 tablet managed devices. This automated baseline does not replace the physical phone, Android TV/Google TV, API 24-class, media, RTL, accessibility, and performance checks in [`../../docs/android/device-qualification-v1.md`](../../docs/android/device-qualification-v1.md).
 
 ## Deferred contracts
 
-Player, Xtream, IPTV-account persistence/security, full TV focus qualification, release, and full testing contracts remain deferred until their respective scoped work begins. This foundation must not be used to infer those designs.
+Full physical-device/TV qualification, release identity/signing, EPG, Series episodes, search, favorites, and other deferred playback capabilities require their own approved work. This foundation must not be used to infer those designs.
