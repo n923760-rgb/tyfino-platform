@@ -1,6 +1,6 @@
 # Android Series Episodes Contract v1
 
-Status: **PROPOSED — awaiting explicit approval**  
+Status: **DECIDED — approved 2026-09-11**  
 Scope: Android Series details, seasons, episodes, episode playback, and episode resume for the single active Xtream account  
 Authoritative owners: active Account ID, credential generation, selected Series ID, published Series generation, foreground playback session, and episode resume repository
 
