@@ -284,6 +284,32 @@ class SeriesDetailsRepositoryTest {
         assertNull(repository.open("x".repeat(257)))
     }
 
+    @Test
+    fun episodeCommitRequiresCurrentAccountSeriesGenerationAndExactEpisodeMetadata() = runBlocking {
+        val accountStore = FakeAccountStore(account("account-a", 4))
+        val store = FakeSeriesStore().apply {
+            snapshots["account-a" to "series"] = snapshot("account-a", "series", 3, 9_000, "A")
+        }
+        val repository = repository(accountStore, FixedSeriesApi("Unused"), store, wall = 10_000)
+        repository.open("series")!!
+        var published = 0
+
+        suspend fun attempt(seriesGeneration: Long, episodeId: String = "episode", extension: String = "mp4") =
+            repository.commitIfEpisodeCurrent(
+                "account-a", 4, "series", seriesGeneration, episodeId, extension,
+            ) { published++ }
+
+        assertTrue(attempt(3))
+        assertEquals(1, published)
+        assertTrue(!attempt(3, episodeId = "series"))
+        assertTrue(!attempt(3, extension = "mp4/path"))
+        store.snapshots["account-a" to "series"] = snapshot("account-a", "series", 4, 10_000, "B")
+        assertTrue(!attempt(3))
+        accountStore.value = account("account-a", 5)
+        assertTrue(!attempt(4))
+        assertEquals(1, published)
+    }
+
     private fun repository(
         accountStore: FakeAccountStore,
         api: XtreamSeriesApi,

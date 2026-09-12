@@ -46,6 +46,29 @@ class SeriesDetailsScreenTest {
         compose.runOnIdle { assertEquals(2, selected) }
     }
 
+    @Test
+    fun onlyEpisodesWithPublishedGenerationAndSafeExtensionAreSelectable() {
+        var played = 0
+        val published = details(listOf(0))
+        var state by mutableStateOf<SeriesState>(SeriesState.Content(published, 1L, false, 2L))
+        compose.setContent {
+            MaterialTheme {
+                SeriesDetailsContent(selection(), state, false, null, {}, {}, {}, { _, _ -> played++ })
+            }
+        }
+
+        compose.onNodeWithText("Special episode").performClick()
+        compose.runOnIdle { assertEquals(1, played) }
+        compose.runOnIdle {
+            state = SeriesState.Content(
+                published.copy(episodes = published.episodes.map { it.copy(containerExtension = null) }),
+                2L, false, 3L,
+            )
+        }
+        compose.onNodeWithText("Special episode").assertExists()
+        compose.onNodeWithText("Playback information is unavailable for this episode.").assertExists()
+    }
+
     private fun selection() = SeriesSelection(
         accountId = "account",
         accountGeneration = 1L,

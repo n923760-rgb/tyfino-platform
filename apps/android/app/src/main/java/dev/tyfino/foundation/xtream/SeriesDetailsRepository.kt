@@ -32,17 +32,20 @@ internal sealed interface SeriesState {
         val details: SeriesDetailsCandidate,
         val lastSuccessfulRefreshMillis: Long,
         val isRefreshing: Boolean,
+        val generation: Long = 0L,
     ) : SeriesState
     data class EmptyContent(
         val details: SeriesDetailsCandidate,
         val lastSuccessfulRefreshMillis: Long,
         val isRefreshing: Boolean,
+        val generation: Long = 0L,
     ) : SeriesState
     data class Error(val failure: SeriesFailure) : SeriesState
     data class StaleContent(
         val details: SeriesDetailsCandidate,
         val lastSuccessfulRefreshMillis: Long,
         val failure: SeriesFailure,
+        val generation: Long = 0L,
     ) : SeriesState
 }
 
@@ -178,6 +181,40 @@ internal class SeriesDetailsRepository(
         }
     }
 
+    /** Hold the cache lock through the playback commit, so a newer Series generation cannot race it. */
+    suspend fun commitIfEpisodeCurrent(
+        accountId: String,
+        accountGeneration: Long,
+        seriesId: String,
+        seriesGeneration: Long,
+        episodeId: String,
+        extension: String,
+        publish: () -> Unit,
+    ): Boolean = withContext(Dispatchers.IO) {
+        mutex.withLock {
+            val account = accountStore.load() ?: return@withLock false
+            if (account.accountId != accountId || account.generation != accountGeneration ||
+                seriesGeneration <= 0L || !isValidProviderId(seriesId) ||
+                !isValidProviderId(episodeId) || !SAFE_EPISODE_EXTENSION.matches(extension)
+            ) return@withLock false
+            val snapshot = try {
+                store.load(accountId, seriesId)
+            } catch (_: RuntimeException) {
+                return@withLock false
+            } ?: return@withLock false
+            if (snapshot.generation != seriesGeneration ||
+                snapshot.details.accountId != accountId ||
+                snapshot.details.providerSeriesId != seriesId ||
+                snapshot.details.episodes.none {
+                    it.accountId == accountId && it.providerSeriesId == seriesId &&
+                        it.providerEpisodeId == episodeId && it.containerExtension == extension
+                }
+            ) return@withLock false
+            publish()
+            true
+        }
+    }
+
     suspend fun close(destination: SeriesDestination) {
         mutex.withLock {
             if (activeDestination == destination) {
@@ -282,13 +319,13 @@ internal class SeriesDetailsRepository(
 
     private fun contentState(snapshot: SeriesSnapshot, refreshing: Boolean): SeriesState =
         if (snapshot.details.episodes.isEmpty()) {
-            SeriesState.EmptyContent(snapshot.details, snapshot.refreshedAtEpochMillis, refreshing)
+            SeriesState.EmptyContent(snapshot.details, snapshot.refreshedAtEpochMillis, refreshing, snapshot.generation)
         } else {
-            SeriesState.Content(snapshot.details, snapshot.refreshedAtEpochMillis, refreshing)
+            SeriesState.Content(snapshot.details, snapshot.refreshedAtEpochMillis, refreshing, snapshot.generation)
         }
 
     private fun failureState(cache: SeriesSnapshot?, failure: SeriesFailure): SeriesState =
-        cache?.let { SeriesState.StaleContent(it.details, it.refreshedAtEpochMillis, failure) }
+        cache?.let { SeriesState.StaleContent(it.details, it.refreshedAtEpochMillis, failure, it.generation) }
             ?: SeriesState.Error(failure)
 
     private fun isFresh(key: SeriesKey, snapshot: SeriesSnapshot): Boolean {
@@ -331,5 +368,6 @@ internal class SeriesDetailsRepository(
         const val MAX_PROVIDER_ID_CODE_POINTS = 256
         const val MAX_SEASONS = 1_000
         const val MAX_EPISODES = 10_000
+        val SAFE_EPISODE_EXTENSION = Regex("[a-z0-9]{1,12}")
     }
 }

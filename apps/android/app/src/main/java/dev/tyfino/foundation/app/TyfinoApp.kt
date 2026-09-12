@@ -40,10 +40,12 @@ import dev.tyfino.foundation.licensing.LicensingController
 import dev.tyfino.foundation.licensing.LicensingRepository
 import dev.tyfino.foundation.licensing.LicensingUiState
 import dev.tyfino.foundation.licensing.SecureLicensingStore
+import dev.tyfino.foundation.playback.EpisodePlaybackSelection
 import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.playback.PreviousLiveChannelController
 import dev.tyfino.foundation.playback.PlaybackSelection
 import dev.tyfino.foundation.playback.SQLiteMovieResumeStore
+import dev.tyfino.foundation.ui.screen.EpisodePlaybackScreen
 import dev.tyfino.foundation.ui.screen.PlaybackScreen
 import dev.tyfino.foundation.ui.screen.CatalogScreen
 import dev.tyfino.foundation.ui.screen.FoundationScreen
@@ -61,6 +63,7 @@ import dev.tyfino.foundation.xtream.HttpXtreamSeriesApi
 import dev.tyfino.foundation.xtream.SQLiteCatalogStore
 import dev.tyfino.foundation.xtream.SQLiteSeriesStore
 import dev.tyfino.foundation.xtream.SeriesDetailsRepository
+import SeriesEpisode
 import dev.tyfino.foundation.xtream.SecureXtreamAccountStore
 import dev.tyfino.foundation.xtream.XtreamAccountStore
 import dev.tyfino.foundation.xtream.XtreamController
@@ -219,6 +222,7 @@ private fun LicensedAppShell(
     val scope = rememberCoroutineScope()
     var playbackSelection by remember { mutableStateOf<PlaybackSelection?>(null) }
     var seriesSelection by remember { mutableStateOf<SeriesSelection?>(null) }
+    var episodePlaybackSelection by remember { mutableStateOf<EpisodePlaybackSelection?>(null) }
 
     val navigateTo: (AppDestination) -> Unit = { destination ->
         if (currentDestination?.route != destination.route) {
@@ -241,6 +245,22 @@ private fun LicensedAppShell(
         accountStore.load()?.let { account ->
             seriesSelection = SeriesSelection(account.accountId, account.generation, item)
             navController.navigate(SERIES_DETAILS_ROUTE) { launchSingleTop = true }
+        }
+    }
+    val playEpisode: (SeriesEpisode, Long) -> Unit = { episode, generation ->
+        val series = seriesSelection
+        val account = accountStore.load()
+        if (series != null && account?.accountId == series.accountId &&
+            account.generation == series.accountGeneration &&
+            episode.providerSeriesId == series.item.providerId
+        ) {
+            val chosen = EpisodePlaybackSelection.from(
+                account.accountId, account.generation, series.item.providerId, generation, episode,
+            )
+            if (chosen != null) {
+                episodePlaybackSelection = chosen
+                navController.navigate(PLAYBACK_ROUTE) { launchSingleTop = true }
+            }
         }
     }
     val playPreviousLive: (PlaybackSelection) -> Unit = { source ->
@@ -274,13 +294,17 @@ private fun LicensedAppShell(
             previousLiveChannelController = previousLiveChannelController,
             accountStore = accountStore,
             seriesSelection = seriesSelection,
+            episodePlaybackSelection = episodePlaybackSelection,
             playbackSelection = playbackSelection,
             onPlay = play,
             onOpenSeries = openSeries,
+            onPlayEpisode = playEpisode,
             onPreviousLive = playPreviousLive,
             onOpenSettings = { navigateTo(AppDestination.Settings) },
-            onPlaybackClosed = { playbackSelection = null },
-            onSeriesClosed = { seriesSelection = null },
+            onPlaybackClosed = {
+                playbackSelection = null
+                episodePlaybackSelection = null
+            },
             onRemoveXtreamAccount = onRemoveXtreamAccount,
         )
     }
@@ -331,13 +355,14 @@ private fun AppNavHost(
     previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
     seriesSelection: SeriesSelection?,
+    episodePlaybackSelection: EpisodePlaybackSelection?,
     playbackSelection: PlaybackSelection?,
     onPlay: (CatalogSection, CatalogItem) -> Unit,
     onOpenSeries: (CatalogItem) -> Unit,
+    onPlayEpisode: (SeriesEpisode, Long) -> Unit,
     onPreviousLive: (PlaybackSelection) -> Unit,
     onOpenSettings: () -> Unit,
     onPlaybackClosed: () -> Unit,
-    onSeriesClosed: () -> Unit,
     onRemoveXtreamAccount: () -> Unit,
 ) {
     NavHost(
@@ -377,11 +402,11 @@ private fun AppNavHost(
             if (selection == null) {
                 LaunchedEffect(Unit) { navController.popBackStack() }
             } else {
-                DisposableEffect(Unit) { onDispose(onSeriesClosed) }
                 SeriesDetailsScreen(
                     selection = selection,
                     repository = seriesDetailsRepository,
                     onBack = { navController.popBackStack() },
+                    onEpisode = onPlayEpisode,
                 )
             }
         }
@@ -389,21 +414,31 @@ private fun AppNavHost(
             SettingsScreen(onRemoveXtreamAccount = onRemoveXtreamAccount)
         }
         composable(PLAYBACK_ROUTE) {
+            val episode = episodePlaybackSelection
             val selection = playbackSelection
-            if (selection == null) {
+            if (episode == null && selection == null) {
                 LaunchedEffect(Unit) { navController.popBackStack() }
             } else {
-                DisposableEffect(Unit) {
-                    onDispose(onPlaybackClosed)
+                DisposableEffect(Unit) { onDispose(onPlaybackClosed) }
+                if (episode != null) {
+                    EpisodePlaybackScreen(
+                        selection = episode,
+                        accountStore = accountStore,
+                        seriesRepository = seriesDetailsRepository,
+                        resumeRepository = movieResumeRepository,
+                        previousLiveChannelController = previousLiveChannelController,
+                        onBack = { navController.popBackStack() },
+                    )
+                } else if (selection != null) {
+                    PlaybackScreen(
+                        selection = selection,
+                        accountStore = accountStore,
+                        resumeRepository = movieResumeRepository,
+                        previousLiveChannelController = previousLiveChannelController,
+                        onPreviousLive = { onPreviousLive(selection) },
+                        onBack = { navController.popBackStack() },
+                    )
                 }
-                PlaybackScreen(
-                    selection = selection,
-                    accountStore = accountStore,
-                    resumeRepository = movieResumeRepository,
-                    previousLiveChannelController = previousLiveChannelController,
-                    onPreviousLive = { onPreviousLive(selection) },
-                    onBack = { navController.popBackStack() },
-                )
             }
         }
     }

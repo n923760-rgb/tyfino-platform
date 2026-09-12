@@ -71,6 +71,36 @@ internal object XtreamPlaybackReferenceBuilder {
                 return PlaybackReferenceResult.Failure(PlaybackReferenceFailure.InvalidMetadata)
             }
         }
+        return reference(account, cluster, providerId, extension)
+    }
+
+    fun buildEpisode(
+        account: SavedXtreamAccount,
+        selection: EpisodePlaybackSelection,
+    ): PlaybackReferenceResult {
+        if (selection.accountId != account.accountId ||
+            selection.accountGeneration != account.generation
+        ) return PlaybackReferenceResult.Failure(PlaybackReferenceFailure.AccountChanged)
+        if (account.endpoint.isCleartext && !account.cleartextConsent) {
+            return PlaybackReferenceResult.Failure(PlaybackReferenceFailure.CleartextNotApproved)
+        }
+        val episodeId = boundedProviderId(selection.providerEpisodeId)
+            ?: return PlaybackReferenceResult.Failure(PlaybackReferenceFailure.InvalidMetadata)
+        if (boundedProviderId(selection.providerSeriesId) == null ||
+            selection.seriesGeneration <= 0L || selection.playbackDestinationEpoch <= 0L ||
+            selection.operationId.isBlank()
+        ) return PlaybackReferenceResult.Failure(PlaybackReferenceFailure.InvalidMetadata)
+        val extension = selection.containerExtension.takeIf(SAFE_EXTENSION::matches)
+            ?: return PlaybackReferenceResult.Failure(PlaybackReferenceFailure.InvalidMetadata)
+        return reference(account, "series", episodeId, extension)
+    }
+
+    private fun reference(
+        account: SavedXtreamAccount,
+        cluster: String,
+        providerId: String,
+        extension: String,
+    ): PlaybackReferenceResult {
         val value = buildString {
             append(account.endpoint.baseUrl.trimEnd('/'))
             append('/')
