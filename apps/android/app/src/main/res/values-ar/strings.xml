@@ -11,7 +11,7 @@
     <string name="home_catalog_hint">اختر البث المباشر أو الأفلام أو المسلسلات من قائمة التنقل.</string>
     <string name="open_settings">فتح الإعدادات</string>
     <string name="settings_title">أساس الإعدادات</string>
-    <string name="settings_description">هذه الوجهة مخصّصة للتحقق من التنقل والعرض المتكيّف فقط، ولا تحتوي على إعدادات إنتاجية أو منطق أعمال.</string>
+    <string name="settings_description">إدارة حساب IPTV المحفوظ على هذا الجهاز.</string>
     <string name="licensing_title">فعّل TYFINO</string>
     <string name="licensing_description">ابدأ تجربتك المجانية لمدة 7 أيام أو فعّل التطبيق مباشرة. يبقى حساب IPTV على جهازك فقط.</string>
     <string name="start_trial">ابدأ التجربة المجانية 7 أيام</string>
@@ -57,7 +57,7 @@
     <string name="xtream_error_malformed">أعاد المزود استجابة غير صالحة.</string>
     <string name="xtream_error_unsupported">استجابة هذا المزود غير مدعومة بشكل آمن.</string>
     <string name="xtream_logout">إزالة حساب IPTV</string>
-    <string name="xtream_logout_description">يحذف حساب Xtream المشفر من هذا الجهاز، وستحتاج إلى إدخاله مرة أخرى.</string>
+    <string name="xtream_logout_description">ستؤدي إزالة الحساب أيضًا إلى حذف دليل البرامج والمحتوى والمفضلة والسجل وتقدم المشاهدة المحفوظة.</string>
     <string name="catalog_live_title">البث المباشر</string>
     <string name="catalog_movies_title">الأفلام</string>
     <string name="catalog_series_title">المسلسلات</string>
@@ -139,4 +139,8 @@
     <string name="epg_no_next">لا يوجد برنامج تالٍ مدرج</string>
     <string name="epg_schedule">جدول البرامج</string>
     <string name="epg_untitled">برنامج بلا عنوان</string>
+    <string name="xtream_confirm_remove_title">إزالة حساب IPTV؟</string>
+    <string name="xtream_confirm_remove_message">سيُحذف تسجيل الدخول وجميع بيانات IPTV المحلية من هذا الجهاز. ستحتاج إلى تسجيل الدخول مجددًا، ولا يمكن التراجع عن الإزالة.</string>
+    <string name="xtream_confirm_remove">إزالة الحساب</string>
+    <string name="xtream_keep_account">الاحتفاظ بالحساب</string>
 </resources>
