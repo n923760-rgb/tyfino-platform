@@ -58,6 +58,8 @@ import dev.tyfino.foundation.ui.screen.SeriesDetailsScreen
 import dev.tyfino.foundation.ui.screen.SeriesSelection
 import dev.tyfino.foundation.ui.screen.XtreamLoginScreen
 import dev.tyfino.foundation.xtream.CatalogItem
+import dev.tyfino.foundation.xtream.CatalogFavoritesRepository
+import dev.tyfino.foundation.xtream.SQLiteFavoriteStore
 import dev.tyfino.foundation.xtream.CatalogRepository
 import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.HttpXtreamApi
@@ -103,6 +105,9 @@ internal fun TyfinoApp() {
             store = SQLiteCatalogStore(context),
         )
     }
+    val favoritesRepository = remember {
+        CatalogFavoritesRepository(xtreamStore, catalogRepository, SQLiteFavoriteStore(context))
+    }
     val seriesStore = remember { SQLiteSeriesStore(context) }
     val seriesDetailsRepository = remember {
         SeriesDetailsRepository(
@@ -139,6 +144,7 @@ internal fun TyfinoApp() {
         XtreamGate(
             controller = xtreamController,
             catalogRepository = catalogRepository,
+            favoritesRepository = favoritesRepository,
             seriesDetailsRepository = seriesDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
@@ -161,6 +167,7 @@ internal fun TyfinoApp() {
 private fun XtreamGate(
     controller: XtreamController,
     catalogRepository: CatalogRepository,
+    favoritesRepository: CatalogFavoritesRepository,
     seriesDetailsRepository: SeriesDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
@@ -179,6 +186,7 @@ private fun XtreamGate(
     if (state is XtreamUiState.SignedIn) {
         LicensedAppShell(
             catalogRepository = catalogRepository,
+            favoritesRepository = favoritesRepository,
             seriesDetailsRepository = seriesDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
@@ -187,6 +195,9 @@ private fun XtreamGate(
             onRemoveXtreamAccount = {
                 previousLiveChannelController.clear()
                 scope.launch {
+                    try {
+                        favoritesRepository.clearActiveAccount()
+                    } finally {
                     try {
                         episodeResumeRepository.clearActiveAccount()
                     } finally {
@@ -202,6 +213,7 @@ private fun XtreamGate(
                                 controller.logout(publish)
                             }
                         }
+                    }
                     }
                     }
                 }
@@ -222,6 +234,7 @@ private fun XtreamGate(
 @Composable
 private fun LicensedAppShell(
     catalogRepository: CatalogRepository,
+    favoritesRepository: CatalogFavoritesRepository,
     seriesDetailsRepository: SeriesDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
@@ -317,6 +330,7 @@ private fun LicensedAppShell(
             navController = navController,
             modifier = modifier,
             catalogRepository = catalogRepository,
+            favoritesRepository = favoritesRepository,
             seriesDetailsRepository = seriesDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
@@ -380,6 +394,7 @@ private fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier,
     catalogRepository: CatalogRepository,
+    favoritesRepository: CatalogFavoritesRepository,
     seriesDetailsRepository: SeriesDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
@@ -410,6 +425,7 @@ private fun AppNavHost(
                 section = CatalogSection.Live,
                 repository = catalogRepository,
                 resumeRepository = movieResumeRepository,
+                favoritesRepository = favoritesRepository,
                 onPlay = { item -> onPlay(CatalogSection.Live, item) },
             )
         }
@@ -418,6 +434,7 @@ private fun AppNavHost(
                 section = CatalogSection.Movies,
                 repository = catalogRepository,
                 resumeRepository = movieResumeRepository,
+                favoritesRepository = favoritesRepository,
                 onPlay = { item -> onPlay(CatalogSection.Movies, item) },
             )
         }
@@ -426,6 +443,7 @@ private fun AppNavHost(
                 section = CatalogSection.Series,
                 repository = catalogRepository,
                 resumeRepository = movieResumeRepository,
+                favoritesRepository = favoritesRepository,
                 onPlay = onOpenSeries,
                 episodeResumeRepository = episodeResumeRepository,
                 onResumeEpisode = onResumeEpisode,

@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, and cached-catalog search slices. EPG, provider-wide search, favorites, broader history, final branding, and release configuration remain separate work.
+This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, and favorites slices. EPG, provider-wide search, favorites, broader history, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -87,6 +87,10 @@ An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation 
 
 Each Live, Movies, and Series destination searches only the active account's already-downloaded category snapshots. The search is local (no network fetch or background full-catalog synchronization), starts after two characters and a short debounce, and shows at most 50 matches. The UI states this limitation. Provider-wide search remains deferred.
 
+## Favorites scope
+
+Live, Movies, and Series items can be added to an account-scoped local favorites list. Only account ID, section, provider item ID, and a timestamp are stored; titles, artwork, playback URLs, and credentials are never written to this store. A list contains at most 200 favorites per account and displays only items still present in current downloaded catalog categories. Account removal clears local favorites. The per-section Favorites filter and per-item add/remove controls support touch, keyboard, and TV D-pad input.
+
 ## Deferred contracts
 
-Full physical-device/TV qualification, release identity/signing, EPG, provider-wide search, favorites, and other deferred playback capabilities require their own approved work. Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.
+Full physical-device/TV qualification, release identity/signing, EPG, provider-wide search, and other deferred playback capabilities require their own approved work. Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.

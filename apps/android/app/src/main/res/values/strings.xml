@@ -119,4 +119,10 @@
     <string name="catalog_search_minimum">Enter at least 2 characters to search.</string>
     <string name="catalog_search_empty">No matches in downloaded categories.</string>
     <string name="catalog_search_limit">Showing the first 50 matches.</string>
+    <string name="catalog_favorites_only">Favorites</string>
+    <string name="catalog_show_all">All items</string>
+    <string name="catalog_favorites_empty">No favorites in downloaded categories.</string>
+    <string name="catalog_favorite_add">Add %1$s to favorites</string>
+    <string name="catalog_favorite_remove">Remove %1$s from favorites</string>
+    <string name="catalog_favorite_error">Favorites are unavailable. Try again.</string>
 </resources>
