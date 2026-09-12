@@ -12,7 +12,7 @@ Show the current and upcoming programs when a user opens a Live channel, if that
 
 - Load guide entries only when the user opens a selected Live channel's guide or player guide panel. Do not prefetch every channel, poll in the background, or block the player while fetching.
 - Show a compact current/next summary and a focusable, lazy list for that channel. Show localized Arabic/English loading, empty, stale, and safe error states. Do not infer a program title from the channel name when EPG is absent.
-- Use a direct, per-channel `player_api.php` short-EPG request as the initial compatibility path; never attempt a second endpoint automatically after a failure. The exact action, limit parameter and parser acceptance rules require independent fixture-based validation before implementation.
+- Use a direct, per-channel `player_api.php` request with `action=get_short_epg`, an encoded `stream_id`, and a bounded optional `limit` as the initial compatibility path; never attempt a second endpoint automatically after a failure. Two independent client implementations agree on this action and parameter shape (see references below). Response field variants and timestamp semantics still require fixture-based validation before implementation.
 - Preserve responsive touch and TV D-pad interaction, focus on the channel/player when the guide appears or disappears, RTL text order, and readable labels. Guide loading must never take away playback or navigation.
 - On channel, account, credential, or request replacement, invalidate the old operation. Before storing or publishing data, recheck account ID, generation, selected channel ID and latest request generation. Cancellation alone is insufficient.
 
@@ -36,6 +36,11 @@ All replacement of one channel's entries must be transactional. On partial parse
 2. Unit-test URL encoding and redirect refusal, decoded-byte and count boundaries, malformed fields, ambiguous timestamps, deterministic sorting, deduplication, and no secrets in stored/logged values.
 3. Test cache isolation, atomic replacement, stale completion after account/channel switch, account removal, and failure fallback.
 4. Run Android build, unit tests, lint, and managed phone/tablet instrumentation. Physical Android TV D-pad, actual provider/media, RTL, accessibility and performance qualification remain **BLOCKED** until performed; emulator success is not release qualification.
+
+## Compatibility evidence
+
+- [py-xtream-codes request builder](https://github.com/chazlarson/py-xtream-codes/blob/master/xtream.py) constructs `get_short_epg` with `stream_id` and an optional `limit`.
+- [go.xtream-codes EPG client](https://github.com/ALiP61/go.xtream-codes/blob/master/xtream-codes.go) uses the same action and parameters; its [response model](https://github.com/ALiP61/go.xtream-codes/blob/master/structs.go) maps `epg_listings` and both textual and timestamp fields. These are compatibility evidence, not a formal provider specification.
 
 ## Explicitly deferred
 
