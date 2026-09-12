@@ -40,7 +40,7 @@ sites/                     Existing web assets
 
 The current repository source registers licensing and administration routes only. The fresh-install schema contains installations, trials, activation codes, licensing sessions, administrators, settings, and audit records; it does not define IPTV provider-account tables. Integration tests reject a provider Host in a licensing request, verify that the former `/v1/player/config` route returns 404, and check that the fresh test database has no provider-host, provider-account, or player-session tables.
 
-This describes the checked-in implementation and fresh-test-database evidence, not an audit of any existing deployed database or server. Production deployment, migration of any pre-existing data, final Android identity/signing, licensing origin, physical-device/media qualification, and post-merge CI remain unapproved or BLOCKED. Follow [`docs/deployment.md`](docs/deployment.md) before planning a deployment.
+This describes the checked-in implementation and fresh-test-database evidence, not an audit of any existing deployed database or server. Production deployment, migration of any pre-existing data, final Android identity/signing, licensing origin, and physical-device/media qualification remain unapproved or BLOCKED. Follow [`docs/deployment.md`](docs/deployment.md) before planning a deployment.
 
 ## Decision vocabulary
 
