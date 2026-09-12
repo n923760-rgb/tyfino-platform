@@ -36,6 +36,8 @@ These rows remain `BLOCKED` because no approved provider test fixture and no phy
 
 ## Evidence protocol
 
+Use the [manual test record template](manual-test-record-template.md) for each build/device pair, including the CI artifact identity and a separate status for every exercised scenario.
+
 Every manual run records:
 
 - date and tester;
