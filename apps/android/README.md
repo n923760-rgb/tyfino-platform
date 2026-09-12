@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, and favorites slices. EPG, provider-wide search, favorites, broader history, final branding, and release configuration remain separate work.
+This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, favorites, and Live/Movie recent-history slices. EPG, provider-wide search, favorites, broader history, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -91,6 +91,10 @@ Each Live, Movies, and Series destination searches only the active account's alr
 
 Live, Movies, and Series items can be added to an account-scoped local favorites list. Only account ID, section, provider item ID, and a timestamp are stored; titles, artwork, playback URLs, and credentials are never written to this store. A list contains at most 200 favorites per account and displays only items still present in current downloaded catalog categories. Account removal clears local favorites. The per-section Favorites filter and per-item add/remove controls support touch, keyboard, and TV D-pad input.
 
+## Recent-history scope
+
+Live channels and Movies are recorded only after the foreground player reaches actual playback. A separate account-scoped local store retains at most 100 recent IDs across these sections and stores no titles, artwork, playback URLs, or credentials. The section's Recently watched filter rejoins only current downloaded catalog metadata; missing items stay hidden. Series episode history remains deferred, independently of episode resume and Continue Watching.
+
 ## Deferred contracts
 
-Full physical-device/TV qualification, release identity/signing, EPG, provider-wide search, and other deferred playback capabilities require their own approved work. Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.
+Full physical-device/TV qualification, release identity/signing, EPG, provider-wide search, Series episode history, and other deferred playback capabilities require their own approved work. Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.
