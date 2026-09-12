@@ -18,6 +18,7 @@ internal enum class LiveEpgFailure {
     MalformedResponse,
     UnsupportedResponse,
     ResponseTooLarge,
+    LocalStorage,
 }
 
 internal sealed interface LiveEpgResult {
