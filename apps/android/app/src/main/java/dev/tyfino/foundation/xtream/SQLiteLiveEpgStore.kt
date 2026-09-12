@@ -46,7 +46,7 @@ internal class SQLiteLiveEpgStore(context: Context) : LiveEpgStore {
             }
             require(programs.size <= MAX_ENTRIES)
             database.execSQL("UPDATE $SNAPSHOT SET $ACCESSED_AT = ? WHERE $ACCOUNT_ID = ? AND $CHANNEL_ID = ?",
-                arrayOf(nowEpochMillis, accountId, channelId))
+                arrayOf<Any>(nowEpochMillis, accountId, channelId))
             LiveEpgSnapshot(metadata.first, metadata.second, programs)
             }
         }
