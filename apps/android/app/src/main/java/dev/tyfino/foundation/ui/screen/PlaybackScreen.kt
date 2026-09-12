@@ -61,6 +61,8 @@ import androidx.media3.ui.PlayerView
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.BoundedRedirectDataSource
 import dev.tyfino.foundation.playback.EpisodePlaybackSelection
+import dev.tyfino.foundation.playback.EpisodeResumeLoadResult
+import dev.tyfino.foundation.playback.EpisodeResumeRepository
 import dev.tyfino.foundation.playback.MovieResumeLoadResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
 import dev.tyfino.foundation.playback.MovieResumeRepository
@@ -178,6 +180,7 @@ internal fun EpisodePlaybackScreen(
     accountStore: XtreamAccountStore,
     seriesRepository: SeriesDetailsRepository,
     resumeRepository: MovieResumeRepository,
+    episodeResumeRepository: EpisodeResumeRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     onBack: () -> Unit,
 ) {
@@ -203,6 +206,10 @@ internal fun EpisodePlaybackScreen(
         preparation = PlaybackPreparation.Loading
         val owner = gate.begin(playerIdentity)
         val scoped = selection.atDestination(owner.destinationEpoch)
+        val resumePosition = when (val loaded = episodeResumeRepository.load(scoped)) {
+            is EpisodeResumeLoadResult.Ready -> loaded.record?.positionMillis ?: 0L
+            EpisodeResumeLoadResult.Failure -> 0L
+        }
         val committed = seriesRepository.commitIfEpisodeCurrent(
             accountId = scoped.accountId,
             accountGeneration = scoped.accountGeneration,
@@ -223,7 +230,8 @@ internal fun EpisodePlaybackScreen(
                         preparation = PlaybackPreparation.Ready(
                             reference = result.reference,
                             cleartextConsent = account!!.cleartextConsent,
-                            resumePositionMillis = 0L,
+                            resumePositionMillis = resumePosition,
+                            episodeSelection = scoped,
                         )
                     }) {
                         gate.commitFailure(owner) {
@@ -257,8 +265,10 @@ internal fun EpisodePlaybackScreen(
             previousLiveChannelController = previousLiveChannelController,
             previousLiveAvailable = false,
             onPreviousLive = {},
-            resumePositionMillis = 0L,
+            resumePositionMillis = state.resumePositionMillis,
             onBack = onBack,
+            episodeSelection = state.episodeSelection,
+            episodeResumeRepository = episodeResumeRepository,
         )
     }
 }
@@ -275,6 +285,8 @@ private fun PlayerSurface(
     onPreviousLive: () -> Unit,
     resumePositionMillis: Long,
     onBack: () -> Unit,
+    episodeSelection: EpisodePlaybackSelection? = null,
+    episodeResumeRepository: EpisodeResumeRepository? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -296,7 +308,7 @@ private fun PlayerSurface(
     var exitRequested by remember(reference) { mutableStateOf(false) }
 
     fun snapshot(current: ExoPlayer?): PlaybackProgressSnapshot? {
-        if (selection.section != CatalogSection.Movies || current == null) {
+        if ((selection.section != CatalogSection.Movies && episodeSelection == null) || current == null) {
             return null
         }
         val duration = current.duration.takeIf { it != C.TIME_UNSET && it > 0L }
@@ -311,7 +323,11 @@ private fun PlayerSurface(
     fun persistImmediately(progress: PlaybackProgressSnapshot?) {
         progress ?: return
         scope.launch {
-            resumeRepository.saveImmediately(selection, progress.positionMillis, progress.durationMillis)
+            if (episodeSelection != null && episodeResumeRepository != null) {
+                episodeResumeRepository.saveImmediately(episodeSelection, progress.positionMillis, progress.durationMillis)
+            } else {
+                resumeRepository.saveImmediately(selection, progress.positionMillis, progress.durationMillis)
+            }
         }
     }
 
@@ -323,11 +339,11 @@ private fun PlayerSurface(
         current?.playWhenReady = false
         scope.launch {
             if (progress != null) {
-                resumeRepository.saveImmediately(
-                    selection,
-                    progress.positionMillis,
-                    progress.durationMillis,
-                )
+                if (episodeSelection != null && episodeResumeRepository != null) {
+                    episodeResumeRepository.saveImmediately(episodeSelection, progress.positionMillis, progress.durationMillis)
+                } else {
+                    resumeRepository.saveImmediately(selection, progress.positionMillis, progress.durationMillis)
+                }
             }
             onBack()
         }
@@ -379,17 +395,17 @@ private fun PlayerSurface(
         activeMenu = null
     }
 
-    LaunchedEffect(player, selection, resumeRepository) {
+    LaunchedEffect(player, selection, resumeRepository, episodeSelection, episodeResumeRepository) {
         while (true) {
             delay(10_000L)
             val current = player
             if (current?.isPlaying == true) {
                 snapshot(current)?.let { progress ->
-                    resumeRepository.checkpoint(
-                        selection,
-                        progress.positionMillis,
-                        progress.durationMillis,
-                    )
+                    if (episodeSelection != null && episodeResumeRepository != null) {
+                        episodeResumeRepository.checkpoint(episodeSelection, progress.positionMillis, progress.durationMillis)
+                    } else {
+                        resumeRepository.checkpoint(selection, progress.positionMillis, progress.durationMillis)
+                    }
                 }
             }
         }
@@ -826,6 +842,7 @@ private sealed interface PlaybackPreparation {
         val reference: SecretPlaybackReference,
         val cleartextConsent: Boolean,
         val resumePositionMillis: Long,
+        val episodeSelection: EpisodePlaybackSelection? = null,
     ) : PlaybackPreparation
 
     data class Failure(val reason: PlaybackReferenceFailure) : PlaybackPreparation
