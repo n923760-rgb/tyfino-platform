@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,12 +34,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.ContinueWatchingItem
+import dev.tyfino.foundation.playback.CatalogHistoryListResult
+import dev.tyfino.foundation.playback.CatalogHistoryRepository
 import dev.tyfino.foundation.playback.EpisodeResumeListResult
 import dev.tyfino.foundation.playback.EpisodeResumeRepository
 import dev.tyfino.foundation.playback.SeriesContinueWatchingItem
@@ -68,6 +74,7 @@ internal fun CatalogScreen(
     episodeResumeRepository: EpisodeResumeRepository? = null,
     onResumeEpisode: (SeriesContinueWatchingItem) -> Unit = {},
     favoritesRepository: CatalogFavoritesRepository? = null,
+    historyRepository: CatalogHistoryRepository? = null,
 ) {
     var categories by remember(section) {
         mutableStateOf<CatalogState<CatalogCategory>>(CatalogState.Empty)
@@ -84,7 +91,12 @@ internal fun CatalogScreen(
     val searchActive = searchText.trim().codePointCount(0, searchText.trim().length) >= 2
     var favoritesState by remember(section) { mutableStateOf<FavoritesListResult?>(null) }
     var favoritesOnly by remember(section) { mutableStateOf(false) }
+    var historyOnly by remember(section) { mutableStateOf(false) }
     var favoriteActionError by remember(section) { mutableStateOf(false) }
+    var historyState by remember(section) { mutableStateOf<CatalogHistoryListResult?>(null) }
+    val recentItems = (historyState as? CatalogHistoryListResult.Ready)?.items.orEmpty()
+    val recentIds = recentItems.mapTo(hashSetOf()) { it.providerId }
+    val lifecycleOwner = LocalLifecycleOwner.current
     val favoriteItems = (favoritesState as? FavoritesListResult.Ready)?.items.orEmpty()
     val favoriteIds = favoriteItems.mapTo(hashSetOf()) { it.providerId }
     val scope = rememberCoroutineScope()
@@ -147,6 +159,20 @@ internal fun CatalogScreen(
         } else emptyList()
     }
 
+    DisposableEffect(lifecycleOwner, historyRepository, section) {
+        fun refreshHistory() {
+            if (historyRepository != null && section != CatalogSection.Series) {
+                scope.launch { historyState = historyRepository.recent(section) }
+            }
+        }
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) refreshHistory()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) refreshHistory()
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     LaunchedEffect(favoritesRepository, section) {
         favoritesState = favoritesRepository?.list(section)
     }
@@ -201,8 +227,21 @@ internal fun CatalogScreen(
         if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) {
             FocusVisibleButton(
                 label = stringResource(if (favoritesOnly) R.string.catalog_show_all else R.string.catalog_favorites_only),
-                onClick = { favoritesOnly = !favoritesOnly },
+                onClick = {
+                    favoritesOnly = !favoritesOnly
+                    if (favoritesOnly) historyOnly = false
+                },
                 modifier = Modifier.testTag("catalog-favorites-filter"),
+            )
+        }
+        if (historyRepository != null && (recentItems.isNotEmpty() || historyOnly)) {
+            FocusVisibleButton(
+                label = stringResource(if (historyOnly) R.string.catalog_show_all else R.string.catalog_recent_title),
+                onClick = {
+                    historyOnly = !historyOnly
+                    if (historyOnly) favoritesOnly = false
+                },
+                modifier = Modifier.testTag("catalog-history-filter"),
             )
         }
         if (favoritesState == FavoritesListResult.Failure || favoriteActionError) {
@@ -231,7 +270,11 @@ internal fun CatalogScreen(
                 when (val result = searchResult) {
                     null -> LoadingState()
                     is CatalogSearchResult.Ready -> {
-                        val visible = if (favoritesOnly) result.records.filter { it.providerId in favoriteIds } else result.records
+                        val visible = when {
+                            favoritesOnly -> result.records.filter { it.providerId in favoriteIds }
+                            historyOnly -> result.records.filter { it.providerId in recentIds }
+                            else -> result.records
+                        }
                         if (visible.isEmpty()) {
                             EmptyState(R.string.catalog_search_empty)
                         } else {
@@ -250,6 +293,12 @@ internal fun CatalogScreen(
                     CatalogSearchResult.StaleOwner -> EmptyState(R.string.catalog_error_authentication)
                     CatalogSearchResult.LocalStorage -> EmptyState(R.string.catalog_error_storage)
                 }
+            }
+        } else if (historyOnly) {
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                if (recentItems.isEmpty()) EmptyState(R.string.catalog_history_empty)
+                else ItemGrid(recentItems, section, onPlay, favoriteIds,
+                    if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null)
             }
         } else if (favoritesOnly) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
