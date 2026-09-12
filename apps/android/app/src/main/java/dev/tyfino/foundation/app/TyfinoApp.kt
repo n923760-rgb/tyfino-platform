@@ -63,7 +63,7 @@ import dev.tyfino.foundation.xtream.HttpXtreamSeriesApi
 import dev.tyfino.foundation.xtream.SQLiteCatalogStore
 import dev.tyfino.foundation.xtream.SQLiteSeriesStore
 import dev.tyfino.foundation.xtream.SeriesDetailsRepository
-import SeriesEpisode
+import dev.tyfino.foundation.xtream.SeriesEpisode
 import dev.tyfino.foundation.xtream.SecureXtreamAccountStore
 import dev.tyfino.foundation.xtream.XtreamAccountStore
 import dev.tyfino.foundation.xtream.XtreamController
