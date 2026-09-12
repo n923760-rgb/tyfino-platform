@@ -17,9 +17,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -63,6 +65,7 @@ internal fun SettingsScreen(onRemoveXtreamAccount: () -> Unit) {
     if (confirmRemoval) {
         val keepAccountFocus = remember { FocusRequester() }
         Dialog(onDismissRequest = { confirmRemoval = false }) {
+            val dialogView = LocalView.current
             Surface(
                 modifier = Modifier.fillMaxWidth().widthIn(max = 520.dp),
                 shape = MaterialTheme.shapes.large,
@@ -97,7 +100,13 @@ internal fun SettingsScreen(onRemoveXtreamAccount: () -> Unit) {
                     )
                 }
             }
-            LaunchedEffect(keepAccountFocus) { keepAccountFocus.requestFocus() }
+            LaunchedEffect(dialogView, keepAccountFocus) {
+                while (!dialogView.hasWindowFocus()) {
+                    withFrameNanos { }
+                }
+                withFrameNanos { }
+                keepAccountFocus.requestFocus()
+            }
         }
     }
 }
