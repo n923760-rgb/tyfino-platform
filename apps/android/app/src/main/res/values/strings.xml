@@ -109,7 +109,7 @@
     <string name="series_episode_order">Episode %1$d</string>
     <string name="series_no_episodes">No episodes are available for this season.</string>
     <string name="series_account_changed">The IPTV account changed. Return to Series and open it again.</string>
-    <string name="series_playback_coming">Episode playback is not available yet.</string>
+    <string name="series_play_episode">Play episode</string>
     <string name="series_playback_unavailable">Playback information is unavailable for this episode.</string>
     <string name="series_error_malformed">The provider returned invalid Series details.</string>
     <string name="series_error_unsupported">These Series details are not supported safely.</string>

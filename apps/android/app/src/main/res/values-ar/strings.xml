@@ -109,7 +109,7 @@
     <string name="series_episode_order">الحلقة %1$d</string>
     <string name="series_no_episodes">لا توجد حلقات متاحة لهذا الموسم.</string>
     <string name="series_account_changed">تغيّر حساب IPTV. ارجع إلى المسلسلات وافتحه مرة أخرى.</string>
-    <string name="series_playback_coming">تشغيل الحلقات غير متاح بعد.</string>
+    <string name="series_play_episode">تشغيل الحلقة</string>
     <string name="series_playback_unavailable">بيانات تشغيل هذه الحلقة غير متاحة.</string>
     <string name="series_error_malformed">أعاد المزود تفاصيل مسلسل غير صالحة.</string>
     <string name="series_error_unsupported">تفاصيل المسلسلات لهذا المزود غير مدعومة بشكل آمن.</string>

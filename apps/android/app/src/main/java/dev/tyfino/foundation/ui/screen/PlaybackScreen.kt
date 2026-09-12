@@ -60,6 +60,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.BoundedRedirectDataSource
+import dev.tyfino.foundation.playback.EpisodePlaybackSelection
 import dev.tyfino.foundation.playback.MovieResumeLoadResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
 import dev.tyfino.foundation.playback.MovieResumeRepository
@@ -73,6 +74,7 @@ import dev.tyfino.foundation.playback.SecretPlaybackReference
 import dev.tyfino.foundation.playback.XtreamPlaybackReferenceBuilder
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.xtream.CatalogSection
+import dev.tyfino.foundation.xtream.SeriesDetailsRepository
 import dev.tyfino.foundation.xtream.XtreamAccountStore
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -165,6 +167,97 @@ internal fun PlaybackScreen(
             previousLiveAvailable = previousLiveAvailable,
             onPreviousLive = onPreviousLive,
             resumePositionMillis = state.resumePositionMillis,
+            onBack = onBack,
+        )
+    }
+}
+
+@Composable
+internal fun EpisodePlaybackScreen(
+    selection: EpisodePlaybackSelection,
+    accountStore: XtreamAccountStore,
+    seriesRepository: SeriesDetailsRepository,
+    resumeRepository: MovieResumeRepository,
+    previousLiveChannelController: PreviousLiveChannelController,
+    onBack: () -> Unit,
+) {
+    val gate = remember(selection.operationId) {
+        PlaybackOperationGate().also(PlaybackOperationGate::activateDestination)
+    }
+    val playerIdentity = remember(selection) {
+        PlaybackSelection(
+            accountId = selection.accountId,
+            accountGeneration = selection.accountGeneration,
+            section = CatalogSection.Series,
+            providerItemId = selection.providerEpisodeId,
+            containerExtension = selection.containerExtension,
+        )
+    }
+    var preparationAttempt by remember { mutableIntStateOf(0) }
+    var preparation by remember(selection) {
+        mutableStateOf<PlaybackPreparation>(PlaybackPreparation.Loading)
+    }
+
+    DisposableEffect(gate) { onDispose { gate.deactivateDestination() } }
+    LaunchedEffect(selection, preparationAttempt) {
+        preparation = PlaybackPreparation.Loading
+        val owner = gate.begin(playerIdentity)
+        val scoped = selection.atDestination(owner.destinationEpoch)
+        val committed = seriesRepository.commitIfEpisodeCurrent(
+            accountId = scoped.accountId,
+            accountGeneration = scoped.accountGeneration,
+            seriesId = scoped.providerSeriesId,
+            seriesGeneration = scoped.seriesGeneration,
+            episodeId = scoped.providerEpisodeId,
+            extension = scoped.containerExtension,
+        ) {
+            val account = accountStore.load()
+            val result = if (account == null) {
+                PlaybackReferenceResult.Failure(PlaybackReferenceFailure.AccountChanged)
+            } else {
+                XtreamPlaybackReferenceBuilder.buildEpisode(account, scoped)
+            }
+            when (result) {
+                is PlaybackReferenceResult.Ready -> {
+                    if (!gate.commit(owner, accountStore.load()) {
+                        preparation = PlaybackPreparation.Ready(
+                            reference = result.reference,
+                            cleartextConsent = account!!.cleartextConsent,
+                            resumePositionMillis = 0L,
+                        )
+                    }) {
+                        gate.commitFailure(owner) {
+                            preparation = PlaybackPreparation.Failure(PlaybackReferenceFailure.AccountChanged)
+                        }
+                    }
+                }
+                is PlaybackReferenceResult.Failure -> gate.commitFailure(owner) {
+                    preparation = PlaybackPreparation.Failure(result.reason)
+                }
+            }
+        }
+        if (!committed) gate.commitFailure(owner) {
+            preparation = PlaybackPreparation.Failure(PlaybackReferenceFailure.InvalidMetadata)
+        }
+    }
+
+    when (val state = preparation) {
+        PlaybackPreparation.Loading -> PlaybackLoading(onBack)
+        is PlaybackPreparation.Failure -> PlaybackFailure(
+            message = state.reason.messageResource(),
+            onRetry = { preparationAttempt++ },
+            onBack = onBack,
+        )
+        is PlaybackPreparation.Ready -> PlayerSurface(
+            selection = playerIdentity,
+            reference = state.reference,
+            cleartextConsent = state.cleartextConsent,
+            accountStore = accountStore,
+            resumeRepository = resumeRepository,
+            previousLiveChannelController = previousLiveChannelController,
+            previousLiveAvailable = false,
+            onPreviousLive = {},
+            resumePositionMillis = 0L,
             onBack = onBack,
         )
     }

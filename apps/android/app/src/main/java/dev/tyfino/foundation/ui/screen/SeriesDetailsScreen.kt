@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,11 +61,12 @@ internal fun SeriesDetailsScreen(
     selection: SeriesSelection,
     repository: SeriesDetailsRepository,
     onBack: () -> Unit,
+    onEpisode: (SeriesEpisode, Long) -> Unit,
 ) {
     var state by remember(selection) { mutableStateOf<SeriesState>(SeriesState.Empty) }
     var destination by remember(selection) { mutableStateOf<SeriesDestination?>(null) }
     var ownerChanged by remember(selection) { mutableStateOf(false) }
-    var preferredSeason by remember(selection) { mutableStateOf<Int?>(null) }
+    var preferredSeason by rememberSaveable(selection.item.providerId) { mutableStateOf<Int?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(repository, selection) {
@@ -93,6 +95,7 @@ internal fun SeriesDetailsScreen(
         preferredSeason = preferredSeason,
         onSeasonSelected = { preferredSeason = it },
         onBack = onBack,
+        onEpisode = onEpisode,
         onRefresh = {
             val current = destination
             if (current != null) {
@@ -115,6 +118,7 @@ internal fun SeriesDetailsContent(
     onSeasonSelected: (Int) -> Unit,
     onBack: () -> Unit,
     onRefresh: () -> Unit,
+    onEpisode: (SeriesEpisode, Long) -> Unit = { _, _ -> },
 ) {
     val details = when (state) {
         is SeriesState.Content -> state.details
@@ -217,7 +221,12 @@ internal fun SeriesDetailsContent(
                         items = visibleEpisodes,
                         key = { "${it.seasonNumber}:${it.providerEpisodeId}" },
                     ) { episode ->
-                        EpisodeRow(episode)
+                        val generation = when (state) {
+                            is SeriesState.Content -> state.generation
+                            is SeriesState.StaleContent -> state.generation
+                            else -> 0L
+                        }
+                        EpisodeRow(episode, generation > 0L) { onEpisode(episode, generation) }
                     }
                 }
             }
@@ -252,19 +261,19 @@ private fun SeasonChoice(season: SeriesSeason, selected: Boolean, onClick: () ->
 }
 
 @Composable
-private fun EpisodeRow(episode: SeriesEpisode) {
+private fun EpisodeRow(episode: SeriesEpisode, hasPublishedGeneration: Boolean, onClick: () -> Unit) {
     val label = episode.title?.takeIf(String::isNotBlank)
         ?: episode.episodeNumber?.let { stringResource(R.string.series_episode_number, it) }
         ?: stringResource(R.string.series_episode_order, episode.providerOrder + 1)
     val seasonLabel = stringResource(R.string.series_season_number, episode.seasonNumber)
     val numberLabel = episode.episodeNumber?.let { stringResource(R.string.series_episode_number, it) }
-    val reason = stringResource(
-        if (SeriesPresentation.playableMetadataAvailable(episode)) R.string.series_playback_coming
-        else R.string.series_playback_unavailable,
-    )
+    val playable = hasPublishedGeneration && SeriesPresentation.playableMetadataAvailable(episode)
+    val reason = stringResource(if (playable) R.string.series_play_episode else R.string.series_playback_unavailable)
     val accessibilityLabel = listOfNotNull(label, seasonLabel, numberLabel, reason).distinct().joinToString(", ")
     var focused by remember { mutableStateOf(false) }
     Card(
+        onClick = onClick,
+        enabled = playable,
         modifier = Modifier
             .fillMaxWidth()
             .widthIn(max = 760.dp)
@@ -273,7 +282,7 @@ private fun EpisodeRow(episode: SeriesEpisode) {
             .focusable()
             .semantics {
                 contentDescription = accessibilityLabel
-                disabled()
+                if (!playable) disabled()
             },
         border = BorderStroke(
             if (focused) 3.dp else 1.dp,
