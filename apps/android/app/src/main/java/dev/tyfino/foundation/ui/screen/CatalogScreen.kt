@@ -20,6 +20,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +51,9 @@ import dev.tyfino.foundation.xtream.CatalogFailure
 import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.CatalogRepository
 import dev.tyfino.foundation.xtream.CatalogSection
+import dev.tyfino.foundation.xtream.CatalogSearchResult
 import dev.tyfino.foundation.xtream.CatalogState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -72,6 +75,9 @@ internal fun CatalogScreen(
     }
     var continueWatching by remember(section) { mutableStateOf(emptyList<ContinueWatchingItem>()) }
     var seriesContinueWatching by remember(section) { mutableStateOf(emptyList<SeriesContinueWatchingItem>()) }
+    var searchText by remember(section) { mutableStateOf("") }
+    var searchResult by remember(section) { mutableStateOf<CatalogSearchResult?>(null) }
+    val searchActive = searchText.trim().codePointCount(0, searchText.trim().length) >= 2
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(repository, section) {
@@ -117,6 +123,14 @@ internal fun CatalogScreen(
         } else emptyList()
     }
 
+    LaunchedEffect(repository, section, searchText) {
+        searchResult = null
+        if (searchActive) {
+            delay(250L)
+            searchResult = repository.searchCached(section, searchText)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -144,6 +158,49 @@ internal fun CatalogScreen(
             )
         }
 
+        OutlinedTextField(
+            value = searchText,
+            onValueChange = { next ->
+                if (next.codePointCount(0, next.length) <= 80) {
+                    searchText = next
+                    searchResult = null
+                }
+            },
+            label = { Text(stringResource(R.string.catalog_search_label)) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().testTag("catalog-search"),
+        )
+        if (searchText.isNotBlank()) {
+            Text(
+                stringResource(R.string.catalog_search_scope),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (searchActive) {
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                when (val result = searchResult) {
+                    null -> LoadingState()
+                    is CatalogSearchResult.Ready -> {
+                        if (result.records.isEmpty()) {
+                            EmptyState(R.string.catalog_search_empty)
+                        } else {
+                            ItemGrid(result.records, section, onPlay)
+                            if (result.limited) {
+                                Text(
+                                    stringResource(R.string.catalog_search_limit),
+                                    modifier = Modifier.align(Alignment.TopCenter),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                    CatalogSearchResult.InvalidQuery -> EmptyState(R.string.catalog_search_minimum)
+                    CatalogSearchResult.StaleOwner -> EmptyState(R.string.catalog_error_authentication)
+                    CatalogSearchResult.LocalStorage -> EmptyState(R.string.catalog_error_storage)
+                }
+            }
+        } else {
         if (continueWatching.isNotEmpty()) {
             ContinueWatchingStrip(continueWatching, onPlay)
         }
@@ -201,6 +258,7 @@ internal fun CatalogScreen(
             },
             modifier = Modifier.weight(1f),
         )
+        }
     }
 }
 

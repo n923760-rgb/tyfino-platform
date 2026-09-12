@@ -83,6 +83,49 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
         CatalogSnapshot(metadata.generation, metadata.refreshedAtMillis, records)
     }
 
+    override fun searchItems(
+        accountId: String,
+        section: CatalogSection,
+        query: String,
+        limit: Int,
+    ): List<CatalogItem> = synchronized(helper) {
+        require(query.isNotBlank() && query.codePointCount(0, query.length) <= 80)
+        require(limit in 1..51)
+        // instr treats %, _, and backslashes literally; no wildcard expansion or remote search.
+        val sql = """SELECT i.$CATEGORY_ID, i.$PROVIDER_ID, i.$DISPLAY_NAME,
+            i.$PROVIDER_ORDER, i.$ARTWORK_URL, i.$RATING, i.$RELEASE_YEAR, i.$CONTAINER_EXTENSION
+            FROM $ITEM_TABLE i
+            JOIN $SNAPSHOT_TABLE s ON s.$ACCOUNT_ID = i.$ACCOUNT_ID
+                AND s.$SECTION = i.$SECTION AND s.$CATEGORY_ID = i.$CATEGORY_ID
+                AND s.$GENERATION = i.$GENERATION
+            JOIN $CATEGORY_TABLE c ON c.$ACCOUNT_ID = i.$ACCOUNT_ID
+                AND c.$SECTION = i.$SECTION AND c.$PROVIDER_ID = i.$CATEGORY_ID
+            WHERE i.$ACCOUNT_ID = ? AND i.$SECTION = ?
+                AND instr(lower(i.$DISPLAY_NAME), lower(?)) > 0
+            ORDER BY i.$DISPLAY_NAME COLLATE NOCASE ASC, i.$PROVIDER_ID ASC, i.$CATEGORY_ID ASC
+            LIMIT ?""".trimIndent()
+        helper.readableDatabase.rawQuery(
+            sql, arrayOf(accountId, section.name, query, limit.toString()),
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(
+                        CatalogItem(
+                            providerId = cursor.text(PROVIDER_ID),
+                            categoryId = cursor.text(CATEGORY_ID),
+                            name = cursor.text(DISPLAY_NAME),
+                            providerOrder = cursor.getInt(cursor.getColumnIndexOrThrow(PROVIDER_ORDER)),
+                            artworkUrl = cursor.nullableText(ARTWORK_URL),
+                            rating = cursor.nullableText(RATING),
+                            releaseYear = cursor.nullableText(RELEASE_YEAR),
+                            containerExtension = cursor.nullableText(CONTAINER_EXTENSION),
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
     override fun loadItemsByProviderIds(
         accountId: String,
         section: CatalogSection,

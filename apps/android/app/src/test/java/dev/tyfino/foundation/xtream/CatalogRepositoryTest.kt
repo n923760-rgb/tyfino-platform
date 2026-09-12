@@ -113,6 +113,49 @@ class CatalogRepositoryTest {
         assertEquals("Corrected", store.categories.getValue("account-a" to CatalogSection.Live).records.single().name)
     }
 
+    @Test
+    fun cachedSearchIsScopedBoundedAndNeverCallsProvider() = runBlocking {
+        val accountStore = FakeAccountStore(account("account-a", 4))
+        val store = FakeCatalogStore().apply {
+            searchable += CatalogItem("movie", "category", "Movie Match", 0, null, null, null, "mp4")
+            searchable += CatalogItem("other", "category", "Another", 1, null, null, null, "mp4")
+        }
+        val api = FixedCatalogApi(success("Unused"))
+        val repository = repository(accountStore, api, store, wall = 10_000)
+
+        assertEquals(CatalogSearchResult.InvalidQuery, repository.searchCached(CatalogSection.Movies, "x"))
+        val result = repository.searchCached(CatalogSection.Movies, "match") as CatalogSearchResult.Ready
+        assertEquals(listOf("movie"), result.records.map(CatalogItem::providerId))
+        assertTrue(!result.limited)
+        assertEquals(0, api.categoryCalls)
+        assertEquals(listOf(Triple("account-a", CatalogSection.Movies, "match")), store.searchCalls)
+    }
+
+    @Test
+    fun cachedSearchDiscardsResultsIfAccountChangesDuringRead() = runBlocking {
+        val accountStore = FakeAccountStore(account("account-a", 4))
+        val store = FakeCatalogStore().apply {
+            searchable += CatalogItem("movie", "category", "Match", 0, null, null, null, "mp4")
+            onSearch = { accountStore.value = account("account-b", 1) }
+        }
+        val repository = repository(accountStore, FixedCatalogApi(success("Unused")), store, wall = 10_000)
+        assertEquals(CatalogSearchResult.StaleOwner, repository.searchCached(CatalogSection.Movies, "match"))
+    }
+
+    @Test
+    fun cachedSearchLimitsResultsAndRejectsOverlongQuery() = runBlocking {
+        val store = FakeCatalogStore().apply {
+            (1..51).forEach { n ->
+                searchable += CatalogItem("id-$n", "category", "Match $n", n, null, null, null, null)
+            }
+        }
+        val repository = repository(FakeAccountStore(account("account-a", 4)), FixedCatalogApi(success("Unused")), store, 10_000)
+        assertEquals(CatalogSearchResult.InvalidQuery, repository.searchCached(CatalogSection.Series, "x".repeat(81)))
+        val result = repository.searchCached(CatalogSection.Series, "match") as CatalogSearchResult.Ready
+        assertEquals(50, result.records.size)
+        assertTrue(result.limited)
+    }
+
     private fun repository(
         accountStore: FakeAccountStore,
         api: XtreamCatalogApi,
@@ -158,6 +201,15 @@ class CatalogRepositoryTest {
     private class FakeCatalogStore : CatalogStore {
         val categories = mutableMapOf<Pair<String, CatalogSection>, CatalogSnapshot<CatalogCategory>>()
         private val items = mutableMapOf<Triple<String, CatalogSection, String>, CatalogSnapshot<CatalogItem>>()
+        val searchable = mutableListOf<CatalogItem>()
+        val searchCalls = mutableListOf<Triple<String, CatalogSection, String>>()
+        var onSearch: () -> Unit = {}
+        override fun searchItems(accountId: String, section: CatalogSection, query: String, limit: Int): List<CatalogItem> {
+            searchCalls += Triple(accountId, section, query)
+            onSearch()
+            return searchable.filter { it.name.contains(query, ignoreCase = true) }.take(limit)
+        }
+
 
         override fun loadCategories(accountId: String, section: CatalogSection) = categories[accountId to section]
         override fun loadItems(accountId: String, section: CatalogSection, categoryId: String) =

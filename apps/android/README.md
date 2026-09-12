@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the approved licensing, Xtream authentication, catalog, and playback V1 slices. EPG, Series episode playback, search, favorites, broader history, final branding, and release configuration remain separate work.
+This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, and cached-catalog search slices. EPG, provider-wide search, favorites, broader history, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -83,6 +83,10 @@ The repository CI provisions Gradle 9.6.0 and runs:
 
 An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation smoke tests run on clean API 27 phone and API 35 tablet managed devices. This automated baseline does not replace the physical phone, Android TV/Google TV, API 24-class, media, RTL, accessibility, and performance checks in [`../../docs/android/device-qualification-v1.md`](../../docs/android/device-qualification-v1.md).
 
+## Cached search scope
+
+Each Live, Movies, and Series destination searches only the active account's already-downloaded category snapshots. The search is local (no network fetch or background full-catalog synchronization), starts after two characters and a short debounce, and shows at most 50 matches. The UI states this limitation. Provider-wide search remains deferred.
+
 ## Deferred contracts
 
-Full physical-device/TV qualification, release identity/signing, EPG, episode resume and Continue Watching, search, favorites, and other deferred playback capabilities require their own approved work. The on-demand Series protocol, account-scoped details cache, adaptive Series details screen, and foreground episode playback are implemented separately from episode resume. This foundation must not be used to infer those designs.
+Full physical-device/TV qualification, release identity/signing, EPG, provider-wide search, favorites, and other deferred playback capabilities require their own approved work. Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.

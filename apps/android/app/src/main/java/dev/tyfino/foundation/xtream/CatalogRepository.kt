@@ -15,6 +15,8 @@ internal data class CatalogSnapshot<T>(
 internal interface CatalogStore {
     fun loadCategories(accountId: String, section: CatalogSection): CatalogSnapshot<CatalogCategory>?
     fun loadItems(accountId: String, section: CatalogSection, categoryId: String): CatalogSnapshot<CatalogItem>?
+    /** Searches only currently stored category snapshots; never initiates a provider request. */
+    fun searchItems(accountId: String, section: CatalogSection, query: String, limit: Int): List<CatalogItem> = emptyList()
     fun loadItemsByProviderIds(
         accountId: String,
         section: CatalogSection,
@@ -62,6 +64,13 @@ internal sealed interface CatalogState<out T> {
         val lastSuccessfulRefreshMillis: Long,
         val failure: CatalogFailure,
     ) : CatalogState<T>
+}
+
+internal sealed interface CatalogSearchResult {
+    data class Ready(val records: List<CatalogItem>, val limited: Boolean) : CatalogSearchResult
+    data object InvalidQuery : CatalogSearchResult
+    data object StaleOwner : CatalogSearchResult
+    data object LocalStorage : CatalogSearchResult
 }
 
 internal class CatalogRepository(
@@ -122,6 +131,28 @@ internal class CatalogRepository(
                 current?.accountId != account.accountId ||
                 current.generation != account.generation
             ) emptyList() else records
+        }
+    }
+
+    suspend fun searchCached(section: CatalogSection, rawQuery: String): CatalogSearchResult = withContext(Dispatchers.IO) {
+        val query = rawQuery.trim()
+        val length = query.codePointCount(0, query.length)
+        if (length !in 2..MAX_SEARCH_QUERY_CODE_POINTS) return@withContext CatalogSearchResult.InvalidQuery
+        mutex.withLock {
+            val account = accountStore.load() ?: return@withLock CatalogSearchResult.StaleOwner
+            val records = try {
+                store.searchItems(account.accountId, section, query, MAX_SEARCH_RESULTS + 1)
+            } catch (_: RuntimeException) {
+                return@withLock CatalogSearchResult.LocalStorage
+            }
+            val active = accountStore.load()
+            if (active?.accountId != account.accountId || active.generation != account.generation) {
+                return@withLock CatalogSearchResult.StaleOwner
+            }
+            CatalogSearchResult.Ready(
+                records.distinctBy(CatalogItem::providerId).take(MAX_SEARCH_RESULTS),
+                limited = records.size > MAX_SEARCH_RESULTS,
+            )
         }
     }
 
@@ -257,6 +288,8 @@ internal class CatalogRepository(
         const val CATEGORY_FRESHNESS_MILLIS = 12L * 60L * 60L * 1_000L
         const val ITEM_FRESHNESS_MILLIS = 6L * 60L * 60L * 1_000L
         const val MAX_CACHED_ITEM_LOOKUP = 200
+        const val MAX_SEARCH_QUERY_CODE_POINTS = 80
+        const val MAX_SEARCH_RESULTS = 50
         const val MAX_PROVIDER_ID_CODE_POINTS = 256
     }
 }
