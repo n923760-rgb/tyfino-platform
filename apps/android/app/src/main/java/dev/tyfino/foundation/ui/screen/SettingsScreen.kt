@@ -5,9 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,13 +17,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 
@@ -61,33 +62,42 @@ internal fun SettingsScreen(onRemoveXtreamAccount: () -> Unit) {
         )
     }
     if (confirmRemoval) {
-        AlertDialog(
-            onDismissRequest = { confirmRemoval = false },
-            title = { Text(stringResource(R.string.xtream_confirm_remove_title)) },
-            text = { Text(stringResource(R.string.xtream_confirm_remove_message)) },
-            confirmButton = {
-                FocusVisibleButton(
-                    label = stringResource(R.string.xtream_confirm_remove),
-                    onClick = {
-                        if (confirmRemoval) {
-                            confirmRemoval = false
-                            onRemoveXtreamAccount()
-                        }
-                    },
-                    modifier = Modifier.testTag("xtream-confirm-remove"),
-                )
-            },
-            dismissButton = {
-                FocusVisibleButton(
-                    label = stringResource(R.string.xtream_keep_account),
-                    onClick = { confirmRemoval = false },
-                    modifier = Modifier.focusRequester(cancelFocus).testTag("xtream-keep-account"),
-                )
-            },
-        )
-        LaunchedEffect(Unit) {
-            withFrameNanos { }
-            cancelFocus.requestFocus()
+        Dialog(onDismissRequest = { confirmRemoval = false }) {
+            Surface(
+                modifier = Modifier.fillMaxWidth().widthIn(max = 520.dp),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = 8.dp,
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.xtream_confirm_remove_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    Text(stringResource(R.string.xtream_confirm_remove_message))
+                    FocusVisibleButton(
+                        label = stringResource(R.string.xtream_keep_account),
+                        onClick = { confirmRemoval = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(cancelFocus)
+                            .testTag("xtream-keep-account"),
+                    )
+                    FocusVisibleButton(
+                        label = stringResource(R.string.xtream_confirm_remove),
+                        onClick = {
+                            if (confirmRemoval) {
+                                confirmRemoval = false
+                                onRemoveXtreamAccount()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("xtream-confirm-remove"),
+                    )
+                }
+            }
         }
+        LaunchedEffect(Unit) { cancelFocus.requestFocus() }
     }
 }
