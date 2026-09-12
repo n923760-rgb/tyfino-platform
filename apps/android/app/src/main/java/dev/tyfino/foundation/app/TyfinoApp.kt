@@ -64,6 +64,9 @@ import dev.tyfino.foundation.xtream.CatalogFavoritesRepository
 import dev.tyfino.foundation.xtream.SQLiteFavoriteStore
 import dev.tyfino.foundation.xtream.CatalogRepository
 import dev.tyfino.foundation.xtream.CatalogSection
+import dev.tyfino.foundation.xtream.HttpLiveEpgApi
+import dev.tyfino.foundation.xtream.LiveEpgRepository
+import dev.tyfino.foundation.xtream.SQLiteLiveEpgStore
 import dev.tyfino.foundation.xtream.HttpXtreamApi
 import dev.tyfino.foundation.xtream.HttpXtreamCatalogApi
 import dev.tyfino.foundation.xtream.HttpXtreamSeriesApi
@@ -107,6 +110,7 @@ internal fun TyfinoApp() {
             store = SQLiteCatalogStore(context),
         )
     }
+    val epgRepository = remember { LiveEpgRepository(xtreamStore, HttpLiveEpgApi(context), SQLiteLiveEpgStore(context)) }
     val favoritesRepository = remember {
         CatalogFavoritesRepository(xtreamStore, catalogRepository, SQLiteFavoriteStore(context))
     }
@@ -151,6 +155,7 @@ internal fun TyfinoApp() {
             catalogRepository = catalogRepository,
             favoritesRepository = favoritesRepository,
             historyRepository = historyRepository,
+            epgRepository = epgRepository,
             seriesDetailsRepository = seriesDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
@@ -175,6 +180,7 @@ private fun XtreamGate(
     catalogRepository: CatalogRepository,
     favoritesRepository: CatalogFavoritesRepository,
     historyRepository: CatalogHistoryRepository,
+    epgRepository: LiveEpgRepository,
     seriesDetailsRepository: SeriesDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
@@ -195,6 +201,7 @@ private fun XtreamGate(
             catalogRepository = catalogRepository,
             favoritesRepository = favoritesRepository,
             historyRepository = historyRepository,
+            epgRepository = epgRepository,
             seriesDetailsRepository = seriesDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
@@ -203,6 +210,9 @@ private fun XtreamGate(
             onRemoveXtreamAccount = {
                 previousLiveChannelController.clear()
                 scope.launch {
+                    try {
+                        epgRepository.clearActiveAccount()
+                    } finally {
                     try {
                         historyRepository.clearActiveAccount()
                     } finally {
@@ -228,6 +238,7 @@ private fun XtreamGate(
                     }
                     }
                     }
+                    }
                 }
             },
         )
@@ -248,6 +259,7 @@ private fun LicensedAppShell(
     catalogRepository: CatalogRepository,
     favoritesRepository: CatalogFavoritesRepository,
     historyRepository: CatalogHistoryRepository,
+    epgRepository: LiveEpgRepository,
     seriesDetailsRepository: SeriesDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
@@ -345,6 +357,7 @@ private fun LicensedAppShell(
             catalogRepository = catalogRepository,
             favoritesRepository = favoritesRepository,
             historyRepository = historyRepository,
+            epgRepository = epgRepository,
             seriesDetailsRepository = seriesDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
@@ -410,6 +423,7 @@ private fun AppNavHost(
     catalogRepository: CatalogRepository,
     favoritesRepository: CatalogFavoritesRepository,
     historyRepository: CatalogHistoryRepository,
+    epgRepository: LiveEpgRepository,
     seriesDetailsRepository: SeriesDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
@@ -505,6 +519,7 @@ private fun AppNavHost(
                         accountStore = accountStore,
                         resumeRepository = movieResumeRepository,
                         historyRepository = historyRepository,
+                        liveEpgRepository = epgRepository,
                         previousLiveChannelController = previousLiveChannelController,
                         onPreviousLive = { onPreviousLive(selection) },
                         onBack = { navController.popBackStack() },

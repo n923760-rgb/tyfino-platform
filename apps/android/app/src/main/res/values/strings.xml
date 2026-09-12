@@ -127,4 +127,16 @@
     <string name="catalog_favorite_error">Favorites are unavailable. Try again.</string>
     <string name="catalog_recent_title">Recently watched</string>
     <string name="catalog_history_empty">No recently watched items in downloaded categories.</string>
+    <string name="epg_title">Program guide</string>
+    <string name="epg_refresh">Refresh guide</string>
+    <string name="epg_loading">Loading program guide…</string>
+    <string name="epg_empty">No upcoming programs are available for this channel.</string>
+    <string name="epg_stale">Showing saved programs. The guide could not be refreshed.</string>
+    <string name="epg_error">The program guide is unavailable. Try again.</string>
+    <string name="epg_current">On now</string>
+    <string name="epg_next">Up next</string>
+    <string name="epg_no_current">No current program listed</string>
+    <string name="epg_no_next">No next program listed</string>
+    <string name="epg_schedule">Schedule</string>
+    <string name="epg_untitled">Untitled program</string>
 </resources>

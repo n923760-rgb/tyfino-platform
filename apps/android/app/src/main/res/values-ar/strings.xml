@@ -127,4 +127,16 @@
     <string name="catalog_favorite_error">المفضلة غير متاحة الآن. أعد المحاولة.</string>
     <string name="catalog_recent_title">شوهد مؤخرًا</string>
     <string name="catalog_history_empty">لا توجد عناصر شوهدت مؤخرًا ضمن التصنيفات المحمّلة.</string>
+    <string name="epg_title">دليل البرامج</string>
+    <string name="epg_refresh">تحديث الدليل</string>
+    <string name="epg_loading">جارٍ تحميل دليل البرامج…</string>
+    <string name="epg_empty">لا توجد برامج قادمة لهذه القناة.</string>
+    <string name="epg_stale">تُعرض البرامج المحفوظة. تعذّر تحديث الدليل.</string>
+    <string name="epg_error">دليل البرامج غير متاح. أعد المحاولة.</string>
+    <string name="epg_current">يُعرض الآن</string>
+    <string name="epg_next">التالي</string>
+    <string name="epg_no_current">لا يوجد برنامج حالي مدرج</string>
+    <string name="epg_no_next">لا يوجد برنامج تالٍ مدرج</string>
+    <string name="epg_schedule">جدول البرامج</string>
+    <string name="epg_untitled">برنامج بلا عنوان</string>
 </resources>
