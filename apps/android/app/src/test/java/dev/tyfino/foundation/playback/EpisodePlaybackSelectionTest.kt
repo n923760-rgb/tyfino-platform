@@ -15,7 +15,8 @@ class EpisodePlaybackSelectionTest {
         val account = account(username = "user/name", password = "p a?", url = "https://provider.example/panel")
         val selected = requireNotNull(EpisodePlaybackSelection.from(
             "account", 7, "series-catalog-id", 3,
-            episode(id = "episode/one", extension = "m3u8"),
+            episode(id = "episode/one", extension = "m3u8")
+                .copy(providerSeriesId = "series-catalog-id"),
         )).atDestination(2)
 
         val result = XtreamPlaybackReferenceBuilder.buildEpisode(account, selected) as PlaybackReferenceResult.Ready
