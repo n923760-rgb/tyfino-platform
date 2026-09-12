@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -22,10 +23,12 @@ class SettingsScreenTest {
         }
 
         compose.onNodeWithTag("xtream-logout").performClick()
+        compose.onNodeWithTag("xtream-keep-account").assertIsFocused()
         compose.onNodeWithTag("xtream-keep-account").performClick()
         compose.runOnIdle { assertEquals(0, removals) }
 
         compose.onNodeWithTag("xtream-logout").performClick()
+        compose.onNodeWithTag("xtream-keep-account").assertIsFocused()
         compose.onNodeWithTag("xtream-confirm-remove").performClick()
         compose.runOnIdle { assertEquals(1, removals) }
     }
