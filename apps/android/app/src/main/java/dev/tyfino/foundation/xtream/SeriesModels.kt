@@ -61,6 +61,7 @@ internal enum class SeriesFailure {
     MalformedResponse,
     UnsupportedResponse,
     ResponseTooLarge,
+    LocalStorage,
     Unknown,
 }
 
