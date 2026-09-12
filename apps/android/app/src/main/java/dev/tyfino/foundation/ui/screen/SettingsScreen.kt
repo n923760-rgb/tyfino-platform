@@ -12,14 +12,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,7 +27,6 @@ import dev.tyfino.foundation.ui.components.FocusVisibleButton
 @Composable
 internal fun SettingsScreen(onRemoveXtreamAccount: () -> Unit) {
     var confirmRemoval by remember { mutableStateOf(false) }
-    val cancelFocus = remember { FocusRequester() }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -82,7 +78,6 @@ internal fun SettingsScreen(onRemoveXtreamAccount: () -> Unit) {
                         onClick = { confirmRemoval = false },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(cancelFocus)
                             .testTag("xtream-keep-account"),
                     )
                     FocusVisibleButton(
@@ -98,6 +93,5 @@ internal fun SettingsScreen(onRemoveXtreamAccount: () -> Unit) {
                 }
             }
         }
-        LaunchedEffect(Unit) { cancelFocus.requestFocus() }
     }
 }
