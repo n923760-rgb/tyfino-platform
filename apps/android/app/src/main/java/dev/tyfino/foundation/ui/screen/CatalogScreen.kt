@@ -38,6 +38,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.ContinueWatchingItem
+import dev.tyfino.foundation.playback.EpisodeResumeListResult
+import dev.tyfino.foundation.playback.EpisodeResumeRepository
+import dev.tyfino.foundation.playback.SeriesContinueWatchingItem
 import dev.tyfino.foundation.playback.MovieResumeListResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
 import dev.tyfino.foundation.playback.MovieResumeRepository
@@ -56,6 +59,8 @@ internal fun CatalogScreen(
     repository: CatalogRepository,
     resumeRepository: MovieResumeRepository,
     onPlay: (CatalogItem) -> Unit,
+    episodeResumeRepository: EpisodeResumeRepository? = null,
+    onResumeEpisode: (SeriesContinueWatchingItem) -> Unit = {},
 ) {
     var categories by remember(section) {
         mutableStateOf<CatalogState<CatalogCategory>>(CatalogState.Empty)
@@ -66,6 +71,7 @@ internal fun CatalogScreen(
         mutableStateOf<CatalogState<CatalogItem>>(CatalogState.Empty)
     }
     var continueWatching by remember(section) { mutableStateOf(emptyList<ContinueWatchingItem>()) }
+    var seriesContinueWatching by remember(section) { mutableStateOf(emptyList<SeriesContinueWatchingItem>()) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(repository, section) {
@@ -94,6 +100,21 @@ internal fun CatalogScreen(
         } else {
             emptyList()
         }
+    }
+
+    LaunchedEffect(repository, episodeResumeRepository, section) {
+        seriesContinueWatching = if (section == CatalogSection.Series && episodeResumeRepository != null) {
+            when (val result = episodeResumeRepository.continueWatching()) {
+                is EpisodeResumeListResult.Ready -> {
+                    val ids = result.items.mapTo(linkedSetOf()) { it.episode.providerSeriesId }
+                    val current = repository.cachedItems(CatalogSection.Series, ids).associateBy { it.providerId }
+                    result.items.mapNotNull { item ->
+                        current[item.episode.providerSeriesId]?.let { item.copy(seriesTitle = it.name) }
+                    }
+                }
+                EpisodeResumeListResult.Failure -> emptyList()
+            }
+        } else emptyList()
     }
 
     Column(
@@ -125,6 +146,9 @@ internal fun CatalogScreen(
 
         if (continueWatching.isNotEmpty()) {
             ContinueWatchingStrip(continueWatching, onPlay)
+        }
+        if (seriesContinueWatching.isNotEmpty()) {
+            SeriesContinueWatchingStrip(seriesContinueWatching, onResumeEpisode)
         }
 
         CategoryStrip(
@@ -205,6 +229,31 @@ private fun ContinueWatchingStrip(
                     } ?: stringResource(R.string.continue_watching_resume),
                     selected = false,
                     onClick = { onPlay(record.catalogItem) },
+                    modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SeriesContinueWatchingStrip(
+    records: List<SeriesContinueWatchingItem>,
+    onPlay: (SeriesContinueWatchingItem) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth().testTag("series-continue-watching"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(stringResource(R.string.continue_watching_title), style = MaterialTheme.typography.titleLarge)
+        LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(records, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
+                CatalogTile(
+                    label = listOfNotNull(item.seriesTitle, item.episode.title).filter { it.isNotBlank() }.joinToString(" • "),
+                    supporting = item.progressPercent?.let { stringResource(R.string.continue_watching_progress, it) }
+                        ?: stringResource(R.string.continue_watching_resume),
+                    selected = false,
+                    onClick = { onPlay(item) },
                     modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
                 )
             }
