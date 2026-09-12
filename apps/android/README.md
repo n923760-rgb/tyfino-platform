@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, favorites, and Live/Movie recent-history slices. EPG, provider-wide search, favorites, broader history, final branding, and release configuration remain separate work.
+This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. Provider-wide search, Series episode history, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -31,7 +31,7 @@ Without that property, the UI remains usable but licensing network actions fail 
 - Account ID, generation, and operation identity are checked at commit time so a stale completion cannot overwrite a newer login, logout, removal, or destination owner.
 - Account removal invalidates ownership before deleting the encrypted credential payload.
 
-Catalog, categories, EPG, playback URLs, and streams are not fetched by authentication and remain deferred.
+Authentication fetches no catalog, EPG, playback URLs, or streams. Those features operate only after sign-in and explicit destination actions.
 
 ## Foundation decisions
 
@@ -95,6 +95,10 @@ Live, Movies, and Series items can be added to an account-scoped local favorites
 
 Live channels and Movies are recorded only after the foreground player reaches actual playback. A separate account-scoped local store retains at most 100 recent IDs across these sections and stores no titles, artwork, playback URLs, or credentials. The section's Recently watched filter rejoins only current downloaded catalog metadata; missing items stay hidden. Series episode history remains deferred, independently of episode resume and Continue Watching.
 
+## Live EPG scope
+
+The player opens the selected Live channel's program guide only when requested. A direct per-channel provider request updates an account-owned, bounded cache; playback does not wait for guide data. The dialog shows current/next programs and a lazy schedule with localized loading, empty, stale, and error states. Closing it or changing channels invalidates older results, and account removal clears the EPG cache. Physical TV D-pad, RTL, accessibility, media, and performance qualification remains BLOCKED until recorded under the device-qualification contract.
+
 ## Deferred contracts
 
-Full physical-device/TV qualification, release identity/signing, EPG, provider-wide search, Series episode history, and other deferred playback capabilities require their own approved work. Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.
+Full physical-device/TV qualification, release identity/signing, provider-wide search, Series episode history, and other deferred playback capabilities require their own approved work. Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.
