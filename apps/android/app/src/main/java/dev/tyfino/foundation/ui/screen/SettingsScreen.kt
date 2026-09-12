@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -84,6 +85,9 @@ internal fun SettingsScreen(onRemoveXtreamAccount: () -> Unit) {
                 )
             },
         )
-        LaunchedEffect(Unit) { cancelFocus.requestFocus() }
+        LaunchedEffect(Unit) {
+            withFrameNanos { }
+            cancelFocus.requestFocus()
+        }
     }
 }
