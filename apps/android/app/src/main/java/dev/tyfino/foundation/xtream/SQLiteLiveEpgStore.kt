@@ -21,7 +21,7 @@ internal class SQLiteLiveEpgStore(context: Context) : LiveEpgStore {
     override fun load(accountId: String, channelId: String, nowEpochMillis: Long): LiveEpgSnapshot? =
         synchronized(helper) {
             val database = helper.writableDatabase
-            database.inTransaction {
+            database.inTransaction<LiveEpgSnapshot?> {
             delete(PROGRAM, "$ACCOUNT_ID = ? AND $CHANNEL_ID = ? AND $ENDS_AT <= ?",
                 arrayOf(accountId, channelId, nowEpochMillis.toString()))
             val metadata = database.query(SNAPSHOT,
@@ -97,6 +97,7 @@ internal class SQLiteLiveEpgStore(context: Context) : LiveEpgStore {
         helper.writableDatabase.inTransaction {
             delete(PROGRAM, "$ACCOUNT_ID = ?", arrayOf(accountId))
             delete(SNAPSHOT, "$ACCOUNT_ID = ?", arrayOf(accountId))
+            Unit
         }
     }
 
