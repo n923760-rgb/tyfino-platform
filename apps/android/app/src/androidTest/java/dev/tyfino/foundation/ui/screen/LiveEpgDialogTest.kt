@@ -4,10 +4,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.tyfino.foundation.xtream.LiveEpgFailure
 import dev.tyfino.foundation.xtream.LiveEpgProgram
@@ -35,6 +38,9 @@ class LiveEpgDialogTest {
         }
         compose.onNodeWithText("On now").assertExists()
         compose.onNodeWithText("Up next").assertExists()
+        compose.onNodeWithTag("epg-program-0")
+            .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+        compose.onNodeWithTag("epg-program-0").assertIsFocused()
         compose.onNodeWithTag("epg-refresh").performClick()
         compose.runOnIdle { assertEquals(1, refreshes) }
         compose.runOnIdle { state = LiveEpgState.Stale(programs, now, LiveEpgFailure.Timeout) }
