@@ -63,6 +63,7 @@ import dev.tyfino.foundation.playback.BoundedRedirectDataSource
 import dev.tyfino.foundation.playback.EpisodePlaybackSelection
 import dev.tyfino.foundation.playback.EpisodeResumeLoadResult
 import dev.tyfino.foundation.playback.EpisodeResumeRepository
+import dev.tyfino.foundation.playback.CatalogHistoryRepository
 import dev.tyfino.foundation.playback.MovieResumeLoadResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
 import dev.tyfino.foundation.playback.MovieResumeRepository
@@ -92,6 +93,7 @@ internal fun PlaybackScreen(
     previousLiveChannelController: PreviousLiveChannelController,
     onPreviousLive: () -> Unit,
     onBack: () -> Unit,
+    historyRepository: CatalogHistoryRepository? = null,
 ) {
     val previousLiveState by previousLiveChannelController.state.collectAsState()
     val previousLiveAvailable = remember(selection, previousLiveState) {
@@ -170,6 +172,7 @@ internal fun PlaybackScreen(
             onPreviousLive = onPreviousLive,
             resumePositionMillis = state.resumePositionMillis,
             onBack = onBack,
+            catalogHistoryRepository = historyRepository,
         )
     }
 }
@@ -287,6 +290,7 @@ private fun PlayerSurface(
     onBack: () -> Unit,
     episodeSelection: EpisodePlaybackSelection? = null,
     episodeResumeRepository: EpisodeResumeRepository? = null,
+    catalogHistoryRepository: CatalogHistoryRepository? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -411,8 +415,9 @@ private fun PlayerSurface(
         }
     }
 
-    DisposableEffect(lifecycleOwner, reference, cleartextConsent, retryAttempt) {
+    DisposableEffect(lifecycleOwner, reference, cleartextConsent, retryAttempt, catalogHistoryRepository) {
         var releasing = false
+        var recordedStart = false
         fun releasePlayer() {
             val current = player
             val progress = snapshot(current)
@@ -452,6 +457,12 @@ private fun PlayerSurface(
                 },
                 onPause = { current ->
                     if (!releasing && !exitRequested) persistImmediately(snapshot(current))
+                },
+                onPlaying = {
+                    if (!recordedStart && catalogHistoryRepository != null && selection.section != CatalogSection.Series) {
+                        recordedStart = true
+                        scope.launch { catalogHistoryRepository.recordStarted(selection) }
+                    }
                 },
                 onFailure = { playbackFailed = true },
                 onTracksChanged = { current, tracks -> refreshTracks(current, tracks) },
@@ -677,6 +688,7 @@ private fun createPlayer(
     autoPlay: Boolean,
     onReady: (ExoPlayer, Long, Boolean) -> Unit,
     onPause: (ExoPlayer) -> Unit,
+    onPlaying: () -> Unit,
     onFailure: () -> Unit,
     onTracksChanged: (ExoPlayer, Tracks) -> Unit,
 ): ExoPlayer {
@@ -703,6 +715,10 @@ private fun createPlayer(
                             readyDispatched = true
                             onReady(this@apply, initialPositionMillis, autoPlay)
                         }
+                    }
+
+                    override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        if (isPlaying && readyDispatched) onPlaying()
                     }
 
                     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
