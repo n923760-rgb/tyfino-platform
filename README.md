@@ -2,7 +2,7 @@
 
 TYFINO is a native Android IPTV player/client with a separate application-licensing service and a small administration dashboard.
 
-Status: PROPOSED foundation alignment. No production deployment or release is authorized.
+Status: development foundation implemented; production deployment and release remain unqualified.
 
 ## Product boundary
 
@@ -28,19 +28,19 @@ M3U, MAC Portal, profiles, downloads, cloud sync, social features, and a custom 
 
 ```text
 apps/android/              Native Android client foundation
-apps/api/                  Existing control-service implementation
-apps/admin/                Existing administration interface
-database/                  Existing database schema
+apps/api/                  Application-licensing service implementation
+apps/admin/                Licensing administration interface
+database/                  Fresh-install licensing schema
 docs/                      Authoritative scoped contracts and project guidance
 infrastructure/            Existing deployment preparation
 sites/                     Existing web assets
 ```
 
-## Current implementation warning
+## Current implementation and release boundary
 
-The existing backend, admin application, and database were created before the current product boundary was approved. They include provider-account management and fields for IPTV credentials and protocols outside V1.
+The current repository source registers licensing and administration routes only. The fresh-install schema contains installations, trials, activation codes, licensing sessions, administrators, settings, and audit records; it does not define IPTV provider-account tables. Integration tests reject a provider Host in a licensing request, verify that the former `/v1/player/config` route returns 404, and check that the fresh test database has no provider-host, provider-account, or player-session tables.
 
-That legacy implementation is not approved for production use or Android integration. It must be audited and remediated in a separate atomic task. Documentation alignment does not prove implementation compliance.
+This describes the checked-in implementation and fresh-test-database evidence, not an audit of any existing deployed database or server. Production deployment, migration of any pre-existing data, final Android identity/signing, licensing origin, physical-device/media qualification, and post-merge CI remain unapproved or BLOCKED. Follow [`docs/deployment.md`](docs/deployment.md) before planning a deployment.
 
 ## Decision vocabulary
 
