@@ -128,3 +128,12 @@ jobs:
         run: >-
           ./gradlew --no-daemon --stacktrace :app:${{ matrix.task }}
           -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+      - name: Upload instrumentation report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-${{ matrix.device }}
+          path: |
+            apps/android/app/build/reports/androidTests/managedDevice/debug
+            apps/android/app/build/outputs/androidTest-results/managedDevice
+          if-no-files-found: ignore
