@@ -82,7 +82,7 @@ internal class LiveEpgRepository(
         } ?: return
 
         if (prepared.storageFailure) {
-            publishIfOwned(prepared, LiveEpgState.Error(LiveEpgFailure.UnsupportedResponse), publish)
+            publishIfOwned(prepared, LiveEpgState.Error(LiveEpgFailure.LocalStorage), publish)
             return
         }
         val cache = prepared.cache
@@ -113,7 +113,7 @@ internal class LiveEpgRepository(
                             store.replace(prepared.account.accountId, destination.channelId,
                                 prepared.account.generation, next, now)
                         } catch (_: RuntimeException) {
-                            return@withLock fallback(cache, LiveEpgFailure.UnsupportedResponse)
+                            return@withLock fallback(cache, LiveEpgFailure.LocalStorage)
                         }
                         lastRefresh = next.generation to clock.elapsedTimeMillis()
                         content(next, false)
