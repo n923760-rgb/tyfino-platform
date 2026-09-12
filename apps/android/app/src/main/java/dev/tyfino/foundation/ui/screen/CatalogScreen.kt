@@ -48,6 +48,9 @@ import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.xtream.CatalogCategory
 import dev.tyfino.foundation.xtream.CatalogFailure
+import dev.tyfino.foundation.xtream.CatalogFavoritesRepository
+import dev.tyfino.foundation.xtream.FavoritesListResult
+import dev.tyfino.foundation.xtream.FavoriteToggleResult
 import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.CatalogRepository
 import dev.tyfino.foundation.xtream.CatalogSection
@@ -64,6 +67,7 @@ internal fun CatalogScreen(
     onPlay: (CatalogItem) -> Unit,
     episodeResumeRepository: EpisodeResumeRepository? = null,
     onResumeEpisode: (SeriesContinueWatchingItem) -> Unit = {},
+    favoritesRepository: CatalogFavoritesRepository? = null,
 ) {
     var categories by remember(section) {
         mutableStateOf<CatalogState<CatalogCategory>>(CatalogState.Empty)
@@ -78,7 +82,27 @@ internal fun CatalogScreen(
     var searchText by remember(section) { mutableStateOf("") }
     var searchResult by remember(section) { mutableStateOf<CatalogSearchResult?>(null) }
     val searchActive = searchText.trim().codePointCount(0, searchText.trim().length) >= 2
+    var favoritesState by remember(section) { mutableStateOf<FavoritesListResult?>(null) }
+    var favoritesOnly by remember(section) { mutableStateOf(false) }
+    var favoriteActionError by remember(section) { mutableStateOf(false) }
+    val favoriteItems = (favoritesState as? FavoritesListResult.Ready)?.items.orEmpty()
+    val favoriteIds = favoriteItems.mapTo(hashSetOf()) { it.providerId }
     val scope = rememberCoroutineScope()
+    val toggleFavorite: (CatalogItem) -> Unit = { item ->
+        val owner = (favoritesState as? FavoritesListResult.Ready)?.owner
+        val selectedRepository = favoritesRepository
+        if (owner != null && selectedRepository != null) {
+            scope.launch {
+                when (selectedRepository.toggle(owner, section, item.providerId)) {
+                    is FavoriteToggleResult.Changed -> {
+                        favoriteActionError = false
+                        favoritesState = selectedRepository.list(section)
+                    }
+                    FavoriteToggleResult.Failure -> favoriteActionError = true
+                }
+            }
+        }
+    }
 
     LaunchedEffect(repository, section) {
         repository.categories(section, publish = { categories = it })
@@ -121,6 +145,10 @@ internal fun CatalogScreen(
                 EpisodeResumeListResult.Failure -> emptyList()
             }
         } else emptyList()
+    }
+
+    LaunchedEffect(favoritesRepository, section) {
+        favoritesState = favoritesRepository?.list(section)
     }
 
     LaunchedEffect(repository, section, searchText) {
@@ -170,6 +198,27 @@ internal fun CatalogScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth().testTag("catalog-search"),
         )
+        if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) {
+            FocusVisibleButton(
+                label = stringResource(if (favoritesOnly) R.string.catalog_show_all else R.string.catalog_favorites_only),
+                onClick = { favoritesOnly = !favoritesOnly },
+                modifier = Modifier.testTag("catalog-favorites-filter"),
+            )
+        }
+        if (favoritesState == FavoritesListResult.Failure || favoriteActionError) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.catalog_favorite_error), color = MaterialTheme.colorScheme.error, modifier = Modifier.weight(1f))
+                FocusVisibleButton(
+                    label = stringResource(R.string.retry),
+                    onClick = {
+                        scope.launch {
+                            favoritesState = favoritesRepository?.list(section)
+                            favoriteActionError = false
+                        }
+                    },
+                )
+            }
+        }
         if (searchText.isNotBlank()) {
             Text(
                 stringResource(R.string.catalog_search_scope),
@@ -182,10 +231,12 @@ internal fun CatalogScreen(
                 when (val result = searchResult) {
                     null -> LoadingState()
                     is CatalogSearchResult.Ready -> {
-                        if (result.records.isEmpty()) {
+                        val visible = if (favoritesOnly) result.records.filter { it.providerId in favoriteIds } else result.records
+                        if (visible.isEmpty()) {
                             EmptyState(R.string.catalog_search_empty)
                         } else {
-                            ItemGrid(result.records, section, onPlay)
+                            ItemGrid(visible, section, onPlay, favoriteIds,
+                                if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null)
                             if (result.limited) {
                                 Text(
                                     stringResource(R.string.catalog_search_limit),
@@ -199,6 +250,12 @@ internal fun CatalogScreen(
                     CatalogSearchResult.StaleOwner -> EmptyState(R.string.catalog_error_authentication)
                     CatalogSearchResult.LocalStorage -> EmptyState(R.string.catalog_error_storage)
                 }
+            }
+        } else if (favoritesOnly) {
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                if (favoritesState == FavoritesListResult.Failure) EmptyState(R.string.catalog_favorite_error)
+                else if (favoriteItems.isEmpty()) EmptyState(R.string.catalog_favorites_empty)
+                else ItemGrid(favoriteItems, section, onPlay, favoriteIds, toggleFavorite)
             }
         } else {
         if (continueWatching.isNotEmpty()) {
@@ -257,6 +314,8 @@ internal fun CatalogScreen(
                 }
             },
             modifier = Modifier.weight(1f),
+            favoriteIds = favoriteIds,
+            onToggleFavorite = if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
         )
         }
     }
@@ -370,6 +429,8 @@ private fun ItemContent(
     onPlay: (CatalogItem) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier,
+    favoriteIds: Set<String> = emptySet(),
+    onToggleFavorite: ((CatalogItem) -> Unit)? = null,
 ) {
     Box(modifier = modifier.fillMaxWidth()) {
         when (state) {
@@ -380,11 +441,11 @@ private fun ItemContent(
             is CatalogState.Error -> ErrorState(state.failure, onRetry)
             is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_items)
             is CatalogState.Content -> {
-                ItemGrid(state.records, section, onPlay)
+                ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite)
                 if (state.isRefreshing) RefreshingNotice(Modifier.align(Alignment.TopCenter))
             }
             is CatalogState.StaleContent -> {
-                ItemGrid(state.records, section, onPlay)
+                ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite)
                 StaleNotice(state.failure, Modifier.align(Alignment.TopCenter))
             }
         }
@@ -396,6 +457,8 @@ private fun ItemGrid(
     records: List<CatalogItem>,
     section: CatalogSection,
     onPlay: (CatalogItem) -> Unit,
+    favoriteIds: Set<String> = emptySet(),
+    onToggleFavorite: ((CatalogItem) -> Unit)? = null,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 168.dp),
@@ -404,13 +467,25 @@ private fun ItemGrid(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(records, key = { it.providerId }) { item ->
-            CatalogTile(
-                label = item.name,
-                supporting = listOfNotNull(item.releaseYear, item.rating).joinToString(" • "),
-                selected = false,
-                onClick = { onPlay(item) },
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                CatalogTile(
+                    label = item.name,
+                    supporting = listOfNotNull(item.releaseYear, item.rating).joinToString(" • "),
+                    selected = false,
+                    onClick = { onPlay(item) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (onToggleFavorite != null) {
+                    FocusVisibleButton(
+                        label = stringResource(
+                            if (item.providerId in favoriteIds) R.string.catalog_favorite_remove else R.string.catalog_favorite_add,
+                            item.name,
+                        ),
+                        onClick = { onToggleFavorite(item) },
+                        modifier = Modifier.fillMaxWidth().testTag("catalog-favorite-toggle"),
+                    )
+                }
+            }
         }
     }
 }
