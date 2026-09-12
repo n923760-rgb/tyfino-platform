@@ -112,6 +112,6 @@
     <string name="series_playback_coming">Episode playback is not available yet.</string>
     <string name="series_playback_unavailable">Playback information is unavailable for this episode.</string>
     <string name="series_error_malformed">The provider returned invalid Series details.</string>
-    <string name="series_error_unsupported">This provider's Series details are not supported safely.</string>
+    <string name="series_error_unsupported">These Series details are not supported safely.</string>
     <string name="series_error_unknown">Series details could not be loaded safely.</string>
 </resources>
