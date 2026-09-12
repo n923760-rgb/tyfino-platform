@@ -55,7 +55,10 @@ import dev.tyfino.foundation.xtream.CatalogRepository
 import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.HttpXtreamApi
 import dev.tyfino.foundation.xtream.HttpXtreamCatalogApi
+import dev.tyfino.foundation.xtream.HttpXtreamSeriesApi
 import dev.tyfino.foundation.xtream.SQLiteCatalogStore
+import dev.tyfino.foundation.xtream.SQLiteSeriesStore
+import dev.tyfino.foundation.xtream.SeriesDetailsRepository
 import dev.tyfino.foundation.xtream.SecureXtreamAccountStore
 import dev.tyfino.foundation.xtream.XtreamAccountStore
 import dev.tyfino.foundation.xtream.XtreamController
@@ -92,6 +95,13 @@ internal fun TyfinoApp() {
             store = SQLiteCatalogStore(context),
         )
     }
+    val seriesDetailsRepository = remember {
+        SeriesDetailsRepository(
+            accountStore = xtreamStore,
+            api = HttpXtreamSeriesApi(context),
+            store = SQLiteSeriesStore(context),
+        )
+    }
     val movieResumeRepository = remember {
         MovieResumeRepository(
             accountStore = xtreamStore,
@@ -117,6 +127,7 @@ internal fun TyfinoApp() {
         XtreamGate(
             controller = xtreamController,
             catalogRepository = catalogRepository,
+            seriesDetailsRepository = seriesDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             previousLiveChannelController = previousLiveChannelController,
             accountStore = xtreamStore,
@@ -137,6 +148,7 @@ internal fun TyfinoApp() {
 private fun XtreamGate(
     controller: XtreamController,
     catalogRepository: CatalogRepository,
+    seriesDetailsRepository: SeriesDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
@@ -160,12 +172,16 @@ private fun XtreamGate(
                 previousLiveChannelController.clear()
                 scope.launch {
                     try {
-                        movieResumeRepository.clearActiveAccount()
+                        seriesDetailsRepository.clearActiveAccount()
                     } finally {
                         try {
-                            catalogRepository.clearActiveAccount()
+                            movieResumeRepository.clearActiveAccount()
                         } finally {
-                            controller.logout(publish)
+                            try {
+                                catalogRepository.clearActiveAccount()
+                            } finally {
+                                controller.logout(publish)
+                            }
                         }
                     }
                 }

@@ -85,4 +85,4 @@ An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation 
 
 ## Deferred contracts
 
-Full physical-device/TV qualification, release identity/signing, EPG, Series episodes, search, favorites, and other deferred playback capabilities require their own approved work. This foundation must not be used to infer those designs.
+Full physical-device/TV qualification, release identity/signing, EPG, Series details UI/playback, search, favorites, and other deferred playback capabilities require their own approved work. The on-demand Series protocol and account-scoped details cache are implemented separately from Series UI and playback. This foundation must not be used to infer those designs.
