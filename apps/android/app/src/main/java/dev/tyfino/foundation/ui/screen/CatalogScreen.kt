@@ -301,7 +301,6 @@ private fun ItemGrid(
                 label = item.name,
                 supporting = listOfNotNull(item.releaseYear, item.rating).joinToString(" • "),
                 selected = false,
-                enabled = section != CatalogSection.Series,
                 onClick = { onPlay(item) },
                 modifier = Modifier.fillMaxWidth(),
             )

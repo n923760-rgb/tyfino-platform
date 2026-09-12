@@ -49,6 +49,8 @@ import dev.tyfino.foundation.ui.screen.CatalogScreen
 import dev.tyfino.foundation.ui.screen.FoundationScreen
 import dev.tyfino.foundation.ui.screen.LicensingScreen
 import dev.tyfino.foundation.ui.screen.SettingsScreen
+import dev.tyfino.foundation.ui.screen.SeriesDetailsScreen
+import dev.tyfino.foundation.ui.screen.SeriesSelection
 import dev.tyfino.foundation.ui.screen.XtreamLoginScreen
 import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.CatalogRepository
@@ -165,6 +167,7 @@ private fun XtreamGate(
     if (state is XtreamUiState.SignedIn) {
         LicensedAppShell(
             catalogRepository = catalogRepository,
+            seriesDetailsRepository = seriesDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             previousLiveChannelController = previousLiveChannelController,
             accountStore = accountStore,
@@ -202,6 +205,7 @@ private fun XtreamGate(
 @Composable
 private fun LicensedAppShell(
     catalogRepository: CatalogRepository,
+    seriesDetailsRepository: SeriesDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
@@ -214,6 +218,7 @@ private fun LicensedAppShell(
     val navigationType = navigationTypeFor(windowSizeClass)
     val scope = rememberCoroutineScope()
     var playbackSelection by remember { mutableStateOf<PlaybackSelection?>(null) }
+    var seriesSelection by remember { mutableStateOf<SeriesSelection?>(null) }
 
     val navigateTo: (AppDestination) -> Unit = { destination ->
         if (currentDestination?.route != destination.route) {
@@ -230,6 +235,12 @@ private fun LicensedAppShell(
         accountStore.load()?.let { account ->
             playbackSelection = PlaybackSelection.from(account, section, item)
             navController.navigate(PLAYBACK_ROUTE) { launchSingleTop = true }
+        }
+    }
+    val openSeries: (CatalogItem) -> Unit = { item ->
+        accountStore.load()?.let { account ->
+            seriesSelection = SeriesSelection(account.accountId, account.generation, item)
+            navController.navigate(SERIES_DETAILS_ROUTE) { launchSingleTop = true }
         }
     }
     val playPreviousLive: (PlaybackSelection) -> Unit = { source ->
@@ -258,14 +269,18 @@ private fun LicensedAppShell(
             navController = navController,
             modifier = modifier,
             catalogRepository = catalogRepository,
+            seriesDetailsRepository = seriesDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             previousLiveChannelController = previousLiveChannelController,
             accountStore = accountStore,
+            seriesSelection = seriesSelection,
             playbackSelection = playbackSelection,
             onPlay = play,
+            onOpenSeries = openSeries,
             onPreviousLive = playPreviousLive,
             onOpenSettings = { navigateTo(AppDestination.Settings) },
             onPlaybackClosed = { playbackSelection = null },
+            onSeriesClosed = { seriesSelection = null },
             onRemoveXtreamAccount = onRemoveXtreamAccount,
         )
     }
@@ -311,14 +326,18 @@ private fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier,
     catalogRepository: CatalogRepository,
+    seriesDetailsRepository: SeriesDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
+    seriesSelection: SeriesSelection?,
     playbackSelection: PlaybackSelection?,
     onPlay: (CatalogSection, CatalogItem) -> Unit,
+    onOpenSeries: (CatalogItem) -> Unit,
     onPreviousLive: (PlaybackSelection) -> Unit,
     onOpenSettings: () -> Unit,
     onPlaybackClosed: () -> Unit,
+    onSeriesClosed: () -> Unit,
     onRemoveXtreamAccount: () -> Unit,
 ) {
     NavHost(
@@ -350,8 +369,21 @@ private fun AppNavHost(
                 section = CatalogSection.Series,
                 repository = catalogRepository,
                 resumeRepository = movieResumeRepository,
-                onPlay = {},
+                onPlay = onOpenSeries,
             )
+        }
+        composable(SERIES_DETAILS_ROUTE) {
+            val selection = seriesSelection
+            if (selection == null) {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            } else {
+                DisposableEffect(Unit) { onDispose(onSeriesClosed) }
+                SeriesDetailsScreen(
+                    selection = selection,
+                    repository = seriesDetailsRepository,
+                    onBack = { navController.popBackStack() },
+                )
+            }
         }
         composable(AppDestination.Settings.route) {
             SettingsScreen(onRemoveXtreamAccount = onRemoveXtreamAccount)
@@ -378,6 +410,7 @@ private fun AppNavHost(
 }
 
 private const val PLAYBACK_ROUTE = "playback"
+private const val SERIES_DETAILS_ROUTE = "series-details"
 
 @Composable
 private fun AppBottomBar(
