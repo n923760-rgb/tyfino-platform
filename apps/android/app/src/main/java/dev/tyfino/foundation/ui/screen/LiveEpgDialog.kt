@@ -1,5 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,10 +17,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -93,8 +99,8 @@ internal fun LiveEpgDialog(
                             Text(next?.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_no_next))
                         }
                         item { Text(stringResource(R.string.epg_schedule), style = MaterialTheme.typography.titleMedium) }
-                        itemsIndexed(programs) { _, program ->
-                            EpgProgramRow(program, timeFormat)
+                        itemsIndexed(programs) { index, program ->
+                            EpgProgramRow(index, program, timeFormat)
                         }
                     } else if (state is LiveEpgState.Stale) {
                         item { Text(stringResource(R.string.epg_empty)) }
@@ -117,18 +123,40 @@ internal fun LiveEpgDialog(
 }
 
 @Composable
-private fun EpgProgramRow(program: LiveEpgProgram, timeFormat: DateFormat) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            "${timeFormat.format(Date(program.startEpochMillis))} – ${timeFormat.format(Date(program.endEpochMillis))}",
-            style = MaterialTheme.typography.labelLarge,
-        )
-        Text(
-            program.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_untitled),
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        program.description?.takeIf(String::isNotBlank)?.let {
-            Text(it, style = MaterialTheme.typography.bodyMedium)
+private fun EpgProgramRow(index: Int, program: LiveEpgProgram, timeFormat: DateFormat) {
+    var isFocused by remember { mutableStateOf(false) }
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { isFocused = it.isFocused }
+            .focusable()
+            .testTag("epg-program-$index"),
+        shape = MaterialTheme.shapes.medium,
+        color = if (isFocused) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
+        border = BorderStroke(
+            if (isFocused) 3.dp else 1.dp,
+            if (isFocused) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                "${timeFormat.format(Date(program.startEpochMillis))} – ${timeFormat.format(Date(program.endEpochMillis))}",
+                style = MaterialTheme.typography.labelLarge,
+            )
+            Text(
+                program.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_untitled),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            program.description?.takeIf(String::isNotBlank)?.let {
+                Text(it, style = MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }
