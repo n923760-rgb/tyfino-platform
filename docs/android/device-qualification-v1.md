@@ -16,6 +16,8 @@ This document is the evidence ledger and compatibility backlog for the approved 
 
 The two managed devices run from clean emulator state in GitHub Actions. API 27 is the lowest API supported by Android build-managed devices; it does not replace the required API 24-class physical-device check. The CI uses software rendering as required for headless servers.
 
+A passing Android CI job attaches a short-lived `tyfino-debug-*` APK artifact for manual development testing. It uses temporary debug signing and the CI default of an empty licensing-service origin; it is not a production release or a configured end-to-end IPTV test build. Record the artifact's commit and any approved local build configuration in manual evidence. Reinstalling a different CI build may require removing the prior debug app and its local state because the signing key is not stable across runners.
+
 Recorded automated evidence: [Validate run 81](https://github.com/n923760-rgb/tyfino-platform/actions/runs/34392935134) on commit `04fcd50a8e5cafe039bfa9201d20268f67a8e07a`. All five automated rows above completed successfully. This evidence does not qualify any physical-device or real-media row below.
 
 ## Required physical and media qualification
@@ -33,6 +35,8 @@ Recorded automated evidence: [Validate run 81](https://github.com/n923760-rgb/ty
 These rows remain `BLOCKED` because no approved provider test fixture and no physical-device evidence are attached. They must not be reported as `PASS` from emulator smoke tests.
 
 ## Evidence protocol
+
+Use the [manual test record template](manual-test-record-template.md) for each build/device pair, including the CI artifact identity and a separate status for every exercised scenario.
 
 Every manual run records:
 

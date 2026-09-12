@@ -91,6 +91,14 @@ jobs:
         run: ./gradlew --no-daemon :app:testDebugUnitTest
       - name: Run Android lint
         run: ./gradlew --no-daemon :app:lintDebug
+      - name: Upload development debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tyfino-debug-${{ github.sha }}-${{ github.run_attempt }}
+          path: apps/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
 
   android-instrumentation:
     name: android-instrumentation (${{ matrix.device }})
