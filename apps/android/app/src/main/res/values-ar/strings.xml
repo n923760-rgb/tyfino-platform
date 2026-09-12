@@ -99,4 +99,19 @@
     <string name="playback_no_subtitles">لا توجد مسارات ترجمة مضمّنة ومدعومة.</string>
     <string name="playback_unknown_audio">مسار صوت</string>
     <string name="playback_unknown_subtitle">مسار ترجمة</string>
+    <string name="series_refresh">تحديث الحلقات</string>
+    <string name="series_loading">جارٍ تحميل الحلقات…</string>
+    <string name="series_refreshing">جارٍ تحديث الحلقات في الخلفية…</string>
+    <string name="series_stale">يتم عرض الحلقات المحفوظة. تعذر التحديث: %1$s</string>
+    <string name="series_seasons">المواسم</string>
+    <string name="series_season_number">الموسم %1$d</string>
+    <string name="series_episode_number">الحلقة %1$d</string>
+    <string name="series_episode_order">الحلقة %1$d</string>
+    <string name="series_no_episodes">لا توجد حلقات متاحة لهذا الموسم.</string>
+    <string name="series_account_changed">تغيّر حساب IPTV. ارجع إلى المسلسلات وافتحه مرة أخرى.</string>
+    <string name="series_playback_coming">تشغيل الحلقات غير متاح بعد.</string>
+    <string name="series_playback_unavailable">بيانات تشغيل هذه الحلقة غير متاحة.</string>
+    <string name="series_error_malformed">أعاد المزود تفاصيل مسلسل غير صالحة.</string>
+    <string name="series_error_unsupported">تفاصيل المسلسلات لهذا المزود غير مدعومة بشكل آمن.</string>
+    <string name="series_error_unknown">تعذر تحميل تفاصيل المسلسل بشكل آمن.</string>
 </resources>

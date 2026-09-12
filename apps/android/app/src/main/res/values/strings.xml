@@ -99,4 +99,19 @@
     <string name="playback_no_subtitles">No supported embedded subtitle tracks are available.</string>
     <string name="playback_unknown_audio">Audio track</string>
     <string name="playback_unknown_subtitle">Subtitle track</string>
+    <string name="series_refresh">Refresh episodes</string>
+    <string name="series_loading">Loading episodes…</string>
+    <string name="series_refreshing">Refreshing episodes in the background…</string>
+    <string name="series_stale">Showing saved episodes. Refresh failed: %1$s</string>
+    <string name="series_seasons">Seasons</string>
+    <string name="series_season_number">Season %1$d</string>
+    <string name="series_episode_number">Episode %1$d</string>
+    <string name="series_episode_order">Episode %1$d</string>
+    <string name="series_no_episodes">No episodes are available for this season.</string>
+    <string name="series_account_changed">The IPTV account changed. Return to Series and open it again.</string>
+    <string name="series_playback_coming">Episode playback is not available yet.</string>
+    <string name="series_playback_unavailable">Playback information is unavailable for this episode.</string>
+    <string name="series_error_malformed">The provider returned invalid Series details.</string>
+    <string name="series_error_unsupported">These Series details are not supported safely.</string>
+    <string name="series_error_unknown">Series details could not be loaded safely.</string>
 </resources>
