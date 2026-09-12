@@ -77,10 +77,16 @@ import dev.tyfino.foundation.playback.SecretPlaybackReference
 import dev.tyfino.foundation.playback.XtreamPlaybackReferenceBuilder
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.xtream.CatalogSection
+import dev.tyfino.foundation.xtream.LiveEpgDestination
+import dev.tyfino.foundation.xtream.LiveEpgFailure
+import dev.tyfino.foundation.xtream.LiveEpgRepository
+import dev.tyfino.foundation.xtream.LiveEpgState
 import dev.tyfino.foundation.xtream.SeriesDetailsRepository
 import dev.tyfino.foundation.xtream.XtreamAccountStore
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -94,6 +100,7 @@ internal fun PlaybackScreen(
     onPreviousLive: () -> Unit,
     onBack: () -> Unit,
     historyRepository: CatalogHistoryRepository? = null,
+    liveEpgRepository: LiveEpgRepository? = null,
 ) {
     val previousLiveState by previousLiveChannelController.state.collectAsState()
     val previousLiveAvailable = remember(selection, previousLiveState) {
@@ -173,6 +180,7 @@ internal fun PlaybackScreen(
             resumePositionMillis = state.resumePositionMillis,
             onBack = onBack,
             catalogHistoryRepository = historyRepository,
+            liveEpgRepository = liveEpgRepository,
         )
     }
 }
@@ -291,6 +299,7 @@ private fun PlayerSurface(
     episodeSelection: EpisodePlaybackSelection? = null,
     episodeResumeRepository: EpisodeResumeRepository? = null,
     catalogHistoryRepository: CatalogHistoryRepository? = null,
+    liveEpgRepository: LiveEpgRepository? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -307,6 +316,9 @@ private fun PlayerSurface(
     var subtitleAutomatic by remember { mutableStateOf(true) }
     var subtitlesDisabled by remember { mutableStateOf(false) }
     var activeMenu by remember { mutableStateOf<TrackMenu?>(null) }
+    var epgVisible by remember(selection) { mutableStateOf(false) }
+    var epgState by remember(selection) { mutableStateOf<LiveEpgState>(LiveEpgState.Loading) }
+    var epgDestination by remember(selection) { mutableStateOf<LiveEpgDestination?>(null) }
     var startPositionMillis by remember(reference) { mutableStateOf(resumePositionMillis) }
     var returnedFromBackground by remember(reference) { mutableStateOf(false) }
     var exitRequested by remember(reference) { mutableStateOf(false) }
@@ -490,8 +502,35 @@ private fun PlayerSurface(
         }
     }
 
+    LaunchedEffect(epgVisible, selection, liveEpgRepository) {
+        val repository = liveEpgRepository ?: return@LaunchedEffect
+        if (!epgVisible || selection.section != CatalogSection.Live) return@LaunchedEffect
+        epgState = LiveEpgState.Loading
+        val destination = repository.open(selection.providerItemId)
+        if (destination == null) {
+            epgState = LiveEpgState.Error(LiveEpgFailure.LocalStorage)
+            return@LaunchedEffect
+        }
+        try {
+            if (destination.accountId != selection.accountId ||
+                destination.accountGeneration != selection.accountGeneration || exitRequested
+            ) {
+                epgState = LiveEpgState.Error(LiveEpgFailure.AuthenticationRejected)
+                return@LaunchedEffect
+            }
+            epgDestination = destination
+            repository.guide(destination) { epgState = it }
+            awaitCancellation()
+        } finally {
+            withContext(NonCancellable) { repository.close(destination) }
+            if (epgDestination == destination) epgDestination = null
+        }
+    }
+
     BackHandler {
-        if (activeMenu != null) {
+        if (epgVisible) {
+            epgVisible = false
+        } else if (activeMenu != null) {
             activeMenu = null
         } else {
             requestExit()
@@ -540,6 +579,13 @@ private fun PlayerSurface(
                         modifier = Modifier.testTag("playback-previous-live"),
                     )
                 }
+                if (selection.section == CatalogSection.Live && liveEpgRepository != null) {
+                    FocusVisibleButton(
+                        label = stringResource(R.string.epg_title),
+                        onClick = { activeMenu = null; epgVisible = true },
+                        modifier = Modifier.testTag("playback-epg"),
+                    )
+                }
                 FocusVisibleButton(
                     label = stringResource(R.string.playback_audio),
                     onClick = { activeMenu = TrackMenu.Audio },
@@ -563,6 +609,19 @@ private fun PlayerSurface(
                 modifier = Modifier.align(Alignment.Center),
             )
         }
+    }
+
+    if (epgVisible && selection.section == CatalogSection.Live && liveEpgRepository != null) {
+        LiveEpgDialog(
+            state = epgState,
+            onRefresh = {
+                val destination = epgDestination
+                if (destination != null) scope.launch {
+                    liveEpgRepository.guide(destination, forceRefresh = true) { epgState = it }
+                }
+            },
+            onDismiss = { epgVisible = false },
+        )
     }
 
     when (activeMenu) {
