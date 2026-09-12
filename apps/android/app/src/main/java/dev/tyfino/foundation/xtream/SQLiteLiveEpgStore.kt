@@ -21,7 +21,8 @@ internal class SQLiteLiveEpgStore(context: Context) : LiveEpgStore {
     override fun load(accountId: String, channelId: String, nowEpochMillis: Long): LiveEpgSnapshot? =
         synchronized(helper) {
             val database = helper.writableDatabase
-            database.delete(PROGRAM, "$ACCOUNT_ID = ? AND $CHANNEL_ID = ? AND $ENDS_AT <= ?",
+            database.inTransaction {
+            delete(PROGRAM, "$ACCOUNT_ID = ? AND $CHANNEL_ID = ? AND $ENDS_AT <= ?",
                 arrayOf(accountId, channelId, nowEpochMillis.toString()))
             val metadata = database.query(SNAPSHOT,
                 arrayOf(GENERATION, REFRESHED_AT), "$ACCOUNT_ID = ? AND $CHANNEL_ID = ?",
@@ -29,7 +30,7 @@ internal class SQLiteLiveEpgStore(context: Context) : LiveEpgStore {
             ).use { cursor ->
                 if (!cursor.moveToFirst()) return@use null
                 cursor.getLong(0) to cursor.getLong(1)
-            } ?: return@synchronized null
+            } ?: return@inTransaction null
             val programs = database.query(PROGRAM,
                 arrayOf(TITLE, DESCRIPTION, STARTS_AT, ENDS_AT),
                 "$ACCOUNT_ID = ? AND $CHANNEL_ID = ?",
@@ -47,6 +48,7 @@ internal class SQLiteLiveEpgStore(context: Context) : LiveEpgStore {
             database.execSQL("UPDATE $SNAPSHOT SET $ACCESSED_AT = ? WHERE $ACCOUNT_ID = ? AND $CHANNEL_ID = ?",
                 arrayOf(nowEpochMillis, accountId, channelId))
             LiveEpgSnapshot(metadata.first, metadata.second, programs)
+            }
         }
 
     override fun replace(accountId: String, channelId: String, accountGeneration: Long,
