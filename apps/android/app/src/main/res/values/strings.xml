@@ -11,7 +11,7 @@
     <string name="home_catalog_hint">Choose Live TV, Movies, or Series from the navigation menu.</string>
     <string name="open_settings">Open settings</string>
     <string name="settings_title">Settings foundation</string>
-    <string name="settings_description">This destination validates navigation and adaptive presentation only. It contains no production settings or business logic.</string>
+    <string name="settings_description">Manage the IPTV account saved on this device.</string>
     <string name="licensing_title">Unlock TYFINO</string>
     <string name="licensing_description">Start your 7-day free trial or activate the app now. Your IPTV account stays only on this device.</string>
     <string name="start_trial">Start 7-Day Free Trial</string>
@@ -57,7 +57,7 @@
     <string name="xtream_error_malformed">The provider returned an invalid response.</string>
     <string name="xtream_error_unsupported">This provider response is not supported safely.</string>
     <string name="xtream_logout">Remove IPTV account</string>
-    <string name="xtream_logout_description">Removes the encrypted Xtream account from this device. You will need to enter it again.</string>
+    <string name="xtream_logout_description">Removing the account also deletes its saved guide, catalog, favorites, history, and playback progress.</string>
     <string name="catalog_live_title">Live TV</string>
     <string name="catalog_movies_title">Movies</string>
     <string name="catalog_series_title">Series</string>
@@ -139,4 +139,8 @@
     <string name="epg_no_next">No next program listed</string>
     <string name="epg_schedule">Schedule</string>
     <string name="epg_untitled">Untitled program</string>
+    <string name="xtream_confirm_remove_title">Remove IPTV account?</string>
+    <string name="xtream_confirm_remove_message">This removes your saved login and all local IPTV data from this device. You will need to sign in again. This cannot be undone.</string>
+    <string name="xtream_confirm_remove">Remove account</string>
+    <string name="xtream_keep_account">Keep account</string>
 </resources>
