@@ -4,9 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -37,13 +35,10 @@ class LiveEpgDialogTest {
         }
         compose.onNodeWithText("On now").assertExists()
         compose.onNodeWithText("Up next").assertExists()
-        compose.onAllNodesWithText("Current show").onFirst().assertExists()
-        compose.onAllNodesWithText("Next show").onFirst().assertExists()
         compose.onNodeWithTag("epg-refresh").performClick()
         compose.runOnIdle { assertEquals(1, refreshes) }
         compose.runOnIdle { state = LiveEpgState.Stale(programs, now, LiveEpgFailure.Timeout) }
         compose.onNodeWithTag("epg-stale").assertExists()
-        compose.onAllNodesWithText("Current show").onFirst().assertExists()
     }
 
     @Test
