@@ -119,4 +119,10 @@
     <string name="catalog_search_minimum">أدخل حرفين على الأقل للبحث.</string>
     <string name="catalog_search_empty">لا توجد نتائج في التصنيفات المحمّلة.</string>
     <string name="catalog_search_limit">تُعرض أول ٥٠ نتيجة.</string>
+    <string name="catalog_favorites_only">المفضلة</string>
+    <string name="catalog_show_all">كل العناصر</string>
+    <string name="catalog_favorites_empty">لا توجد عناصر مفضلة ضمن التصنيفات المحمّلة.</string>
+    <string name="catalog_favorite_add">إضافة %1$s إلى المفضلة</string>
+    <string name="catalog_favorite_remove">إزالة %1$s من المفضلة</string>
+    <string name="catalog_favorite_error">المفضلة غير متاحة الآن. أعد المحاولة.</string>
 </resources>
