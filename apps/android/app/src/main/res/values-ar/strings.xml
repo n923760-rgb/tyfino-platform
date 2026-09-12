@@ -114,4 +114,9 @@
     <string name="series_error_malformed">أعاد المزود تفاصيل مسلسل غير صالحة.</string>
     <string name="series_error_unsupported">تفاصيل المسلسلات لهذا المزود غير مدعومة بشكل آمن.</string>
     <string name="series_error_unknown">تعذر تحميل تفاصيل المسلسل بشكل آمن.</string>
+    <string name="catalog_search_label">ابحث في هذا القسم</string>
+    <string name="catalog_search_scope">البحث في التصنيفات المحمّلة فقط. أدخل حرفين على الأقل.</string>
+    <string name="catalog_search_minimum">أدخل حرفين على الأقل للبحث.</string>
+    <string name="catalog_search_empty">لا توجد نتائج في التصنيفات المحمّلة.</string>
+    <string name="catalog_search_limit">تُعرض أول ٥٠ نتيجة.</string>
 </resources>
