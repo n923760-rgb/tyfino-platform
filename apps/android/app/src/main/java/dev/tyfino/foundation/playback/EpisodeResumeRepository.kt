@@ -146,11 +146,20 @@ internal class EpisodeResumeRepository(
     suspend fun clearActiveAccount(): Boolean = withContext(Dispatchers.IO) {
         mutex.withLock {
             val id = accountStore.load()?.accountId ?: return@withLock true
-            try { store.clearAccount(id) } catch (_: RuntimeException) { return@withLock false }
-            checkpointTimes.keys.removeAll { it.first == id }
-            retainedOwner = null
-            true
+            clearAccountLocked(id)
         }
+    }
+
+    suspend fun clearAccount(accountId: String): Boolean = withContext(Dispatchers.IO) {
+        if (!accountId.bounded(128)) return@withContext false
+        mutex.withLock { clearAccountLocked(accountId) }
+    }
+
+    private fun clearAccountLocked(accountId: String): Boolean {
+        try { store.clearAccount(accountId) } catch (_: RuntimeException) { return false }
+        checkpointTimes.keys.removeAll { it.first == accountId }
+        if (retainedOwner?.first == accountId) retainedOwner = null
+        return true
     }
 
     private suspend fun saveLocked(selection: EpisodePlaybackSelection, positionMillis: Long, durationMillis: Long?): Boolean {

@@ -183,14 +183,21 @@ internal class MovieResumeRepository(
     suspend fun clearActiveAccount(): Boolean = withContext(Dispatchers.IO) {
         mutex.withLock {
             val accountId = accountStore.load()?.accountId ?: return@withLock true
-            try {
-                store.clearAccount(accountId)
-            } catch (_: RuntimeException) {
-                return@withLock false
-            }
-            checkpointTimes.keys.removeAll { it.accountId == accountId }
-            true
+            clearAccountLocked(accountId)
         }
+    }
+
+    suspend fun clearAccount(accountId: String): Boolean = withContext(Dispatchers.IO) {
+        if (accountId.isBlank() || accountId.codePointCount(0, accountId.length) > 128) {
+            return@withContext false
+        }
+        mutex.withLock { clearAccountLocked(accountId) }
+    }
+
+    private fun clearAccountLocked(accountId: String): Boolean {
+        try { store.clearAccount(accountId) } catch (_: RuntimeException) { return false }
+        checkpointTimes.keys.removeAll { it.accountId == accountId }
+        return true
     }
 
     private fun saveLocked(

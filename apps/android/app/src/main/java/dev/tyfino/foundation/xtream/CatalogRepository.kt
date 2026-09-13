@@ -159,11 +159,27 @@ internal class CatalogRepository(
     suspend fun clearActiveAccount() = withContext(Dispatchers.IO) {
         mutex.withLock {
             val accountId = accountStore.load()?.accountId ?: return@withLock
-            latestOperations.clear()
-            monotonicRefreshes.keys.removeAll { it.accountId == accountId }
-            store.clearAccount(accountId)
+            clearAccountLocked(accountId)
         }
     }
+
+    suspend fun clearAccount(accountId: String): Boolean = withContext(Dispatchers.IO) {
+        if (!accountId.validAccountId()) return@withContext false
+        mutex.withLock { clearAccountLocked(accountId) }
+    }
+
+    private fun clearAccountLocked(accountId: String): Boolean {
+        latestOperations.keys.removeAll { it.accountId == accountId }
+        monotonicRefreshes.keys.removeAll { it.accountId == accountId }
+        return try {
+            store.clearAccount(accountId)
+            true
+        } catch (_: RuntimeException) {
+            false
+        }
+    }
+
+    private fun String.validAccountId() = isNotBlank() && codePointCount(0, length) <= 128
 
     private suspend fun <T> load(
         key: CatalogKey,
