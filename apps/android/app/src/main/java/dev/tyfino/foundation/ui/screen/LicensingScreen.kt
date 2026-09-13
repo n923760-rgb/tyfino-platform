@@ -27,6 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection.Ltr
 import androidx.compose.ui.unit.dp
@@ -144,7 +147,13 @@ private fun FailureContent(
     onShowActivation: () -> Unit,
 ) {
     Text(stringResource(R.string.licensing_error_title), style = MaterialTheme.typography.headlineMedium)
-    Text(errorMessage(state.code), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(
+        text = errorMessage(state.code),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .semantics { liveRegion = LiveRegionMode.Assertive }
+            .testTag("licensing-error"),
+    )
     if (state.retryable) {
         FocusVisibleButton(stringResource(R.string.retry), onRetry, Modifier.fillMaxWidth().testTag("retry-license"))
     }
