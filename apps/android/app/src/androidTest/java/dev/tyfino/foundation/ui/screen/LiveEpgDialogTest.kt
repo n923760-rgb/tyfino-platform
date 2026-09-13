@@ -70,7 +70,14 @@ class LiveEpgDialogTest {
         compose.setContent {
             MaterialTheme { LiveEpgDialog(state, {}, { dismissed++ }) }
         }
-        compose.onNodeWithTag("epg-empty").assertExists()
+        compose.onNodeWithTag("epg-empty")
+            .assertExists()
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.LiveRegion,
+                    LiveRegionMode.Polite,
+                ),
+            )
         compose.runOnIdle { state = LiveEpgState.Error(LiveEpgFailure.NetworkUnavailable) }
         compose.onNodeWithTag("epg-error")
             .assertExists()
