@@ -52,7 +52,14 @@ class LiveEpgDialogTest {
         compose.onNodeWithTag("epg-refresh").performClick()
         compose.runOnIdle { assertEquals(1, refreshes) }
         compose.runOnIdle { state = LiveEpgState.Stale(programs, now, LiveEpgFailure.Timeout) }
-        compose.onNodeWithTag("epg-stale").assertExists()
+        compose.onNodeWithTag("epg-stale")
+            .assertExists()
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.LiveRegion,
+                    LiveRegionMode.Assertive,
+                ),
+            )
     }
 
     @Test
