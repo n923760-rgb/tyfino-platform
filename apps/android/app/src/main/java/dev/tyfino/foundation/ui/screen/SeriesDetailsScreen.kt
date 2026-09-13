@@ -32,8 +32,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
@@ -183,7 +185,13 @@ internal fun SeriesDetailsContent(
                 }
             }
             state is SeriesState.Error -> item(key = "error") {
-                StatusText(state.failure.messageResource(), error = true)
+                StatusText(
+                    message = state.failure.messageResource(),
+                    error = true,
+                    modifier = Modifier
+                        .semantics { liveRegion = LiveRegionMode.Assertive }
+                        .testTag("series-error"),
+                )
             }
             details != null -> {
                 if (state is SeriesState.StaleContent) item(key = "stale") {
@@ -304,10 +312,15 @@ private fun EpisodeRow(episode: SeriesEpisode, hasPublishedGeneration: Boolean, 
 }
 
 @Composable
-private fun StatusText(@StringRes message: Int, error: Boolean = false) {
+private fun StatusText(
+    @StringRes message: Int,
+    error: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
     Text(
         text = stringResource(message),
         color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier,
     )
 }
 
