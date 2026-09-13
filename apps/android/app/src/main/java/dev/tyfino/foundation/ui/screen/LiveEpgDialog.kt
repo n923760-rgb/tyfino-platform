@@ -77,7 +77,7 @@ internal fun LiveEpgDialog(
                         LiveEpgState.Loading -> item {
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 CircularProgressIndicator()
-                                Text(stringResource(R.string.epg_loading))
+                                EpgLoadingStatus()
                             }
                         }
                         is LiveEpgState.Error -> item {
@@ -95,7 +95,7 @@ internal fun LiveEpgDialog(
                             Text(stringResource(R.string.epg_stale), modifier = Modifier.testTag("epg-stale"))
                         }
                         is LiveEpgState.Content -> if (state.refreshing) item {
-                            Text(stringResource(R.string.epg_loading))
+                            EpgLoadingStatus()
                         }
                     }
                     if (programs.isNotEmpty()) {
@@ -129,6 +129,16 @@ internal fun LiveEpgDialog(
         }
     }
     LaunchedEffect(Unit) { firstFocus.requestFocus() }
+}
+
+@Composable
+private fun EpgLoadingStatus() {
+    Text(
+        text = stringResource(R.string.epg_loading),
+        modifier = Modifier
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .testTag("epg-loading"),
+    )
 }
 
 @Composable
