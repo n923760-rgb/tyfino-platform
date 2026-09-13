@@ -116,7 +116,7 @@ internal interface XtreamEncryptedPayloads {
     fun remove(name: String)
 }
 
-@SuppressLint("ApplySharedPref")
+@SuppressLint("ApplySharedPref", "UseKtx")
 internal class SecureXtreamPayloads(context: Context) : XtreamEncryptedPayloads {
     private val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
 
