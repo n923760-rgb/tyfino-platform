@@ -25,6 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.LayoutDirection
@@ -153,7 +156,9 @@ internal fun XtreamLoginScreen(
                             text = stringResource(error.messageResource()),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.testTag("xtream-error"),
+                            modifier = Modifier
+                                .semantics { liveRegion = LiveRegionMode.Assertive }
+                                .testTag("xtream-error"),
                         )
                     }
                     FocusVisibleButton(
