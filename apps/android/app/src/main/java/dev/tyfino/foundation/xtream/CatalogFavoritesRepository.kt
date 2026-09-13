@@ -92,10 +92,19 @@ internal class CatalogFavoritesRepository(
     suspend fun clearActiveAccount(): Boolean = withContext(Dispatchers.IO) {
         mutex.withLock {
             val accountId = accountStore.load()?.accountId ?: return@withLock true
-            try { store.clearAccount(accountId) } catch (_: RuntimeException) { return@withLock false }
-            retainedOwner = null
-            true
+            clearAccountLocked(accountId)
         }
+    }
+
+    suspend fun clearAccount(accountId: String): Boolean = withContext(Dispatchers.IO) {
+        if (!accountId.isValidAccountId()) return@withContext false
+        mutex.withLock { clearAccountLocked(accountId) }
+    }
+
+    private fun clearAccountLocked(accountId: String): Boolean {
+        try { store.clearAccount(accountId) } catch (_: RuntimeException) { return false }
+        if (retainedOwner?.accountId == accountId) retainedOwner = null
+        return true
     }
 
     private fun ensureOwner(owner: FavoriteOwner): Boolean {
