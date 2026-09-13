@@ -18,7 +18,12 @@ class SettingsScreenTest {
     fun cancelPreservesAccountAndOnlyExplicitConfirmationRemovesIt() {
         var removals = 0
         compose.setContent {
-            MaterialTheme { SettingsScreen { removals++ } }
+            MaterialTheme {
+                SettingsScreen(
+                    onOpenAccountSwitcher = {},
+                    onRemoveXtreamAccount = { removals++ },
+                )
+            }
         }
 
         compose.onNodeWithTag("xtream-logout").performClick()
