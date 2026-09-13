@@ -4,7 +4,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -61,7 +65,14 @@ class LiveEpgDialogTest {
         }
         compose.onNodeWithTag("epg-empty").assertExists()
         compose.runOnIdle { state = LiveEpgState.Error(LiveEpgFailure.NetworkUnavailable) }
-        compose.onNodeWithTag("epg-error").assertExists()
+        compose.onNodeWithTag("epg-error")
+            .assertExists()
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.LiveRegion,
+                    LiveRegionMode.Assertive,
+                ),
+            )
         compose.onNodeWithText("Close").performClick()
         compose.runOnIdle { assertEquals(1, dismissed) }
     }
