@@ -59,4 +59,25 @@ class XtreamLoginAccessibilityTest {
             ),
         )
     }
+
+    @Test
+    fun exposesCleartextWarningAsAssertiveLiveRegion() {
+        compose.setContent {
+            MaterialTheme {
+                XtreamLoginScreen(
+                    state = XtreamUiState.ConfirmCleartext("http://provider.example"),
+                    onSignIn = {},
+                    onConfirmCleartext = {},
+                    onCancelCleartext = {},
+                )
+            }
+        }
+
+        compose.onNodeWithTag("xtream-http-warning").assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.LiveRegion,
+                LiveRegionMode.Assertive,
+            ),
+        )
+    }
 }
