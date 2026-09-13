@@ -92,7 +92,12 @@ internal fun LiveEpgDialog(
                             Text(stringResource(R.string.epg_empty), modifier = Modifier.testTag("epg-empty"))
                         }
                         is LiveEpgState.Stale -> item {
-                            Text(stringResource(R.string.epg_stale), modifier = Modifier.testTag("epg-stale"))
+                            Text(
+                                text = stringResource(R.string.epg_stale),
+                                modifier = Modifier
+                                    .semantics { liveRegion = LiveRegionMode.Assertive }
+                                    .testTag("epg-stale"),
+                            )
                         }
                         is LiveEpgState.Content -> if (state.refreshing) item {
                             EpgLoadingStatus()
