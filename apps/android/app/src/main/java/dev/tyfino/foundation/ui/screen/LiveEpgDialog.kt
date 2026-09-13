@@ -89,7 +89,12 @@ internal fun LiveEpgDialog(
                             )
                         }
                         is LiveEpgState.Empty -> item {
-                            Text(stringResource(R.string.epg_empty), modifier = Modifier.testTag("epg-empty"))
+                            Text(
+                                text = stringResource(R.string.epg_empty),
+                                modifier = Modifier
+                                    .semantics { liveRegion = LiveRegionMode.Polite }
+                                    .testTag("epg-empty"),
+                            )
                         }
                         is LiveEpgState.Stale -> item {
                             Text(
