@@ -444,7 +444,7 @@ private fun CategoryStrip(
         is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
         is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_categories)
         is CatalogState.Content -> {
-            if (state.isRefreshing) RefreshingNotice()
+            if (state.isRefreshing) CatalogRefreshingNotice()
             Categories(state.records, selectedCategoryId, onSelect)
         }
         is CatalogState.StaleContent -> {
@@ -497,7 +497,7 @@ private fun ItemContent(
             is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_items)
             is CatalogState.Content -> {
                 ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite)
-                if (state.isRefreshing) RefreshingNotice(Modifier.align(Alignment.TopCenter))
+                if (state.isRefreshing) CatalogRefreshingNotice(Modifier.align(Alignment.TopCenter))
             }
             is CatalogState.StaleContent -> {
                 ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite)
@@ -668,12 +668,14 @@ internal fun CatalogErrorState(failure: CatalogFailure, onRetry: () -> Unit) {
 }
 
 @Composable
-private fun RefreshingNotice(modifier: Modifier = Modifier) {
+internal fun CatalogRefreshingNotice(modifier: Modifier = Modifier) {
     Text(
         text = stringResource(R.string.catalog_refreshing),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier,
+        modifier = modifier
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .testTag("catalog-refreshing"),
     )
 }
 
