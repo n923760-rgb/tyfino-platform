@@ -4,7 +4,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -35,9 +38,13 @@ class SeriesDetailsScreenTest {
         }
 
         compose.onNodeWithTag("series-seasons").assertExists()
+        compose.onNodeWithContentDescription("Season 0").assertIsSelected()
+        compose.onNodeWithContentDescription("Season 2").assertIsNotSelected()
         compose.onNodeWithText("Special episode").assertExists()
         compose.onNodeWithText("Second season episode").assertDoesNotExist()
-        compose.onNodeWithText("Season 2").performClick()
+        compose.onNodeWithContentDescription("Season 2").performClick()
+        compose.onNodeWithContentDescription("Season 0").assertIsNotSelected()
+        compose.onNodeWithContentDescription("Season 2").assertIsSelected()
         compose.onNodeWithText("Second season episode").assertExists()
         compose.runOnIdle { state = SeriesState.Content(details(listOf(0, 2)), 2L, false) }
         compose.onNodeWithText("Second season episode").assertExists()
