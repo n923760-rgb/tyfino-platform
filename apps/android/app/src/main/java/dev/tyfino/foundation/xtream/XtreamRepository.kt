@@ -2,6 +2,7 @@ package dev.tyfino.foundation.xtream
 
 import java.net.URI
 import java.util.UUID
+import java.util.concurrent.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -49,6 +50,53 @@ internal class XtreamRepository(
             }
             gate.restore(target.accountId, target.generation)
             XtreamSwitchResult.Switched(target.summary())
+        }
+    }
+
+    suspend fun removeAccount(
+        accountId: String,
+        clearAccountData: suspend (String) -> Boolean,
+    ): XtreamRemoveResult = withContext(Dispatchers.IO) {
+        commitMutex.lock()
+        try {
+            val current = try {
+                store.loadPortfolio()
+            } catch (_: Exception) {
+                return@withContext XtreamRemoveResult.LocalStorage
+            }
+            val target = current.accounts.firstOrNull { it.accountId == accountId }
+                ?: return@withContext XtreamRemoveResult.NotFound
+            val wasActive = current.activeAccountId == target.accountId
+            if (wasActive) gate.invalidateAccount()
+            val cleared = try {
+                clearAccountData(target.accountId)
+            } catch (cancelled: CancellationException) {
+                if (wasActive) gate.restore(target.accountId, target.generation)
+                throw cancelled
+            } catch (_: Exception) {
+                false
+            }
+            if (!cleared) {
+                if (wasActive) gate.restore(target.accountId, target.generation)
+                return@withContext XtreamRemoveResult.LocalStorage
+            }
+            val remaining = requireNotNull(current.remove(target.accountId))
+            try {
+                store.savePortfolio(remaining)
+            } catch (cancelled: CancellationException) {
+                if (wasActive) gate.restore(target.accountId, target.generation)
+                throw cancelled
+            } catch (_: Exception) {
+                if (wasActive) gate.restore(target.accountId, target.generation)
+                return@withContext XtreamRemoveResult.LocalStorage
+            }
+            XtreamRemoveResult.Removed(
+                accountId = target.accountId,
+                wasActive = wasActive,
+                remaining = remaining.snapshot(),
+            )
+        } finally {
+            commitMutex.unlock()
         }
     }
 
@@ -154,6 +202,11 @@ internal class XtreamRepository(
             URI(uri.scheme, null, uri.host, uri.port, null, null, null).toASCIIString()
         },
         username = username,
+    )
+
+    private fun XtreamAccountPortfolio.snapshot() = XtreamAccountsSnapshot(
+        activeAccountId = activeAccountId,
+        accounts = accounts.map { it.summary() },
     )
 
     private data class PreparedLogin(

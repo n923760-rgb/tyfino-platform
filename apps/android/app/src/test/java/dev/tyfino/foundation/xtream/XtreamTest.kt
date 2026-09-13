@@ -268,6 +268,101 @@ class XtreamTest {
     }
 
     @Test
+    fun inactiveRemovalCleansOnlyExactTargetAndPreservesActiveAccount() = runBlocking {
+        val first = account(1)
+        val second = account(2)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.create(listOf(first, second), first.accountId))
+        }
+        val cleaned = mutableListOf<String>()
+
+        val result = XtreamRepository(store, CountingApi()).removeAccount(second.accountId) {
+            cleaned += it
+            true
+        } as XtreamRemoveResult.Removed
+
+        assertEquals(listOf(second.accountId), cleaned)
+        assertFalse(result.wasActive)
+        assertEquals(first.accountId, result.remaining.activeAccountId)
+        assertEquals(listOf(first), store.portfolio.accounts)
+    }
+
+    @Test
+    fun activeRemovalLeavesRemainingAccountsUnselected() = runBlocking {
+        val first = account(1)
+        val second = account(2)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.create(listOf(first, second), first.accountId))
+        }
+
+        val result = XtreamRepository(store, CountingApi()).removeAccount(first.accountId) { true }
+            as XtreamRemoveResult.Removed
+
+        assertTrue(result.wasActive)
+        assertNull(result.remaining.activeAccountId)
+        assertNull(store.portfolio.activeAccountId)
+        assertEquals(listOf(second), store.portfolio.accounts)
+    }
+
+    @Test
+    fun failedRemovalCleanupPreservesPortfolioAndActiveOwner() = runBlocking {
+        val first = account(1)
+        val second = account(2)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.create(listOf(first, second), first.accountId))
+        }
+        val repository = XtreamRepository(store, CountingApi())
+        repository.load()
+        val previous = store.portfolio
+
+        val result = repository.removeAccount(first.accountId) { false }
+
+        assertEquals(XtreamRemoveResult.LocalStorage, result)
+        assertEquals(previous, store.portfolio)
+        assertEquals(first.summary(), repository.load())
+    }
+
+    @Test
+    fun unknownRemovalDoesNotRunCleanup() = runBlocking {
+        val first = account(1)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.single(first))
+        }
+        var cleanupCalls = 0
+
+        val result = XtreamRepository(store, CountingApi()).removeAccount("missing-account-id") {
+            cleanupCalls++
+            true
+        }
+
+        assertEquals(XtreamRemoveResult.NotFound, result)
+        assertEquals(0, cleanupCalls)
+        assertEquals(first, store.portfolio.activeAccount)
+    }
+
+    @Test
+    fun activeRemovalInvalidatesPendingAuthenticationBeforeCleanup() = runBlocking {
+        val first = account(1)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.single(first))
+        }
+        val api = ControllableApi()
+        val repository = XtreamRepository(store, api)
+        repository.load()
+        val pending = async {
+            repository.authenticate(first.endpoint, first.username, "replacement", false)
+        }
+        api.firstStarted.await()
+
+        val removed = repository.removeAccount(first.accountId) { true }
+        api.releaseFirst.complete(Unit)
+
+        assertTrue(removed is XtreamRemoveResult.Removed)
+        assertEquals(XtreamOutcome.Stale, pending.await())
+        assertEquals(XtreamAccountPortfolio.Empty, store.portfolio)
+    }
+
+    @Test
     fun failedReplacementDoesNotOverwriteSavedAccount() = runBlocking {
         val store = FakeStore()
         val initialRepository = XtreamRepository(store, AlwaysSuccessfulApi)
