@@ -83,7 +83,10 @@ class LicensingAccessibilityTest {
         }
 
         compose.onNodeWithTag("activate").performClick()
-        compose.onNodeWithTag("activation-code-error").assert(
+        compose.onNodeWithTag(
+            testTag = "activation-code-error",
+            useUnmergedTree = true,
+        ).assert(
             SemanticsMatcher.expectValue(
                 SemanticsProperties.LiveRegion,
                 LiveRegionMode.Assertive,
