@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. Provider-wide search, Series episode history, final branding, and release configuration remain separate work.
+This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. The approved multiple-account portfolio is specified in [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md) and remains implementation work. Provider-wide search, Series episode history, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
