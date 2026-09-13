@@ -74,7 +74,7 @@ internal class XtreamAccountPortfolioPersistence(
             return migrated
         }
         runCatching { payloads.remove(LEGACY_PAYLOAD) }
-        migrated
+        return migrated
     }
 
     fun save(portfolio: XtreamAccountPortfolio) {
