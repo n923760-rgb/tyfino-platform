@@ -20,6 +20,38 @@ internal class XtreamRepository(
         }
     }
 
+    suspend fun accountSnapshot(): XtreamAccountsSnapshot = withContext(Dispatchers.IO) {
+        commitMutex.withLock {
+            val portfolio = store.loadPortfolio()
+            XtreamAccountsSnapshot(
+                activeAccountId = portfolio.activeAccountId,
+                accounts = portfolio.accounts.map { it.summary() },
+            )
+        }
+    }
+
+    suspend fun switchAccount(accountId: String): XtreamSwitchResult = withContext(Dispatchers.IO) {
+        commitMutex.withLock {
+            val current = store.loadPortfolio()
+            val target = current.accounts.firstOrNull { it.accountId == accountId }
+                ?: return@withLock XtreamSwitchResult.NotFound
+            if (current.activeAccountId == accountId) {
+                return@withLock XtreamSwitchResult.AlreadyActive(target.summary())
+            }
+            val next = requireNotNull(current.activate(accountId))
+            gate.invalidateAccount()
+            try {
+                store.savePortfolio(next)
+            } catch (_: Exception) {
+                current.activeAccount?.let { gate.restore(it.accountId, it.generation) }
+                    ?: gate.invalidateAccount()
+                return@withLock XtreamSwitchResult.LocalStorage
+            }
+            gate.restore(target.accountId, target.generation)
+            XtreamSwitchResult.Switched(target.summary())
+        }
+    }
+
     suspend fun authenticate(
         endpoint: ProviderEndpoint,
         username: String,
