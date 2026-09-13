@@ -7,6 +7,7 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.tyfino.foundation.licensing.LicensingUiState
 import org.junit.Rule
@@ -62,6 +63,33 @@ class LicensingAccessibilityTest {
             SemanticsMatcher.expectValue(
                 SemanticsProperties.LiveRegion,
                 LiveRegionMode.Polite,
+            ),
+        )
+    }
+
+    @Test
+    fun announcesInvalidActivationCode() {
+        compose.setContent {
+            MaterialTheme {
+                LicensingScreen(
+                    state = LicensingUiState.ActivationEntry,
+                    onStartTrial = {},
+                    onShowActivation = {},
+                    onBack = {},
+                    onActivate = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+        compose.onNodeWithTag("activate").performClick()
+        compose.onNodeWithTag(
+            testTag = "activation-code-error",
+            useUnmergedTree = true,
+        ).assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.LiveRegion,
+                LiveRegionMode.Assertive,
             ),
         )
     }

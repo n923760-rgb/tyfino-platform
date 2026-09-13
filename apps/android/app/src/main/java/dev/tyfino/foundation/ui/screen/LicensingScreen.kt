@@ -113,7 +113,14 @@ private fun ActivationContent(onBack: () -> Unit, onActivate: (String) -> Unit) 
             singleLine = true,
             isError = invalid,
             supportingText = if (invalid) {
-                { Text(stringResource(R.string.licensing_error_invalid_code)) }
+                {
+                    Text(
+                        text = stringResource(R.string.licensing_error_invalid_code),
+                        modifier = Modifier
+                            .semantics { liveRegion = LiveRegionMode.Assertive }
+                            .testTag("activation-code-error"),
+                    )
+                }
             } else {
                 null
             },
