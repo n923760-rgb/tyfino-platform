@@ -314,8 +314,8 @@ private fun EpisodeRow(episode: SeriesEpisode, hasPublishedGeneration: Boolean, 
 @Composable
 private fun StatusText(
     @StringRes message: Int,
-    error: Boolean = false,
     modifier: Modifier = Modifier,
+    error: Boolean = false,
 ) {
     Text(
         text = stringResource(message),
