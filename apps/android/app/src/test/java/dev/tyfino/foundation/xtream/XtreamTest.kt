@@ -176,6 +176,98 @@ class XtreamTest {
     }
 
     @Test
+    fun accountSnapshotExposesSafeSummariesInPortfolioOrder() = runBlocking {
+        val first = account(1)
+        val second = account(2)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.create(listOf(first, second), second.accountId))
+        }
+
+        val snapshot = XtreamRepository(store, CountingApi()).accountSnapshot()
+
+        assertEquals(second.accountId, snapshot.activeAccountId)
+        assertEquals(listOf(second.accountId, first.accountId), snapshot.accounts.map { it.accountId })
+        assertEquals("https://provider-2.example", snapshot.accounts.first().providerOrigin)
+        assertEquals("user-2", snapshot.accounts.first().username)
+    }
+
+    @Test
+    fun switchPersistsTargetBeforeExposureWithoutProviderRequest() = runBlocking {
+        val first = account(1)
+        val second = account(2)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.create(listOf(first, second), first.accountId))
+        }
+        val api = CountingApi()
+        val repository = XtreamRepository(store, api)
+
+        val result = repository.switchAccount(second.accountId)
+
+        assertEquals(XtreamSwitchResult.Switched(second.summary()), result)
+        assertEquals(second.accountId, store.portfolio.activeAccountId)
+        assertEquals(listOf(second, first), store.portfolio.accounts)
+        assertEquals(0, api.calls)
+        assertEquals(second.summary(), XtreamRepository(store, api).load())
+    }
+
+    @Test
+    fun switchRejectsUnknownAccountWithoutMutationOrProviderRequest() = runBlocking {
+        val first = account(1)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.single(first))
+        }
+        val previous = store.portfolio
+        val api = CountingApi()
+
+        val result = XtreamRepository(store, api).switchAccount("missing-account-id")
+
+        assertEquals(XtreamSwitchResult.NotFound, result)
+        assertEquals(previous, store.portfolio)
+        assertEquals(0, api.calls)
+    }
+
+    @Test
+    fun failedSwitchPersistenceRestoresPreviousActiveAccount() = runBlocking {
+        val first = account(1)
+        val second = account(2)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.create(listOf(first, second), first.accountId))
+            failNextPortfolioSave = true
+        }
+        val repository = XtreamRepository(store, CountingApi())
+        repository.load()
+
+        val result = repository.switchAccount(second.accountId)
+
+        assertEquals(XtreamSwitchResult.LocalStorage, result)
+        assertEquals(first.accountId, store.portfolio.activeAccountId)
+        assertEquals(first.summary(), repository.load())
+    }
+
+    @Test
+    fun switchMakesPendingAuthenticationCompletionStale() = runBlocking {
+        val first = account(1)
+        val second = account(2)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.create(listOf(first, second), first.accountId))
+        }
+        val api = ControllableApi()
+        val repository = XtreamRepository(store, api)
+        repository.load()
+        val pending = async {
+            repository.authenticate(first.endpoint, first.username, "replacement", false)
+        }
+        api.firstStarted.await()
+
+        assertEquals(XtreamSwitchResult.Switched(second.summary()), repository.switchAccount(second.accountId))
+        api.releaseFirst.complete(Unit)
+
+        assertEquals(XtreamOutcome.Stale, pending.await())
+        assertEquals(second.accountId, store.portfolio.activeAccountId)
+        assertEquals(first.password, store.portfolio.accounts.single { it.accountId == first.accountId }.password)
+    }
+
+    @Test
     fun failedReplacementDoesNotOverwriteSavedAccount() = runBlocking {
         val store = FakeStore()
         val initialRepository = XtreamRepository(store, AlwaysSuccessfulApi)
@@ -262,6 +354,12 @@ class XtreamTest {
         username = "user-$number",
         password = "password-$number",
         cleartextConsent = false,
+    )
+
+    private fun SavedXtreamAccount.summary() = XtreamAccountSummary(
+        accountId = accountId,
+        providerOrigin = endpoint.baseUrl,
+        username = username,
     )
 
     private class FakeStore : XtreamRepositoryStore {

@@ -26,6 +26,18 @@ internal data class XtreamAccountSummary(
     val username: String,
 )
 
+internal data class XtreamAccountsSnapshot(
+    val activeAccountId: String?,
+    val accounts: List<XtreamAccountSummary>,
+)
+
+internal sealed interface XtreamSwitchResult {
+    data class Switched(val account: XtreamAccountSummary) : XtreamSwitchResult
+    data class AlreadyActive(val account: XtreamAccountSummary) : XtreamSwitchResult
+    data object NotFound : XtreamSwitchResult
+    data object LocalStorage : XtreamSwitchResult
+}
+
 internal enum class XtreamFailure {
     InvalidHost,
     NetworkUnavailable,
