@@ -42,4 +42,27 @@ class LicensingAccessibilityTest {
             ),
         )
     }
+
+    @Test
+    fun exposesLicensingProgressAsPoliteLiveRegion() {
+        compose.setContent {
+            MaterialTheme {
+                LicensingScreen(
+                    state = LicensingUiState.Working,
+                    onStartTrial = {},
+                    onShowActivation = {},
+                    onBack = {},
+                    onActivate = {},
+                    onRetry = {},
+                )
+            }
+        }
+
+        compose.onNodeWithTag("licensing-status").assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.LiveRegion,
+                LiveRegionMode.Polite,
+            ),
+        )
+    }
 }

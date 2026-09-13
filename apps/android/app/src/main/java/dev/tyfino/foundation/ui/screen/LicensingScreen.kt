@@ -169,7 +169,13 @@ private fun ProgressContent(label: Int) {
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         CircularProgressIndicator()
-        Text(stringResource(label), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = stringResource(label),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .semantics { liveRegion = LiveRegionMode.Polite }
+                .testTag("licensing-status"),
+        )
     }
 }
 
