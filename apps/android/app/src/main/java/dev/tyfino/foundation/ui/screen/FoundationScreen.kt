@@ -18,7 +18,10 @@ import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 
 @Composable
-internal fun FoundationScreen(onOpenSettings: () -> Unit) {
+internal fun FoundationScreen(
+    onOpenAccountSwitcher: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -39,6 +42,11 @@ internal fun FoundationScreen(onOpenSettings: () -> Unit) {
         Text(
             text = stringResource(R.string.home_catalog_hint),
             style = MaterialTheme.typography.titleMedium,
+        )
+        FocusVisibleButton(
+            label = stringResource(R.string.xtream_switch_account),
+            onClick = onOpenAccountSwitcher,
+            modifier = Modifier.fillMaxWidth().testTag("open-account-switcher"),
         )
         FocusVisibleButton(
             label = stringResource(R.string.open_settings),
