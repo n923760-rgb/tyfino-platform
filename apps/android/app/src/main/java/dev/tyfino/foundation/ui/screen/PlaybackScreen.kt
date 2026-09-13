@@ -42,6 +42,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
@@ -654,7 +656,7 @@ private fun PlayerSurface(
 }
 
 @Composable
-private fun TrackPickerDialog(
+internal fun TrackPickerDialog(
     title: String,
     options: List<EmbeddedTrackOption>,
     automaticSelected: Boolean,
@@ -695,6 +697,7 @@ private fun TrackPickerDialog(
                             onClick = onAutomatic,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .semantics { selected = automaticSelected }
                                 .focusRequester(firstFocus),
                         )
                     }
@@ -707,7 +710,9 @@ private fun TrackPickerDialog(
                                     selectedSuffix,
                                 ),
                                 onClick = onOff,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .semantics { selected = offSelected },
                             )
                         }
                     }
@@ -715,7 +720,9 @@ private fun TrackPickerDialog(
                         FocusVisibleButton(
                             label = selectionLabel(option.label, option.selected, selectedSuffix),
                             onClick = { onTrack(option) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { selected = option.selected },
                         )
                     }
                     if (options.isEmpty()) {
