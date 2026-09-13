@@ -138,16 +138,25 @@ internal class LiveEpgRepository(
     suspend fun clearActiveAccount(): Boolean = withContext(Dispatchers.IO) {
         mutex.withLock {
             val accountId = accountStore.load()?.accountId ?: activeDestination?.accountId
+            accountId?.let(::clearAccountLocked) ?: true
+        }
+    }
+
+    suspend fun clearAccount(accountId: String): Boolean = withContext(Dispatchers.IO) {
+        if (!accountId.bounded(128)) return@withContext false
+        mutex.withLock { clearAccountLocked(accountId) }
+    }
+
+    private fun clearAccountLocked(accountId: String): Boolean {
+        if (activeDestination?.accountId == accountId) {
             activeDestination = null
             destinationEpoch = next(destinationEpoch)
             operationEpoch = next(operationEpoch)
             lastRefresh = null
-            owner = null
-            if (accountId != null) {
-                try { store.clearAccount(accountId) } catch (_: RuntimeException) { return@withLock false }
-            }
-            true
         }
+        if (owner?.first == accountId) owner = null
+        try { store.clearAccount(accountId) } catch (_: RuntimeException) { return false }
+        return true
     }
 
     private fun retainOwner(account: SavedXtreamAccount): Boolean {
