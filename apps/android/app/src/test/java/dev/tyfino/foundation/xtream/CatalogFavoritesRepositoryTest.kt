@@ -41,7 +41,7 @@ class CatalogFavoritesRepositoryTest {
             FavoriteRecord("a", CatalogSection.Movies, "item", 90_000)
         fixture.accounts.value = fixture.account("b", 1)
         assertTrue((fixture.favorites.list(CatalogSection.Movies) as FavoritesListResult.Ready).items.isEmpty())
-        assertTrue(fixture.store.records.isEmpty())
+        assertTrue(fixture.store.records.keys.any { it.first == "a" })
     }
 
     @Test fun orphanHiddenAndLogoutOnlyClearsActiveAccount() = runBlocking {
