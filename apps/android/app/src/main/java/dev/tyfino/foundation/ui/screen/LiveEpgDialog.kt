@@ -28,6 +28,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import dev.tyfino.foundation.R
@@ -123,13 +125,18 @@ internal fun LiveEpgDialog(
 }
 
 @Composable
-private fun EpgProgramRow(index: Int, program: LiveEpgProgram, timeFormat: DateFormat) {
+internal fun EpgProgramRow(index: Int, program: LiveEpgProgram, timeFormat: DateFormat) {
     var isFocused by remember { mutableStateOf(false) }
+    val timeLabel = "${timeFormat.format(Date(program.startEpochMillis))} – ${timeFormat.format(Date(program.endEpochMillis))}"
+    val title = program.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_untitled)
+    val description = program.description?.takeIf(String::isNotBlank)
+    val accessibilityLabel = listOfNotNull(timeLabel, title, description).joinToString(", ")
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .onFocusChanged { isFocused = it.isFocused }
             .focusable()
+            .semantics { contentDescription = accessibilityLabel }
             .testTag("epg-program-$index"),
         shape = MaterialTheme.shapes.medium,
         color = if (isFocused) {
@@ -147,14 +154,14 @@ private fun EpgProgramRow(index: Int, program: LiveEpgProgram, timeFormat: DateF
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                "${timeFormat.format(Date(program.startEpochMillis))} – ${timeFormat.format(Date(program.endEpochMillis))}",
+                timeLabel,
                 style = MaterialTheme.typography.labelLarge,
             )
             Text(
-                program.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_untitled),
+                title,
                 style = MaterialTheme.typography.bodyLarge,
             )
-            program.description?.takeIf(String::isNotBlank)?.let {
+            description?.let {
                 Text(it, style = MaterialTheme.typography.bodyMedium)
             }
         }
