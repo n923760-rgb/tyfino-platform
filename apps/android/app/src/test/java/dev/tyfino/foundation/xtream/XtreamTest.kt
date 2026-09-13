@@ -109,6 +109,70 @@ class XtreamTest {
 
         assertNotEquals(first.account.accountId, second.account.accountId)
         assertEquals(second.account.accountId, store.value?.accountId)
+        assertEquals(2, store.portfolio.accounts.size)
+    }
+
+    @Test
+    fun duplicateLoginUpdatesCredentialsAndPreservesStableIdentity() = runBlocking {
+        val store = FakeStore()
+        val repository = XtreamRepository(store, AlwaysSuccessfulApi)
+        val endpoint = endpoint("https://one.example")
+        val first = repository.authenticate(endpoint, "user", "old", false) as XtreamOutcome.Authenticated
+
+        val updated = repository.authenticate(endpoint, "user", "new", false) as XtreamOutcome.Authenticated
+
+        assertEquals(first.account.accountId, updated.account.accountId)
+        assertEquals("new", store.value?.password)
+        assertEquals(2L, store.value?.generation)
+        assertEquals(1, store.portfolio.accounts.size)
+    }
+
+    @Test
+    fun ninthDistinctLoginIsRejectedBeforeProviderRequestWithoutEviction() = runBlocking {
+        val accounts = (1..XtreamAccountPortfolio.MAX_ACCOUNTS).map { index -> account(index) }
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.create(accounts, accounts.first().accountId))
+        }
+        val api = CountingApi()
+
+        val outcome = XtreamRepository(store, api).authenticate(
+            endpoint("https://provider-9.example"),
+            "user-9",
+            "password-9",
+            false,
+        )
+
+        assertEquals(XtreamOutcome.Failure(XtreamFailure.AccountLimitReached), outcome)
+        assertEquals(0, api.calls)
+        assertEquals(accounts, store.portfolio.accounts)
+    }
+
+    @Test
+    fun failedPortfolioPersistenceKeepsPreviousActiveAccount() = runBlocking {
+        val store = FakeStore()
+        val repository = XtreamRepository(store, AlwaysSuccessfulApi)
+        repository.authenticate(endpoint("https://one.example"), "user", "password", false)
+        val previous = store.portfolio
+        store.failNextPortfolioSave = true
+
+        val outcome = repository.authenticate(endpoint("https://two.example"), "user", "password", false)
+
+        assertEquals(XtreamOutcome.Failure(XtreamFailure.LocalStorage), outcome)
+        assertEquals(previous, store.portfolio)
+    }
+
+    @Test
+    fun logoutRemovesOnlyActiveAccountAndLeavesNoAutomaticSelection() = runBlocking {
+        val first = account(1)
+        val second = account(2)
+        val store = FakeStore().apply {
+            portfolio = requireNotNull(XtreamAccountPortfolio.create(listOf(first, second), first.accountId))
+        }
+
+        XtreamRepository(store, AlwaysSuccessfulApi).logout()
+
+        assertEquals(listOf(second), store.portfolio.accounts)
+        assertNull(store.portfolio.activeAccountId)
     }
 
     @Test
@@ -191,15 +255,37 @@ class XtreamTest {
     private fun endpoint(value: String) =
         (XtreamHostCanonicalizer.parse(value) as HostParseResult.Valid).endpoint
 
-    private class FakeStore : XtreamAccountStore {
-        var value: SavedXtreamAccount? = null
+    private fun account(number: Int) = SavedXtreamAccount(
+        accountId = number.toString().padStart(32, '0'),
+        generation = number.toLong(),
+        endpoint = endpoint("https://provider-$number.example"),
+        username = "user-$number",
+        password = "password-$number",
+        cleartextConsent = false,
+    )
+
+    private class FakeStore : XtreamRepositoryStore {
+        var portfolio = XtreamAccountPortfolio.Empty
+        val value: SavedXtreamAccount?
+            get() = portfolio.activeAccount
+        var failNextPortfolioSave = false
+
         override fun load() = value
         override fun save(account: SavedXtreamAccount) {
-            value = account
+            portfolio = requireNotNull(XtreamAccountPortfolio.single(account))
         }
         override fun clear() {
-            value = null
+            portfolio = XtreamAccountPortfolio.Empty
         }
+        override fun loadPortfolio() = portfolio
+        override fun savePortfolio(portfolio: XtreamAccountPortfolio) {
+            if (failNextPortfolioSave) {
+                failNextPortfolioSave = false
+                throw IllegalStateException("simulated persistence failure")
+            }
+            this.portfolio = portfolio
+        }
+        override fun clearPortfolio() = clear()
     }
 
     private class FixedApi(private val result: XtreamAuthResult) : XtreamApi {
@@ -216,6 +302,18 @@ class XtreamTest {
             username: String,
             password: String,
         ) = XtreamAuthResult.Success
+    }
+
+    private class CountingApi : XtreamApi {
+        var calls = 0
+        override suspend fun authenticate(
+            endpoint: ProviderEndpoint,
+            username: String,
+            password: String,
+        ): XtreamAuthResult {
+            calls++
+            return XtreamAuthResult.Success
+        }
     }
 
     private object CancellingApi : XtreamApi {

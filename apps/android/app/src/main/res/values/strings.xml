@@ -56,6 +56,8 @@
     <string name="xtream_error_disabled">This IPTV account is disabled or inactive.</string>
     <string name="xtream_error_malformed">The provider returned an invalid response.</string>
     <string name="xtream_error_unsupported">This provider response is not supported safely.</string>
+    <string name="xtream_error_account_limit">You can save up to 8 IPTV accounts. Remove one before adding another.</string>
+    <string name="xtream_error_local_storage">The account could not be saved securely. Your current account was not changed.</string>
     <string name="xtream_logout">Remove IPTV account</string>
     <string name="xtream_logout_description">Removing the account also deletes its saved guide, catalog, favorites, history, and playback progress.</string>
     <string name="catalog_live_title">Live TV</string>

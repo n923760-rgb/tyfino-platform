@@ -8,7 +8,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 internal class XtreamRepository(
-    private val store: XtreamAccountStore,
+    private val store: XtreamRepositoryStore,
     private val api: XtreamApi,
     private val gate: XtreamOperationGate = XtreamOperationGate(),
 ) {
@@ -31,21 +31,21 @@ internal class XtreamRepository(
         }
         val prepared = withContext(Dispatchers.IO) {
             commitMutex.withLock {
-                val current = store.load()
-                val accountId = if (
-                    current?.endpoint?.baseUrl == endpoint.baseUrl &&
-                    current.username == username
-                ) {
-                    current.accountId
-                } else {
-                    UUID.randomUUID().toString().replace("-", "")
+                val portfolio = store.loadPortfolio()
+                val duplicate = portfolio.accounts.firstOrNull {
+                    it.endpoint.baseUrl == endpoint.baseUrl && it.username == username
                 }
+                if (duplicate == null && portfolio.accounts.size == XtreamAccountPortfolio.MAX_ACCOUNTS) {
+                    return@withLock null
+                }
+                val accountId = duplicate?.accountId ?: UUID.randomUUID().toString().replace("-", "")
                 PreparedLogin(
                     owner = gate.begin(accountId),
-                    currentGeneration = current?.generation ?: 0L,
+                    currentGeneration = duplicate?.generation ?: 0L,
+                    portfolio = portfolio,
                 )
             }
-        }
+        } ?: return XtreamOutcome.Failure(XtreamFailure.AccountLimitReached)
 
         val result = api.authenticate(endpoint, username, password)
         return withContext(Dispatchers.IO) {
@@ -53,10 +53,14 @@ internal class XtreamRepository(
                 if (!gate.isCurrent(prepared.owner)) return@withLock XtreamOutcome.Stale
                 when (result) {
                     XtreamAuthResult.Success -> {
-                        val nextGeneration = maxOf(
+                        val generationFloor = maxOf(
                             prepared.owner.generation,
                             prepared.currentGeneration,
-                        ) + 1
+                        )
+                        if (generationFloor == Long.MAX_VALUE) {
+                            return@withLock XtreamOutcome.Failure(XtreamFailure.LocalStorage)
+                        }
+                        val nextGeneration = generationFloor + 1L
                         val account = SavedXtreamAccount(
                             accountId = prepared.owner.accountId,
                             generation = nextGeneration,
@@ -65,10 +69,32 @@ internal class XtreamRepository(
                             password = password,
                             cleartextConsent = cleartextConsent,
                         )
-                        if (!gate.commit(prepared.owner, nextGeneration) { store.save(account) }) {
+                        val mutation = prepared.portfolio.upsertAuthenticated(account)
+                        val nextPortfolio = when (mutation) {
+                            is XtreamPortfolioUpsert.Added -> mutation.portfolio
+                            is XtreamPortfolioUpsert.Updated -> mutation.portfolio
+                            XtreamPortfolioUpsert.LimitReached -> {
+                                return@withLock XtreamOutcome.Failure(XtreamFailure.AccountLimitReached)
+                            }
+                            XtreamPortfolioUpsert.Invalid -> {
+                                return@withLock XtreamOutcome.Failure(XtreamFailure.LocalStorage)
+                            }
+                        }
+                        val committedAccount = requireNotNull(nextPortfolio.activeAccount)
+                        val committed = try {
+                            gate.commit(prepared.owner, committedAccount.generation) {
+                                store.savePortfolio(nextPortfolio)
+                            }
+                        } catch (_: Exception) {
+                            prepared.portfolio.activeAccount?.let {
+                                gate.restore(it.accountId, it.generation)
+                            } ?: gate.invalidateAccount()
+                            return@withLock XtreamOutcome.Failure(XtreamFailure.LocalStorage)
+                        }
+                        if (!committed) {
                             return@withLock XtreamOutcome.Stale
                         }
-                        XtreamOutcome.Authenticated(account.summary())
+                        XtreamOutcome.Authenticated(committedAccount.summary())
                     }
                     is XtreamAuthResult.Failure -> XtreamOutcome.Failure(result.reason)
                 }
@@ -80,7 +106,10 @@ internal class XtreamRepository(
         gate.invalidateAccount()
         withContext(Dispatchers.IO) {
             commitMutex.withLock {
-                store.clear()
+                val portfolio = store.loadPortfolio()
+                val activeAccountId = portfolio.activeAccountId ?: return@withLock
+                val remaining = requireNotNull(portfolio.remove(activeAccountId))
+                store.savePortfolio(remaining)
             }
         }
     }
@@ -98,6 +127,7 @@ internal class XtreamRepository(
     private data class PreparedLogin(
         val owner: XtreamOperationOwner,
         val currentGeneration: Long,
+        val portfolio: XtreamAccountPortfolio,
     )
 }
 

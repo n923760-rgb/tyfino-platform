@@ -36,6 +36,8 @@ internal enum class XtreamFailure {
     AccountDisabled,
     MalformedResponse,
     UnsupportedResponse,
+    AccountLimitReached,
+    LocalStorage,
 }
 
 internal sealed interface XtreamAuthResult {

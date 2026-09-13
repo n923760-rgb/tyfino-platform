@@ -196,4 +196,6 @@ private fun XtreamFailure.messageResource(): Int = when (this) {
     XtreamFailure.AccountDisabled -> R.string.xtream_error_disabled
     XtreamFailure.MalformedResponse -> R.string.xtream_error_malformed
     XtreamFailure.UnsupportedResponse -> R.string.xtream_error_unsupported
+    XtreamFailure.AccountLimitReached -> R.string.xtream_error_account_limit
+    XtreamFailure.LocalStorage -> R.string.xtream_error_local_storage
 }

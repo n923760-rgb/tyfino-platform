@@ -56,6 +56,8 @@
     <string name="xtream_error_disabled">حساب IPTV معطل أو غير نشط.</string>
     <string name="xtream_error_malformed">أعاد المزود استجابة غير صالحة.</string>
     <string name="xtream_error_unsupported">استجابة هذا المزود غير مدعومة بشكل آمن.</string>
+    <string name="xtream_error_account_limit">يمكنك حفظ 8 حسابات IPTV كحد أقصى. احذف حسابًا قبل إضافة حساب آخر.</string>
+    <string name="xtream_error_local_storage">تعذر حفظ الحساب بأمان. لم يتغير حسابك الحالي.</string>
     <string name="xtream_logout">إزالة حساب IPTV</string>
     <string name="xtream_logout_description">ستؤدي إزالة الحساب أيضًا إلى حذف دليل البرامج والمحتوى والمفضلة والسجل وتقدم المشاهدة المحفوظة.</string>
     <string name="catalog_live_title">البث المباشر</string>
