@@ -223,15 +223,33 @@ internal class SeriesDetailsRepository(
     suspend fun clearActiveAccount() = withContext(Dispatchers.IO) {
         mutex.withLock {
             val accountId = accountStore.load()?.accountId ?: activeDestination?.accountId
+            if (accountId != null) clearAccountLocked(accountId)
+        }
+    }
+
+    suspend fun clearAccount(accountId: String): Boolean = withContext(Dispatchers.IO) {
+        if (accountId.isBlank() || accountId.codePointCount(0, accountId.length) > 128) {
+            return@withContext false
+        }
+        mutex.withLock { clearAccountLocked(accountId) }
+    }
+
+    private fun clearAccountLocked(accountId: String): Boolean {
+        if (activeDestination?.accountId == accountId) {
             activeDestination = null
             destinationEpoch = nextCounter(destinationEpoch)
+        }
+        if (retainedAccountId == accountId) {
             retainedAccountId = null
             retainedAccountGeneration = null
-            if (accountId != null) {
-                latestOperations.keys.removeAll { it.accountId == accountId }
-                monotonicRefreshes.keys.removeAll { it.accountId == accountId }
-                store.clearAccount(accountId)
-            }
+        }
+        latestOperations.keys.removeAll { it.accountId == accountId }
+        monotonicRefreshes.keys.removeAll { it.accountId == accountId }
+        return try {
+            store.clearAccount(accountId)
+            true
+        } catch (_: RuntimeException) {
+            false
         }
     }
 
