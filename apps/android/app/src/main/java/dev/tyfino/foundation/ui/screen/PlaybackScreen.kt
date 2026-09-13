@@ -1,3 +1,5 @@
+@file:androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+
 package dev.tyfino.foundation.ui.screen
 
 import android.graphics.Color
