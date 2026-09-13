@@ -59,4 +59,27 @@ class CatalogTileAccessibilityTest {
         compose.onNodeWithTag("selected-filter").assertIsSelected()
         compose.onNodeWithTag("unselected-filter").assertIsNotSelected()
     }
+
+    @Test
+    fun exposesFavoriteSelectionState() {
+        compose.setContent {
+            MaterialTheme {
+                CatalogFavoriteButton(
+                    label = "Remove Featured from favorites",
+                    selected = true,
+                    onClick = {},
+                    modifier = Modifier.testTag("favorite-item"),
+                )
+                CatalogFavoriteButton(
+                    label = "Add New item to favorites",
+                    selected = false,
+                    onClick = {},
+                    modifier = Modifier.testTag("regular-item"),
+                )
+            }
+        }
+
+        compose.onNodeWithTag("favorite-item").assertIsSelected()
+        compose.onNodeWithTag("regular-item").assertIsNotSelected()
+    }
 }
