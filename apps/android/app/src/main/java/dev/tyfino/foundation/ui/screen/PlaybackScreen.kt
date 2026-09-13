@@ -1,5 +1,3 @@
-@file:androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-
 package dev.tyfino.foundation.ui.screen
 
 import android.graphics.Color
@@ -835,7 +833,7 @@ private fun TrackSelectionParameters.isAutomatic(trackType: Int): Boolean =
 private fun selectionLabel(label: String, selected: Boolean, selectedSuffix: String): String =
     if (selected) "$label — $selectedSuffix" else label
 
-private data class EmbeddedTrackOption(
+internal data class EmbeddedTrackOption(
     val group: Tracks.Group,
     val trackIndex: Int,
     val label: String,
