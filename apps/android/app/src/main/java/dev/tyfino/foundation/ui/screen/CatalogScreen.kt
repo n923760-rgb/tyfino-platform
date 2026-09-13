@@ -226,8 +226,9 @@ internal fun CatalogScreen(
             modifier = Modifier.fillMaxWidth().testTag("catalog-search"),
         )
         if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) {
-            FocusVisibleButton(
+            CatalogFilterButton(
                 label = stringResource(if (favoritesOnly) R.string.catalog_show_all else R.string.catalog_favorites_only),
+                selected = favoritesOnly,
                 onClick = {
                     favoritesOnly = !favoritesOnly
                     if (favoritesOnly) historyOnly = false
@@ -236,8 +237,9 @@ internal fun CatalogScreen(
             )
         }
         if (historyRepository != null && (recentItems.isNotEmpty() || historyOnly)) {
-            FocusVisibleButton(
+            CatalogFilterButton(
                 label = stringResource(if (historyOnly) R.string.catalog_show_all else R.string.catalog_recent_title),
+                selected = historyOnly,
                 onClick = {
                     historyOnly = !historyOnly
                     if (historyOnly) favoritesOnly = false
@@ -594,6 +596,20 @@ internal fun CatalogTile(
             }
         }
     }
+}
+
+@Composable
+internal fun CatalogFilterButton(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    FocusVisibleButton(
+        label = label,
+        onClick = onClick,
+        modifier = modifier.semantics { this.selected = selected },
+    )
 }
 
 @Composable
