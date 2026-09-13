@@ -38,6 +38,17 @@ internal sealed interface XtreamSwitchResult {
     data object LocalStorage : XtreamSwitchResult
 }
 
+internal sealed interface XtreamRemoveResult {
+    data class Removed(
+        val accountId: String,
+        val wasActive: Boolean,
+        val remaining: XtreamAccountsSnapshot,
+    ) : XtreamRemoveResult
+
+    data object NotFound : XtreamRemoveResult
+    data object LocalStorage : XtreamRemoveResult
+}
+
 internal enum class XtreamFailure {
     InvalidHost,
     NetworkUnavailable,
