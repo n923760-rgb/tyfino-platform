@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.ContinueWatchingItem
@@ -465,6 +466,7 @@ private fun Categories(
                 selected = category.providerId == selectedCategoryId,
                 onClick = { onSelect(category) },
                 modifier = Modifier.widthIn(min = 140.dp, max = 260.dp),
+                exposeSelectionState = true,
             )
         }
     }
@@ -540,13 +542,14 @@ private fun ItemGrid(
 }
 
 @Composable
-private fun CatalogTile(
+internal fun CatalogTile(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier,
     supporting: String = "",
     enabled: Boolean = true,
+    exposeSelectionState: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
     Card(
@@ -555,7 +558,12 @@ private fun CatalogTile(
         modifier = modifier
             .heightIn(min = 88.dp)
             .onFocusChanged { focused = it.isFocused }
-            .semantics { contentDescription = label },
+            .semantics {
+                contentDescription = listOf(label, supporting)
+                    .filter(String::isNotBlank)
+                    .joinToString(", ")
+                if (exposeSelectionState) this.selected = selected
+            },
         border = BorderStroke(
             if (focused) 3.dp else 1.dp,
             when {
