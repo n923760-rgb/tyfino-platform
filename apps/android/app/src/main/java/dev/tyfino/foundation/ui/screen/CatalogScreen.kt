@@ -273,7 +273,7 @@ internal fun CatalogScreen(
         if (searchActive) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 when (val result = searchResult) {
-                    null -> LoadingState()
+                    null -> CatalogLoadingState()
                     is CatalogSearchResult.Ready -> {
                         val visible = when {
                             favoritesOnly -> result.records.filter { it.providerId in favoriteIds }
@@ -440,7 +440,7 @@ private fun CategoryStrip(
     onRetry: () -> Unit,
 ) {
     when (state) {
-        CatalogState.Empty, CatalogState.Loading -> LoadingState()
+        CatalogState.Empty, CatalogState.Loading -> CatalogLoadingState()
         is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
         is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_categories)
         is CatalogState.Content -> {
@@ -492,7 +492,7 @@ private fun ItemContent(
             CatalogState.Empty -> EmptyState(
                 if (hasSelection) R.string.catalog_loading else R.string.catalog_choose_category,
             )
-            CatalogState.Loading -> LoadingState()
+            CatalogState.Loading -> CatalogLoadingState()
             is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
             is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_items)
             is CatalogState.Content -> {
@@ -631,8 +631,11 @@ internal fun CatalogFavoriteButton(
 }
 
 @Composable
-private fun LoadingState() {
+internal fun CatalogLoadingState() {
     Row(
+        modifier = Modifier
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .testTag("catalog-loading"),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
