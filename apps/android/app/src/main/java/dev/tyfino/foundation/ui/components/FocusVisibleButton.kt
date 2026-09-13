@@ -20,11 +20,13 @@ internal fun FocusVisibleButton(
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.onFocusChanged { isFocused = it.isFocused },
         border = BorderStroke(
             width = if (isFocused) 3.dp else 1.dp,

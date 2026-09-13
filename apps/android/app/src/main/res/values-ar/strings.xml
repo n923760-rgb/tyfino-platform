@@ -11,7 +11,7 @@
     <string name="home_catalog_hint">اختر البث المباشر أو الأفلام أو المسلسلات من قائمة التنقل.</string>
     <string name="open_settings">فتح الإعدادات</string>
     <string name="settings_title">أساس الإعدادات</string>
-    <string name="settings_description">إدارة حساب IPTV المحفوظ على هذا الجهاز.</string>
+    <string name="settings_description">إدارة حسابات IPTV المحفوظة على هذا الجهاز.</string>
     <string name="licensing_title">فعّل TYFINO</string>
     <string name="licensing_description">ابدأ تجربتك المجانية لمدة 7 أيام أو فعّل التطبيق مباشرة. يبقى حساب IPTV على جهازك فقط.</string>
     <string name="start_trial">ابدأ التجربة المجانية 7 أيام</string>
@@ -60,6 +60,15 @@
     <string name="xtream_error_local_storage">تعذر حفظ الحساب بأمان. لم يتغير حسابك الحالي.</string>
     <string name="xtream_logout">إزالة حساب IPTV</string>
     <string name="xtream_logout_description">ستؤدي إزالة الحساب أيضًا إلى حذف دليل البرامج والمحتوى والمفضلة والسجل وتقدم المشاهدة المحفوظة.</string>
+    <string name="xtream_switch_account">تبديل حساب IPTV</string>
+    <string name="xtream_accounts_title">حسابات IPTV</string>
+    <string name="xtream_accounts_description">اختر حسابًا محفوظًا. يتم التبديل محليًا دون الاتصال بالمزود.</string>
+    <string name="xtream_account_active">%1$s\n%2$s\nالحساب النشط</string>
+    <string name="xtream_account_inactive">%1$s\n%2$s</string>
+    <string name="xtream_switching_account">جارٍ تبديل الحساب…</string>
+    <string name="xtream_switch_error_local_storage">تعذر تبديل الحساب بأمان. لا يزال حسابك السابق نشطًا.</string>
+    <string name="xtream_add_account">إضافة حساب</string>
+    <string name="xtream_manage_accounts">إدارة الحسابات</string>
     <string name="catalog_live_title">البث المباشر</string>
     <string name="catalog_movies_title">الأفلام</string>
     <string name="catalog_series_title">المسلسلات</string>

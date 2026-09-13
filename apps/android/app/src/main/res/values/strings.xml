@@ -11,7 +11,7 @@
     <string name="home_catalog_hint">Choose Live TV, Movies, or Series from the navigation menu.</string>
     <string name="open_settings">Open settings</string>
     <string name="settings_title">Settings foundation</string>
-    <string name="settings_description">Manage the IPTV account saved on this device.</string>
+    <string name="settings_description">Manage the IPTV accounts saved on this device.</string>
     <string name="licensing_title">Unlock TYFINO</string>
     <string name="licensing_description">Start your 7-day free trial or activate the app now. Your IPTV account stays only on this device.</string>
     <string name="start_trial">Start 7-Day Free Trial</string>
@@ -60,6 +60,15 @@
     <string name="xtream_error_local_storage">The account could not be saved securely. Your current account was not changed.</string>
     <string name="xtream_logout">Remove IPTV account</string>
     <string name="xtream_logout_description">Removing the account also deletes its saved guide, catalog, favorites, history, and playback progress.</string>
+    <string name="xtream_switch_account">Switch IPTV account</string>
+    <string name="xtream_accounts_title">IPTV accounts</string>
+    <string name="xtream_accounts_description">Choose a saved account. Switching is local and does not contact the provider.</string>
+    <string name="xtream_account_active">%1$s\n%2$s\nActive account</string>
+    <string name="xtream_account_inactive">%1$s\n%2$s</string>
+    <string name="xtream_switching_account">Switching account…</string>
+    <string name="xtream_switch_error_local_storage">The account could not be switched securely. Your previous account remains active.</string>
+    <string name="xtream_add_account">Add account</string>
+    <string name="xtream_manage_accounts">Manage accounts</string>
     <string name="catalog_live_title">Live TV</string>
     <string name="catalog_movies_title">Movies</string>
     <string name="catalog_series_title">Series</string>

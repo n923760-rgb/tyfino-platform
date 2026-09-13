@@ -17,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,6 +60,7 @@ import dev.tyfino.foundation.ui.screen.LicensingScreen
 import dev.tyfino.foundation.ui.screen.SettingsScreen
 import dev.tyfino.foundation.ui.screen.SeriesDetailsScreen
 import dev.tyfino.foundation.ui.screen.SeriesSelection
+import dev.tyfino.foundation.ui.screen.XtreamAccountSwitcher
 import dev.tyfino.foundation.ui.screen.XtreamLoginScreen
 import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.CatalogFavoritesRepository
@@ -75,9 +78,12 @@ import dev.tyfino.foundation.xtream.SQLiteSeriesStore
 import dev.tyfino.foundation.xtream.SeriesDetailsRepository
 import dev.tyfino.foundation.xtream.SeriesEpisode
 import dev.tyfino.foundation.xtream.SecureXtreamAccountStore
+import dev.tyfino.foundation.xtream.XtreamAccountSummary
 import dev.tyfino.foundation.xtream.XtreamAccountStore
+import dev.tyfino.foundation.xtream.XtreamAccountsSnapshot
 import dev.tyfino.foundation.xtream.XtreamController
 import dev.tyfino.foundation.xtream.XtreamRepository
+import dev.tyfino.foundation.xtream.XtreamSwitchResult
 import dev.tyfino.foundation.xtream.XtreamUiState
 import kotlinx.coroutines.launch
 
@@ -95,13 +101,14 @@ internal fun TyfinoApp() {
         )
     }
     val xtreamStore = remember { SecureXtreamAccountStore(context) }
-    val xtreamController = remember {
-        XtreamController(
-            XtreamRepository(
-                store = xtreamStore,
-                api = HttpXtreamApi(context),
-            ),
+    val xtreamRepository = remember {
+        XtreamRepository(
+            store = xtreamStore,
+            api = HttpXtreamApi(context),
         )
+    }
+    val xtreamController = remember {
+        XtreamController(xtreamRepository)
     }
     val catalogRepository = remember {
         CatalogRepository(
@@ -152,6 +159,7 @@ internal fun TyfinoApp() {
     if (licensingState is LicensingUiState.Active) {
         XtreamGate(
             controller = xtreamController,
+            repository = xtreamRepository,
             catalogRepository = catalogRepository,
             favoritesRepository = favoritesRepository,
             historyRepository = historyRepository,
@@ -177,6 +185,7 @@ internal fun TyfinoApp() {
 @Composable
 private fun XtreamGate(
     controller: XtreamController,
+    repository: XtreamRepository,
     catalogRepository: CatalogRepository,
     favoritesRepository: CatalogFavoritesRepository,
     historyRepository: CatalogHistoryRepository,
@@ -188,68 +197,110 @@ private fun XtreamGate(
     accountStore: XtreamAccountStore,
 ) {
     var state by remember { mutableStateOf(controller.state) }
+    var addingAccount by remember { mutableStateOf(false) }
+    var shellEpoch by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val publish: (XtreamUiState) -> Unit = { state = it }
+    val publishAccountMutation: (XtreamUiState) -> Unit = { next ->
+        state = next
+        if (next is XtreamUiState.SignedIn) {
+            shellEpoch++
+            addingAccount = false
+        }
+    }
 
     LaunchedEffect(controller) { controller.initialize(publish) }
     DisposableEffect(controller) {
         onDispose { controller.deactivate() }
     }
 
-    if (state is XtreamUiState.SignedIn) {
-        LicensedAppShell(
-            catalogRepository = catalogRepository,
-            favoritesRepository = favoritesRepository,
-            historyRepository = historyRepository,
-            epgRepository = epgRepository,
-            seriesDetailsRepository = seriesDetailsRepository,
-            movieResumeRepository = movieResumeRepository,
-            episodeResumeRepository = episodeResumeRepository,
-            previousLiveChannelController = previousLiveChannelController,
-            accountStore = accountStore,
-            onRemoveXtreamAccount = {
-                previousLiveChannelController.clear()
-                scope.launch {
-                    try {
-                        epgRepository.clearActiveAccount()
-                    } finally {
-                    try {
-                        historyRepository.clearActiveAccount()
-                    } finally {
-                    try {
-                        favoritesRepository.clearActiveAccount()
-                    } finally {
-                    try {
-                        episodeResumeRepository.clearActiveAccount()
-                    } finally {
-                    try {
-                        seriesDetailsRepository.clearActiveAccount()
-                    } finally {
+    val signedIn = state as? XtreamUiState.SignedIn
+    if (signedIn != null && !addingAccount) {
+        key(shellEpoch, signedIn.account.accountId) {
+            LicensedAppShell(
+                catalogRepository = catalogRepository,
+                favoritesRepository = favoritesRepository,
+                historyRepository = historyRepository,
+                epgRepository = epgRepository,
+                seriesDetailsRepository = seriesDetailsRepository,
+                movieResumeRepository = movieResumeRepository,
+                episodeResumeRepository = episodeResumeRepository,
+                previousLiveChannelController = previousLiveChannelController,
+                accountStore = accountStore,
+                accountRepository = repository,
+                onAddXtreamAccount = { addingAccount = true },
+                onAccountSwitched = { account ->
+                    previousLiveChannelController.clear()
+                    publishAccountMutation(XtreamUiState.SignedIn(account))
+                },
+                onRemoveXtreamAccount = {
+                    previousLiveChannelController.clear()
+                    scope.launch {
                         try {
-                            movieResumeRepository.clearActiveAccount()
+                            epgRepository.clearActiveAccount()
+                        } finally {
+                        try {
+                            historyRepository.clearActiveAccount()
+                        } finally {
+                        try {
+                            favoritesRepository.clearActiveAccount()
+                        } finally {
+                        try {
+                            episodeResumeRepository.clearActiveAccount()
+                        } finally {
+                        try {
+                            seriesDetailsRepository.clearActiveAccount()
                         } finally {
                             try {
-                                catalogRepository.clearActiveAccount()
+                                movieResumeRepository.clearActiveAccount()
                             } finally {
-                                controller.logout(publish)
+                                try {
+                                    catalogRepository.clearActiveAccount()
+                                } finally {
+                                    controller.logout(publish)
+                                }
                             }
                         }
+                        }
+                        }
+                        }
+                        }
                     }
-                    }
-                    }
-                    }
-                    }
-                }
-            },
-        )
+                },
+            )
+        }
     } else {
         XtreamLoginScreen(
             state = state,
-            onSignIn = { input -> scope.launch { controller.signIn(input, publish) } },
+            onSignIn = { input ->
+                scope.launch {
+                    controller.signIn(
+                        input,
+                        if (addingAccount) publishAccountMutation else publish,
+                    )
+                }
+            },
             onConfirmCleartext = {
-                scope.launch { controller.confirmCleartext(publish) }
+                scope.launch {
+                    controller.confirmCleartext(
+                        if (addingAccount) publishAccountMutation else publish,
+                    )
+                }
             },
             onCancelCleartext = { controller.cancelCleartext(publish) },
+            onBack = if (addingAccount) {
+                {
+                    controller.deactivate()
+                    scope.launch {
+                        controller.initialize { restored ->
+                            state = restored
+                            if (restored is XtreamUiState.SignedIn) addingAccount = false
+                        }
+                    }
+                }
+            } else {
+                null
+            },
         )
     }
 }
@@ -265,6 +316,9 @@ private fun LicensedAppShell(
     episodeResumeRepository: EpisodeResumeRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
+    accountRepository: XtreamRepository,
+    onAddXtreamAccount: () -> Unit,
+    onAccountSwitched: (XtreamAccountSummary) -> Unit,
     onRemoveXtreamAccount: () -> Unit,
 ) {
     val navController = rememberNavController()
@@ -276,6 +330,17 @@ private fun LicensedAppShell(
     var playbackSelection by remember { mutableStateOf<PlaybackSelection?>(null) }
     var seriesSelection by remember { mutableStateOf<SeriesSelection?>(null) }
     var episodePlaybackSelection by remember { mutableStateOf<EpisodePlaybackSelection?>(null) }
+    var showAccountSwitcher by remember { mutableStateOf(false) }
+    var accountSnapshot by remember { mutableStateOf<XtreamAccountsSnapshot?>(null) }
+    var switchingAccountId by remember { mutableStateOf<String?>(null) }
+    var switchStorageError by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showAccountSwitcher) {
+        if (showAccountSwitcher) {
+            accountSnapshot = runCatching { accountRepository.accountSnapshot() }.getOrNull()
+            switchStorageError = accountSnapshot == null
+        }
+    }
 
     val navigateTo: (AppDestination) -> Unit = { destination ->
         if (currentDestination?.route != destination.route) {
@@ -372,6 +437,11 @@ private fun LicensedAppShell(
             onResumeEpisode = resumeEpisode,
             onPreviousLive = playPreviousLive,
             onOpenSettings = { navigateTo(AppDestination.Settings) },
+            onOpenAccountSwitcher = {
+                accountSnapshot = null
+                switchStorageError = false
+                showAccountSwitcher = true
+            },
             onPlaybackClosed = {
                 playbackSelection = null
                 episodePlaybackSelection = null
@@ -414,6 +484,46 @@ private fun LicensedAppShell(
             )
         }
     }
+
+    if (showAccountSwitcher) {
+        XtreamAccountSwitcher(
+            snapshot = accountSnapshot,
+            switchingAccountId = switchingAccountId,
+            storageError = switchStorageError,
+            onSelectAccount = { accountId ->
+                switchingAccountId = accountId
+                switchStorageError = false
+                scope.launch {
+                    when (val result = accountRepository.switchAccount(accountId)) {
+                        is XtreamSwitchResult.Switched -> {
+                            showAccountSwitcher = false
+                            switchingAccountId = null
+                            onAccountSwitched(result.account)
+                        }
+                        is XtreamSwitchResult.AlreadyActive -> {
+                            showAccountSwitcher = false
+                            switchingAccountId = null
+                        }
+                        XtreamSwitchResult.NotFound,
+                        XtreamSwitchResult.LocalStorage,
+                        -> {
+                            switchingAccountId = null
+                            switchStorageError = true
+                        }
+                    }
+                }
+            },
+            onAddAccount = {
+                showAccountSwitcher = false
+                onAddXtreamAccount()
+            },
+            onManageAccounts = {
+                showAccountSwitcher = false
+                navigateTo(AppDestination.Settings)
+            },
+            onDismiss = { showAccountSwitcher = false },
+        )
+    }
 }
 
 @Composable
@@ -438,6 +548,7 @@ private fun AppNavHost(
     onResumeEpisode: (SeriesContinueWatchingItem) -> Unit,
     onPreviousLive: (PlaybackSelection) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenAccountSwitcher: () -> Unit,
     onPlaybackClosed: () -> Unit,
     onRemoveXtreamAccount: () -> Unit,
 ) {
@@ -447,7 +558,10 @@ private fun AppNavHost(
         modifier = modifier,
     ) {
         composable(AppDestination.Foundation.route) {
-            FoundationScreen(onOpenSettings = onOpenSettings)
+            FoundationScreen(
+                onOpenAccountSwitcher = onOpenAccountSwitcher,
+                onOpenSettings = onOpenSettings,
+            )
         }
         composable(AppDestination.Live.route) {
             CatalogScreen(
@@ -494,7 +608,10 @@ private fun AppNavHost(
             }
         }
         composable(AppDestination.Settings.route) {
-            SettingsScreen(onRemoveXtreamAccount = onRemoveXtreamAccount)
+            SettingsScreen(
+                onOpenAccountSwitcher = onOpenAccountSwitcher,
+                onRemoveXtreamAccount = onRemoveXtreamAccount,
+            )
         }
         composable(PLAYBACK_ROUTE) {
             val episode = episodePlaybackSelection
