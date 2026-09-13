@@ -4,6 +4,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -15,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.SeriesDetailsCandidate
 import dev.tyfino.foundation.xtream.SeriesEpisode
+import dev.tyfino.foundation.xtream.SeriesFailure
 import dev.tyfino.foundation.xtream.SeriesSeason
 import dev.tyfino.foundation.xtream.SeriesState
 import dev.tyfino.foundation.xtream.SeriesSummary
@@ -74,6 +79,30 @@ class SeriesDetailsScreenTest {
         }
         compose.onNodeWithText("Special episode").assertExists()
         compose.onNodeWithText("Playback information is unavailable for this episode.").assertExists()
+    }
+
+    @Test
+    fun exposesSeriesFailureAsAssertiveLiveRegion() {
+        compose.setContent {
+            MaterialTheme {
+                SeriesDetailsContent(
+                    selection = selection(),
+                    state = SeriesState.Error(SeriesFailure.NetworkUnavailable),
+                    ownerChanged = false,
+                    preferredSeason = null,
+                    onSeasonSelected = {},
+                    onBack = {},
+                    onRefresh = {},
+                )
+            }
+        }
+
+        compose.onNodeWithTag("series-error").assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.LiveRegion,
+                LiveRegionMode.Assertive,
+            ),
+        )
     }
 
     private fun selection() = SeriesSelection(
