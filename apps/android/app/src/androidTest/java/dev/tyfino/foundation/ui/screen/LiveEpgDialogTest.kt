@@ -78,6 +78,20 @@ class LiveEpgDialogTest {
     }
 
     @Test
+    fun exposesLoadingAsPoliteLiveRegion() {
+        compose.setContent {
+            MaterialTheme { LiveEpgDialog(LiveEpgState.Loading, {}, {}) }
+        }
+
+        compose.onNodeWithTag("epg-loading").assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.LiveRegion,
+                LiveRegionMode.Polite,
+            ),
+        )
+    }
+
+    @Test
     fun programRowAnnouncesBoundedDisplayContentWithoutOwnerIds() {
         val format = SimpleDateFormat("HH:mm", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
