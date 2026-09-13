@@ -44,6 +44,7 @@ internal fun XtreamLoginScreen(
     onSignIn: (XtreamInput) -> Unit,
     onConfirmCleartext: () -> Unit,
     onCancelCleartext: () -> Unit,
+    onBack: (() -> Unit)? = null,
 ) {
     var host by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -93,6 +94,13 @@ internal fun XtreamLoginScreen(
                             .semantics { liveRegion = LiveRegionMode.Polite }
                             .testTag("xtream-status"),
                     )
+                    onBack?.let { back ->
+                        FocusVisibleButton(
+                            label = stringResource(R.string.back),
+                            onClick = back,
+                            modifier = Modifier.fillMaxWidth().testTag("xtream-add-back"),
+                        )
+                    }
                 }
                 is XtreamUiState.ConfirmCleartext -> {
                     Text(
@@ -174,6 +182,13 @@ internal fun XtreamLoginScreen(
                             .fillMaxWidth()
                             .testTag("xtream-sign-in"),
                     )
+                    onBack?.let { back ->
+                        FocusVisibleButton(
+                            label = stringResource(R.string.back),
+                            onClick = back,
+                            modifier = Modifier.fillMaxWidth().testTag("xtream-add-back"),
+                        )
+                    }
                     Text(
                         text = stringResource(R.string.xtream_privacy),
                         style = MaterialTheme.typography.bodySmall,
