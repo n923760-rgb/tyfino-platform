@@ -529,11 +529,13 @@ private fun ItemGrid(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 if (onToggleFavorite != null) {
-                    FocusVisibleButton(
+                    val isFavorite = item.providerId in favoriteIds
+                    CatalogFavoriteButton(
                         label = stringResource(
-                            if (item.providerId in favoriteIds) R.string.catalog_favorite_remove else R.string.catalog_favorite_add,
+                            if (isFavorite) R.string.catalog_favorite_remove else R.string.catalog_favorite_add,
                             item.name,
                         ),
+                        selected = isFavorite,
                         onClick = { onToggleFavorite(item) },
                         modifier = Modifier.fillMaxWidth().testTag("catalog-favorite-toggle"),
                     )
@@ -600,6 +602,20 @@ internal fun CatalogTile(
 
 @Composable
 internal fun CatalogFilterButton(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    FocusVisibleButton(
+        label = label,
+        onClick = onClick,
+        modifier = modifier.semantics { this.selected = selected },
+    )
+}
+
+@Composable
+internal fun CatalogFavoriteButton(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
