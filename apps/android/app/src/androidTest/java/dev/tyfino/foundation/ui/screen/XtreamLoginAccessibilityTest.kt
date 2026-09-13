@@ -38,4 +38,25 @@ class XtreamLoginAccessibilityTest {
             ),
         )
     }
+
+    @Test
+    fun exposesAuthenticationProgressAsPoliteLiveRegion() {
+        compose.setContent {
+            MaterialTheme {
+                XtreamLoginScreen(
+                    state = XtreamUiState.Working,
+                    onSignIn = {},
+                    onConfirmCleartext = {},
+                    onCancelCleartext = {},
+                )
+            }
+        }
+
+        compose.onNodeWithTag("xtream-status").assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.LiveRegion,
+                LiveRegionMode.Polite,
+            ),
+        )
+    }
 }
