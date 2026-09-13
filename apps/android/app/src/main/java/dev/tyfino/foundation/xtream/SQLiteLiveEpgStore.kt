@@ -12,7 +12,7 @@ internal class SQLiteLiveEpgStore(context: Context) : LiveEpgStore {
 
     override fun retainOwner(accountId: String, accountGeneration: Long) = synchronized(helper) {
         helper.writableDatabase.inTransaction {
-            delete(SNAPSHOT, "$ACCOUNT_ID != ? OR $ACCOUNT_GENERATION != ?",
+            delete(SNAPSHOT, "$ACCOUNT_ID = ? AND $ACCOUNT_GENERATION != ?",
                 arrayOf(accountId, accountGeneration.toString()))
             removeOrphanPrograms()
         }
