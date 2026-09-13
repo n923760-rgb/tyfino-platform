@@ -88,7 +88,10 @@ internal fun XtreamLoginScreen(
                                 R.string.xtream_connecting
                             },
                         ),
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .semantics { liveRegion = LiveRegionMode.Polite }
+                            .testTag("xtream-status"),
                     )
                 }
                 is XtreamUiState.ConfirmCleartext -> {
