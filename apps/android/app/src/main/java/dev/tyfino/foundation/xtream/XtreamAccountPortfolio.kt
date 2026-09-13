@@ -46,7 +46,7 @@ internal data class XtreamAccountPortfolio private constructor(
             if (duplicate.generation == Long.MAX_VALUE) return XtreamPortfolioUpsert.Invalid
             val updated = candidate.copy(
                 accountId = duplicate.accountId,
-                generation = duplicate.generation + 1L,
+                generation = maxOf(duplicate.generation + 1L, candidate.generation),
             )
             val portfolio = create(
                 accounts = listOf(updated) + accounts.filterNot { it.accountId == duplicate.accountId },
