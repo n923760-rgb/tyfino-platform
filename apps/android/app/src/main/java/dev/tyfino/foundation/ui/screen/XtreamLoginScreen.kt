@@ -99,6 +99,9 @@ internal fun XtreamLoginScreen(
                         text = stringResource(R.string.xtream_http_warning_title),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .semantics { liveRegion = LiveRegionMode.Assertive }
+                            .testTag("xtream-http-warning"),
                     )
                     Text(
                         text = stringResource(
