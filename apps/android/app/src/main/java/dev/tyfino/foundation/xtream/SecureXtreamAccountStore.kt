@@ -22,9 +22,10 @@ internal interface XtreamAccountPortfolioStore {
     fun clearPortfolio()
 }
 
+internal interface XtreamRepositoryStore : XtreamAccountStore, XtreamAccountPortfolioStore
+
 internal class SecureXtreamAccountStore(context: Context) :
-    XtreamAccountStore,
-    XtreamAccountPortfolioStore {
+    XtreamRepositoryStore {
     private val persistence = XtreamAccountPortfolioPersistence(
         SecureXtreamPayloads(context.applicationContext),
     )
