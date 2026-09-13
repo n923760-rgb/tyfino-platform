@@ -96,7 +96,7 @@ internal class CatalogHistoryRepository(
         val owner = id to generation
         if (retainedOwner == owner) return true
         return try {
-            if (retainedOwner?.first == id) store.clearAccount(id) else store.clearOtherAccounts(id)
+            if (retainedOwner?.first == id) store.clearAccount(id)
             retainedOwner = owner
             true
         } catch (_: RuntimeException) { false }

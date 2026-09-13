@@ -123,7 +123,9 @@ class LiveEpgRepositoryTest {
         var retained: Pair<String, Long>? = null
         val snapshots = mutableMapOf<Pair<String, String>, LiveEpgSnapshot>()
         override fun retainOwner(accountId: String, accountGeneration: Long) {
-            if (retained != (accountId to accountGeneration)) snapshots.clear()
+            if (retained?.first == accountId && retained?.second != accountGeneration) {
+                snapshots.keys.removeAll { it.first == accountId }
+            }
             retained = accountId to accountGeneration
         }
         override fun load(accountId: String, channelId: String, nowEpochMillis: Long) =

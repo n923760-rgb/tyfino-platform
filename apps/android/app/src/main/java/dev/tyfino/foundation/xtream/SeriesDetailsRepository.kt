@@ -68,11 +68,6 @@ internal class SeriesDetailsRepository(
         mutex.withLock {
             val account = accountStore.load() ?: return@withLock null
             if (retainedAccountId != account.accountId) {
-                try {
-                    store.clearOtherAccounts(account.accountId)
-                } catch (_: RuntimeException) {
-                    return@withLock null
-                }
                 retainedAccountId = account.accountId
                 retainedAccountGeneration = account.generation
                 latestOperations.keys.removeAll { it.accountId != account.accountId }

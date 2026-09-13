@@ -102,7 +102,6 @@ internal class CatalogFavoritesRepository(
         if (retainedOwner == owner) return true
         return try {
             if (retainedOwner?.accountId == owner.accountId) store.clearAccount(owner.accountId)
-            else store.clearOtherAccounts(owner.accountId)
             retainedOwner = owner
             true
         } catch (_: RuntimeException) { false }

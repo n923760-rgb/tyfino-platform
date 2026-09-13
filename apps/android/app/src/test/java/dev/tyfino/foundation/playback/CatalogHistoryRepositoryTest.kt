@@ -28,7 +28,7 @@ class CatalogHistoryRepositoryTest {
         fixture.accounts.value = fixture.account("b", 1)
         assertFalse(fixture.history.recordStarted(fixture.selection(CatalogSection.Live)))
         assertTrue((fixture.history.recent(CatalogSection.Live) as CatalogHistoryListResult.Ready).items.isEmpty())
-        assertTrue(fixture.store.records.isEmpty())
+        assertTrue(fixture.store.records.keys.any { it.first == "a" })
     }
 
     @Test fun accountReplacementDuringCatalogLookupRejectsWrite() = runBlocking {

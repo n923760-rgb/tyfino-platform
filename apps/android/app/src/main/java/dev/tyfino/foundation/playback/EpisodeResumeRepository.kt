@@ -185,7 +185,7 @@ internal class EpisodeResumeRepository(
         val owner = id to generation
         if (retainedOwner == owner) return true
         return try {
-            if (retainedOwner?.first == id) store.clearAccount(id) else store.clearOtherAccounts(id)
+            if (retainedOwner?.first == id) store.clearAccount(id)
             checkpointTimes.clear()
             retainedOwner = owner
             true
