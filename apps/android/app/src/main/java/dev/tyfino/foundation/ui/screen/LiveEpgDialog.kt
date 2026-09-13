@@ -28,7 +28,9 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -79,7 +81,12 @@ internal fun LiveEpgDialog(
                             }
                         }
                         is LiveEpgState.Error -> item {
-                            Text(stringResource(R.string.epg_error), modifier = Modifier.testTag("epg-error"))
+                            Text(
+                                text = stringResource(R.string.epg_error),
+                                modifier = Modifier
+                                    .semantics { liveRegion = LiveRegionMode.Assertive }
+                                    .testTag("epg-error"),
+                            )
                         }
                         is LiveEpgState.Empty -> item {
                             Text(stringResource(R.string.epg_empty), modifier = Modifier.testTag("epg-empty"))
