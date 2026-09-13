@@ -106,4 +106,20 @@ class CatalogTileAccessibilityTest {
             ),
         )
     }
+
+    @Test
+    fun exposesCatalogLoadingAsPoliteLiveRegion() {
+        compose.setContent {
+            MaterialTheme {
+                CatalogLoadingState()
+            }
+        }
+
+        compose.onNodeWithTag("catalog-loading").assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.LiveRegion,
+                LiveRegionMode.Polite,
+            ),
+        )
+    }
 }
