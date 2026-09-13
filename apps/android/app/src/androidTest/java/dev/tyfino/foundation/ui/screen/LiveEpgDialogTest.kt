@@ -5,8 +5,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -15,6 +16,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.tyfino.foundation.xtream.LiveEpgFailure
 import dev.tyfino.foundation.xtream.LiveEpgProgram
 import dev.tyfino.foundation.xtream.LiveEpgState
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -60,5 +64,27 @@ class LiveEpgDialogTest {
         compose.onNodeWithTag("epg-error").assertExists()
         compose.onNodeWithText("Close").performClick()
         compose.runOnIdle { assertEquals(1, dismissed) }
+    }
+
+    @Test
+    fun programRowAnnouncesBoundedDisplayContentWithoutOwnerIds() {
+        val format = SimpleDateFormat("HH:mm", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val program = LiveEpgProgram(
+            accountId = "secret-account",
+            channelId = "secret-channel",
+            title = "Current show",
+            description = "Program description",
+            startEpochMillis = 0L,
+            endEpochMillis = 3_600_000L,
+        )
+        compose.setContent {
+            MaterialTheme { EpgProgramRow(0, program, format) }
+        }
+
+        compose.onNodeWithTag("epg-program-0").assertContentDescriptionEquals(
+            "00:00 – 01:00, Current show, Program description",
+        )
     }
 }
