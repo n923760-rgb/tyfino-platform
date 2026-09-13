@@ -138,4 +138,20 @@ class CatalogTileAccessibilityTest {
             ),
         )
     }
+
+    @Test
+    fun exposesCatalogRefreshAsPoliteLiveRegion() {
+        compose.setContent {
+            MaterialTheme {
+                CatalogRefreshingNotice()
+            }
+        }
+
+        compose.onNodeWithTag("catalog-refreshing").assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.LiveRegion,
+                LiveRegionMode.Polite,
+            ),
+        )
+    }
 }
