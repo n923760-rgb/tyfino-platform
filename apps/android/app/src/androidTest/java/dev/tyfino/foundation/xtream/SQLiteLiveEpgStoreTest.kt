@@ -16,7 +16,7 @@ class SQLiteLiveEpgStoreTest {
     private fun program(account: String, channel: String, start: Long = now) =
         LiveEpgProgram(account, channel, "A program", null, start, start + 3_600_000)
 
-    @Test fun snapshotsPersistAndCredentialGenerationReplacementPurgesOldData() {
+    @Test fun accountSwitchRetainsInactiveDataAndCredentialReplacementPurgesOnlyItsData() {
         val a = "epg-${UUID.randomUUID()}"
         val b = "epg-${UUID.randomUUID()}"
         val store = store()
@@ -25,10 +25,11 @@ class SQLiteLiveEpgStoreTest {
             store.replace(a, "one", 1, LiveEpgSnapshot(1, now, listOf(program(a, "one"))), now)
             assertEquals(1, store().load(a, "one", now)!!.programs.size)
             store.retainOwner(b, 1)
-            assertNull(store.load(a, "one", now))
+            assertEquals(1, store.load(a, "one", now)!!.programs.size)
             store.replace(b, "one", 1, LiveEpgSnapshot(1, now, listOf(program(b, "one"))), now)
             store.retainOwner(b, 2)
             assertNull(store().load(b, "one", now))
+            assertEquals(1, store.load(a, "one", now)!!.programs.size)
         } finally {
             store.clearAccount(a)
             store.clearAccount(b)
