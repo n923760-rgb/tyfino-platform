@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
@@ -245,7 +246,10 @@ private fun SeasonChoice(season: SeriesSeason, selected: Boolean, onClick: () ->
             .widthIn(min = 108.dp)
             .heightIn(min = 56.dp)
             .onFocusChanged { focused = it.isFocused }
-            .semantics { contentDescription = label },
+            .semantics {
+                contentDescription = label
+                this.selected = selected
+            },
         border = BorderStroke(
             if (focused) 3.dp else 1.dp,
             if (focused) MaterialTheme.colorScheme.onSurface
