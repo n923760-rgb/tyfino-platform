@@ -10,6 +10,19 @@ import org.junit.Test
 
 class SeriesDetailsRepositoryTest {
     @Test
+    fun openingAnotherAccountRetainsInactiveAccountSnapshots() = runBlocking {
+        val accountStore = FakeAccountStore(account("account-a", 1))
+        val inactive = snapshot("account-b", "series", 1, 9_000, "Inactive")
+        val store = FakeSeriesStore().apply {
+            snapshots["account-b" to "series"] = inactive
+        }
+
+        repository(accountStore, FixedSeriesApi("Network"), store, wall = 10_000).open("series")
+
+        assertEquals(inactive, store.snapshots["account-b" to "series"])
+    }
+
+    @Test
     fun freshCachePublishesWithoutNetworkWork() = runBlocking {
         val accountStore = FakeAccountStore(account("account-a", 4))
         val store = FakeSeriesStore().apply {
