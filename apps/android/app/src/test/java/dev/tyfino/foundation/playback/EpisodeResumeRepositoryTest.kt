@@ -54,7 +54,7 @@ class EpisodeResumeRepositoryTest {
         assertEquals(1, (fixture.resume.continueWatching() as EpisodeResumeListResult.Ready).items.size)
         fixture.accounts.value = fixture.account("b", 1)
         assertTrue((fixture.resume.continueWatching() as EpisodeResumeListResult.Ready).items.isEmpty())
-        assertTrue(fixture.store.records.isEmpty())
+        assertEquals(2, fixture.store.records.values.count { it.accountId == "a" })
     }
 
     @Test fun futureTimestampIsRejectedAndAccountClearIsScoped() = runBlocking {
