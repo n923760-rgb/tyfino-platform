@@ -4,8 +4,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
@@ -34,5 +35,28 @@ class CatalogTileAccessibilityTest {
         compose.onNodeWithTag("catalog-tile")
             .assertContentDescriptionEquals("Featured, 42% watched")
             .assertIsSelected()
+    }
+
+    @Test
+    fun exposesCatalogFilterSelectionState() {
+        compose.setContent {
+            MaterialTheme {
+                CatalogFilterButton(
+                    label = "Favorites only",
+                    selected = true,
+                    onClick = {},
+                    modifier = Modifier.testTag("selected-filter"),
+                )
+                CatalogFilterButton(
+                    label = "Recently watched",
+                    selected = false,
+                    onClick = {},
+                    modifier = Modifier.testTag("unselected-filter"),
+                )
+            }
+        }
+
+        compose.onNodeWithTag("selected-filter").assertIsSelected()
+        compose.onNodeWithTag("unselected-filter").assertIsNotSelected()
     }
 }
