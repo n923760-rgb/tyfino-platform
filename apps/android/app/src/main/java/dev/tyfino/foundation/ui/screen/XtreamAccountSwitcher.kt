@@ -61,12 +61,14 @@ internal fun XtreamAccountSwitcher(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (snapshot == null && !storageError) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .testTag("xtream-accounts-loading"),
-                    )
+                if (snapshot == null) {
+                    if (!storageError) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .testTag("xtream-accounts-loading"),
+                        )
+                    }
                 } else {
                     snapshot.accounts.forEach { account ->
                         val active = account.accountId == snapshot.activeAccountId
