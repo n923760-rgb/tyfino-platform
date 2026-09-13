@@ -38,7 +38,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
@@ -439,7 +441,7 @@ private fun CategoryStrip(
 ) {
     when (state) {
         CatalogState.Empty, CatalogState.Loading -> LoadingState()
-        is CatalogState.Error -> ErrorState(state.failure, onRetry)
+        is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
         is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_categories)
         is CatalogState.Content -> {
             if (state.isRefreshing) RefreshingNotice()
@@ -491,7 +493,7 @@ private fun ItemContent(
                 if (hasSelection) R.string.catalog_loading else R.string.catalog_choose_category,
             )
             CatalogState.Loading -> LoadingState()
-            is CatalogState.Error -> ErrorState(state.failure, onRetry)
+            is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
             is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_items)
             is CatalogState.Content -> {
                 ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite)
@@ -649,11 +651,14 @@ private fun EmptyState(@StringRes message: Int) {
 }
 
 @Composable
-private fun ErrorState(failure: CatalogFailure, onRetry: () -> Unit) {
+internal fun CatalogErrorState(failure: CatalogFailure, onRetry: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = stringResource(failure.messageResource()),
             color = MaterialTheme.colorScheme.error,
+            modifier = Modifier
+                .semantics { liveRegion = LiveRegionMode.Assertive }
+                .testTag("catalog-error"),
         )
         FocusVisibleButton(label = stringResource(R.string.retry), onClick = onRetry)
     }
