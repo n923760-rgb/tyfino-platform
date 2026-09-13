@@ -122,4 +122,20 @@ class CatalogTileAccessibilityTest {
             ),
         )
     }
+
+    @Test
+    fun exposesStaleCatalogWarningAsAssertiveLiveRegion() {
+        compose.setContent {
+            MaterialTheme {
+                CatalogStaleNotice(CatalogFailure.Timeout)
+            }
+        }
+
+        compose.onNodeWithTag("catalog-stale").assert(
+            SemanticsMatcher.expectValue(
+                SemanticsProperties.LiveRegion,
+                LiveRegionMode.Assertive,
+            ),
+        )
+    }
 }

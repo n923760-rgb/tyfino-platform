@@ -448,7 +448,7 @@ private fun CategoryStrip(
             Categories(state.records, selectedCategoryId, onSelect)
         }
         is CatalogState.StaleContent -> {
-            StaleNotice(state.failure)
+            CatalogStaleNotice(state.failure)
             Categories(state.records, selectedCategoryId, onSelect)
         }
     }
@@ -501,7 +501,7 @@ private fun ItemContent(
             }
             is CatalogState.StaleContent -> {
                 ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite)
-                StaleNotice(state.failure, Modifier.align(Alignment.TopCenter))
+                CatalogStaleNotice(state.failure, Modifier.align(Alignment.TopCenter))
             }
         }
     }
@@ -678,12 +678,14 @@ private fun RefreshingNotice(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun StaleNotice(failure: CatalogFailure, modifier: Modifier = Modifier) {
+internal fun CatalogStaleNotice(failure: CatalogFailure, modifier: Modifier = Modifier) {
     Text(
         text = stringResource(R.string.catalog_stale, stringResource(failure.messageResource())),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,
-        modifier = modifier,
+        modifier = modifier
+            .semantics { liveRegion = LiveRegionMode.Assertive }
+            .testTag("catalog-stale"),
     )
 }
 
