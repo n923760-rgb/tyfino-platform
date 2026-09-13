@@ -25,7 +25,10 @@ import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 
 @Composable
-internal fun SettingsScreen(onRemoveXtreamAccount: () -> Unit) {
+internal fun SettingsScreen(
+    onOpenAccountSwitcher: () -> Unit,
+    onRemoveXtreamAccount: () -> Unit,
+) {
     var confirmRemoval by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
@@ -48,6 +51,13 @@ internal fun SettingsScreen(onRemoveXtreamAccount: () -> Unit) {
             text = stringResource(R.string.xtream_logout_description),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FocusVisibleButton(
+            label = stringResource(R.string.xtream_switch_account),
+            onClick = onOpenAccountSwitcher,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("open-account-switcher"),
         )
         FocusVisibleButton(
             label = stringResource(R.string.xtream_logout),
