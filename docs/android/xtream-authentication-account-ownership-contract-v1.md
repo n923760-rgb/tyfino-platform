@@ -79,7 +79,12 @@ Account-scoped data includes, when implemented:
 - pending catalog, EPG, detail, and playback-related work;
 - last and previous live channel state.
 
-Android V1 exposes exactly one saved active IPTV account. Multiple-account UI is **DEFERRED**. The stable Account ID and isolation model remain mandatory so later expansion cannot mix account-scoped data.
+This original Android V1 boundary exposed exactly one saved active IPTV account.
+The subsequently approved
+`multiple-xtream-accounts-contract-v1.md` supersedes that portfolio limit and now
+allows up to eight saved accounts with exactly one or zero active selections. Its
+stable Account ID, isolation, explicit switching, and no-automatic-fallback rules
+are mandatory; all ownership requirements in this contract continue to apply.
 
 ## 5. Authentication input
 
