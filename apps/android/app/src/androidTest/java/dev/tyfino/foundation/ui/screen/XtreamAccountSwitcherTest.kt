@@ -52,6 +52,27 @@ class XtreamAccountSwitcherTest {
         }
     }
 
+    @Test
+    fun mandatoryChooserCannotBeClosedWithoutSelectingOrAddingAnAccount() {
+        val account = account("saved", "one")
+        compose.setContent {
+            MaterialTheme {
+                XtreamAccountSwitcher(
+                    snapshot = XtreamAccountsSnapshot(null, listOf(account)),
+                    switchingAccountId = null,
+                    storageError = false,
+                    onSelectAccount = {},
+                    onAddAccount = {},
+                    onManageAccounts = {},
+                    onDismiss = {},
+                    dismissible = false,
+                )
+            }
+        }
+
+        compose.onNodeWithTag("xtream-close-switcher").assertDoesNotExist()
+    }
+
     private fun account(id: String, number: String) = XtreamAccountSummary(
         accountId = id,
         providerOrigin = "https://provider-$number.example",
