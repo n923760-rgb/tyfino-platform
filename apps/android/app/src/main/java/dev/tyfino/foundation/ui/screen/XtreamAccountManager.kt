@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -46,7 +47,7 @@ internal fun XtreamAccountManager(
     val backFocus = remember { FocusRequester() }
     val confirmationFocus = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) { backFocus.requestFocus() }
+    LaunchedEffect(Unit) { backFocus.requestAfterManagerDialogFrames() }
 
     Dialog(onDismissRequest = { if (!busy) onBack() }) {
         Surface(
@@ -113,7 +114,7 @@ internal fun XtreamAccountManager(
         }
     }
     confirmation?.let { account ->
-        LaunchedEffect(account.accountId) { confirmationFocus.requestFocus() }
+        LaunchedEffect(account.accountId) { confirmationFocus.requestAfterManagerDialogFrames() }
         Dialog(onDismissRequest = { if (!busy) confirmation = null }) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -147,5 +148,12 @@ internal fun XtreamAccountManager(
                 }
             }
         }
+    }
+}
+
+private suspend fun FocusRequester.requestAfterManagerDialogFrames() {
+    repeat(2) {
+        withFrameNanos { }
+        requestFocus()
     }
 }
