@@ -69,6 +69,10 @@
     <string name="xtream_switch_error_local_storage">The account could not be switched securely. Your previous account remains active.</string>
     <string name="xtream_add_account">Add account</string>
     <string name="xtream_manage_accounts">Manage accounts</string>
+    <string name="xtream_manage_accounts_description">Review every saved account and remove only the account you choose.</string>
+    <string name="xtream_remove_named_account">Remove %1$s</string>
+    <string name="xtream_removing_account">Removing account and its local data…</string>
+    <string name="xtream_remove_error_local_storage">The account could not be removed securely. No other account was changed.</string>
     <string name="catalog_live_title">Live TV</string>
     <string name="catalog_movies_title">Movies</string>
     <string name="catalog_series_title">Series</string>
@@ -152,6 +156,7 @@
     <string name="epg_untitled">Untitled program</string>
     <string name="xtream_confirm_remove_title">Remove IPTV account?</string>
     <string name="xtream_confirm_remove_message">This removes your saved login and all local IPTV data from this device. You will need to sign in again. This cannot be undone.</string>
+    <string name="xtream_confirm_remove_named_message">Remove %1$s at %2$s and all of this account’s local guide, catalog, favorites, history, and playback progress? Other accounts will not be changed. This cannot be undone.</string>
     <string name="xtream_confirm_remove">Remove account</string>
     <string name="xtream_keep_account">Keep account</string>
 </resources>

@@ -15,23 +15,23 @@ class SettingsScreenTest {
     @get:Rule val compose = createComposeRule()
 
     @Test
-    fun cancelPreservesAccountAndOnlyExplicitConfirmationRemovesIt() {
-        var removals = 0
+    fun accountActionsOpenTheirDedicatedSurfaces() {
+        var switcherRequests = 0
+        var managementRequests = 0
         compose.setContent {
             MaterialTheme {
                 SettingsScreen(
-                    onOpenAccountSwitcher = {},
-                    onRemoveXtreamAccount = { removals++ },
+                    onOpenAccountSwitcher = { switcherRequests++ },
+                    onManageAccounts = { managementRequests++ },
                 )
             }
         }
 
-        compose.onNodeWithTag("xtream-logout").performClick()
-        compose.onNodeWithTag("xtream-keep-account").performClick()
-        compose.runOnIdle { assertEquals(0, removals) }
-
-        compose.onNodeWithTag("xtream-logout").performClick()
-        compose.onNodeWithTag("xtream-confirm-remove").performClick()
-        compose.runOnIdle { assertEquals(1, removals) }
+        compose.onNodeWithTag("open-account-switcher").performClick()
+        compose.onNodeWithTag("open-account-manager").performClick()
+        compose.runOnIdle {
+            assertEquals(1, switcherRequests)
+            assertEquals(1, managementRequests)
+        }
     }
 }

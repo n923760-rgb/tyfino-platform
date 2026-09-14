@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the licensing, Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. The approved multiple-account portfolio is specified in [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md) and remains implementation work. Provider-wide search, Series episode history, final branding, and release configuration remain separate work.
+This directory contains the native Android client foundation and the licensing, multiple-account Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. The account portfolio follows [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md). Provider-wide search, Series episode history, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -27,9 +27,10 @@ Without that property, the UI remains usable but licensing network actions fail 
 - HTTPS preferred. A user-entered HTTP provider requires an explicit interception-risk confirmation, with no automatic downgrade, redirect, or certificate bypass.
 - Strict host canonicalization, 8-second connect timeout, 12-second read timeout, 256 KiB response limit, and no automatic authentication retry.
 - Distinct invalid-host, offline, timeout, provider-unavailable, invalid-credential, expired, disabled, malformed, and unsupported result states.
-- One saved active IPTV account. Credentials and HTTP consent are encrypted in a separate AES-GCM payload protected by Android Keystore and excluded from backup.
+- Up to eight saved IPTV accounts with one explicitly selected active account. Credentials, active selection, and HTTP consent are encrypted in a versioned AES-GCM portfolio protected by Android Keystore and excluded from backup.
 - Account ID, generation, and operation identity are checked at commit time so a stale completion cannot overwrite a newer login, logout, removal, or destination owner.
-- Account removal invalidates ownership before deleting the encrypted credential payload.
+- Switching is local and explicit. Removing the active account leaves remaining accounts unselected until the user chooses one.
+- Account removal targets one stable Account ID, invalidates ownership first, and clears only that account's implemented local data partitions.
 
 Authentication fetches no catalog, EPG, playback URLs, or streams. Those features operate only after sign-in and explicit destination actions.
 

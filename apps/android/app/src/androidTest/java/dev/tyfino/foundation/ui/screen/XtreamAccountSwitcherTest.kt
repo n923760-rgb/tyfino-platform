@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -50,6 +51,27 @@ class XtreamAccountSwitcherTest {
             assertEquals(1, additions)
             assertEquals(1, managementRequests)
         }
+    }
+
+    @Test
+    fun mandatoryChooserCannotBeClosedWithoutSelectingOrAddingAnAccount() {
+        val account = account("saved", "one")
+        compose.setContent {
+            MaterialTheme {
+                XtreamAccountSwitcher(
+                    snapshot = XtreamAccountsSnapshot(null, listOf(account)),
+                    switchingAccountId = null,
+                    storageError = false,
+                    onSelectAccount = {},
+                    onAddAccount = {},
+                    onManageAccounts = {},
+                    onDismiss = {},
+                    dismissible = false,
+                )
+            }
+        }
+
+        compose.onNodeWithTag("xtream-close-switcher").assertDoesNotExist()
     }
 
     private fun account(id: String, number: String) = XtreamAccountSummary(

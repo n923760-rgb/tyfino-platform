@@ -35,9 +35,10 @@ internal fun XtreamAccountSwitcher(
     onAddAccount: () -> Unit,
     onManageAccounts: () -> Unit,
     onDismiss: () -> Unit,
+    dismissible: Boolean = true,
 ) {
     val busy = switchingAccountId != null
-    Dialog(onDismissRequest = { if (!busy) onDismiss() }) {
+    Dialog(onDismissRequest = { if (!busy && dismissible) onDismiss() }) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -117,12 +118,14 @@ internal fun XtreamAccountSwitcher(
                     enabled = !busy && snapshot != null,
                     modifier = Modifier.fillMaxWidth().testTag("xtream-manage-accounts"),
                 )
-                FocusVisibleButton(
-                    label = stringResource(R.string.playback_close),
-                    onClick = onDismiss,
-                    enabled = !busy,
-                    modifier = Modifier.fillMaxWidth().testTag("xtream-close-switcher"),
-                )
+                if (dismissible) {
+                    FocusVisibleButton(
+                        label = stringResource(R.string.playback_close),
+                        onClick = onDismiss,
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth().testTag("xtream-close-switcher"),
+                    )
+                }
             }
         }
     }
