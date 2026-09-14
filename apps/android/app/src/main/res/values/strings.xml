@@ -58,7 +58,6 @@
     <string name="xtream_error_unsupported">This provider response is not supported safely.</string>
     <string name="xtream_error_account_limit">You can save up to 8 IPTV accounts. Remove one before adding another.</string>
     <string name="xtream_error_local_storage">The account could not be saved securely. Your current account was not changed.</string>
-    <string name="xtream_logout">Remove IPTV account</string>
     <string name="xtream_logout_description">Removing the account also deletes its saved guide, catalog, favorites, history, and playback progress.</string>
     <string name="xtream_switch_account">Switch IPTV account</string>
     <string name="xtream_accounts_title">IPTV accounts</string>
@@ -155,7 +154,6 @@
     <string name="epg_schedule">Schedule</string>
     <string name="epg_untitled">Untitled program</string>
     <string name="xtream_confirm_remove_title">Remove IPTV account?</string>
-    <string name="xtream_confirm_remove_message">This removes your saved login and all local IPTV data from this device. You will need to sign in again. This cannot be undone.</string>
     <string name="xtream_confirm_remove_named_message">Remove %1$s at %2$s and all of this account’s local guide, catalog, favorites, history, and playback progress? Other accounts will not be changed. This cannot be undone.</string>
     <string name="xtream_confirm_remove">Remove account</string>
     <string name="xtream_keep_account">Keep account</string>

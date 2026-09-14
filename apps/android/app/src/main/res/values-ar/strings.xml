@@ -58,7 +58,6 @@
     <string name="xtream_error_unsupported">استجابة هذا المزود غير مدعومة بشكل آمن.</string>
     <string name="xtream_error_account_limit">يمكنك حفظ 8 حسابات IPTV كحد أقصى. احذف حسابًا قبل إضافة حساب آخر.</string>
     <string name="xtream_error_local_storage">تعذر حفظ الحساب بأمان. لم يتغير حسابك الحالي.</string>
-    <string name="xtream_logout">إزالة حساب IPTV</string>
     <string name="xtream_logout_description">ستؤدي إزالة الحساب أيضًا إلى حذف دليل البرامج والمحتوى والمفضلة والسجل وتقدم المشاهدة المحفوظة.</string>
     <string name="xtream_switch_account">تبديل حساب IPTV</string>
     <string name="xtream_accounts_title">حسابات IPTV</string>
@@ -155,7 +154,6 @@
     <string name="epg_schedule">جدول البرامج</string>
     <string name="epg_untitled">برنامج بلا عنوان</string>
     <string name="xtream_confirm_remove_title">إزالة حساب IPTV؟</string>
-    <string name="xtream_confirm_remove_message">سيُحذف تسجيل الدخول وجميع بيانات IPTV المحلية من هذا الجهاز. ستحتاج إلى تسجيل الدخول مجددًا، ولا يمكن التراجع عن الإزالة.</string>
     <string name="xtream_confirm_remove_named_message">هل تريد إزالة %1$s لدى %2$s مع دليل البرامج والمحتوى والمفضلة والسجل وتقدم المشاهدة المحلية الخاصة بهذا الحساب؟ لن تتغير الحسابات الأخرى، ولا يمكن التراجع عن الإزالة.</string>
     <string name="xtream_confirm_remove">إزالة الحساب</string>
     <string name="xtream_keep_account">الاحتفاظ بالحساب</string>
