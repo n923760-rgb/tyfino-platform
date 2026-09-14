@@ -1,6 +1,13 @@
 # TYFINO Multiple Xtream Accounts Contract v1
 
-Status: **DECIDED — approved by the owner on 2026-09-13; implementation pending**
+Status: **IMPLEMENTED — automated baseline PASS on 2026-09-14; physical-device qualification BLOCKED**
+
+The encrypted portfolio, migration, add, switch, exact removal, account-scoped
+cleanup, chooser restoration, localized UI, accessibility semantics, and managed
+phone/tablet coverage are implemented. Physical Android TV/Google TV, TalkBack,
+RTL, lifecycle, low-memory, provider, and media evidence remains `BLOCKED` under
+`device-qualification-v1.md`; automated emulator success is not release
+qualification.
 
 This contract defines the complete-release account portfolio that follows the
 single-account Android foundation. It overrides the one-account replacement and
@@ -153,4 +160,3 @@ accounts. Automated emulator success does not replace physical-device evidence.
 - Automatic fallback to another account after removal or provider failure.
 - Background refresh of inactive accounts.
 - M3U and Stalker/MAC Portal accounts.
-

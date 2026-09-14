@@ -1,6 +1,12 @@
 # Android Live EPG Contract v1
 
-Status: **DECIDED — approved by the owner on 2026-09-12; implementation and device qualification remain pending**
+Status: **IMPLEMENTED — automated baseline PASS; physical-device and provider-fixture qualification BLOCKED**
+
+The bounded protocol/parser, account-owned atomic cache, current/next and lazy
+schedule UI, localized states, refresh/fallback behavior, exact account cleanup,
+and managed phone/tablet coverage are implemented. Physical TV/D-pad, TalkBack,
+RTL, real-provider timestamp variants, lifecycle, media, and performance evidence
+remains `BLOCKED` under `device-qualification-v1.md`.
 Scope: On-demand guide for the selected Live channel in the native Android client
 Owner: Active Xtream account ID, credential generation, selected channel ID, and EPG request generation
 
