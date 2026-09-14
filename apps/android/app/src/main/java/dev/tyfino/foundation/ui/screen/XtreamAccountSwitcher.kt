@@ -12,8 +12,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -38,7 +43,15 @@ internal fun XtreamAccountSwitcher(
     dismissible: Boolean = true,
 ) {
     val busy = switchingAccountId != null
+    val initialFocus = remember { FocusRequester() }
+    val firstSelectableAccountId = snapshot?.accounts
+        ?.firstOrNull { it.accountId != snapshot.activeAccountId }
+        ?.accountId
+
     Dialog(onDismissRequest = { if (!busy && dismissible) onDismiss() }) {
+        LaunchedEffect(snapshot, busy) {
+            if (snapshot != null && !busy) initialFocus.requestAfterDialogFrames()
+        }
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -84,6 +97,13 @@ internal fun XtreamAccountSwitcher(
                             enabled = !busy && !active,
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .then(
+                                    if (account.accountId == firstSelectableAccountId) {
+                                        Modifier.focusRequester(initialFocus)
+                                    } else {
+                                        Modifier
+                                    },
+                                )
                                 .semantics { selected = active }
                                 .testTag("xtream-account-${account.accountId}"),
                         )
@@ -110,7 +130,13 @@ internal fun XtreamAccountSwitcher(
                     label = stringResource(R.string.xtream_add_account),
                     onClick = onAddAccount,
                     enabled = !busy && snapshot != null,
-                    modifier = Modifier.fillMaxWidth().testTag("xtream-add-account"),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (firstSelectableAccountId == null) Modifier.focusRequester(initialFocus)
+                            else Modifier,
+                        )
+                        .testTag("xtream-add-account"),
                 )
                 FocusVisibleButton(
                     label = stringResource(R.string.xtream_manage_accounts),
@@ -128,5 +154,12 @@ internal fun XtreamAccountSwitcher(
                 }
             }
         }
+    }
+}
+
+private suspend fun FocusRequester.requestAfterDialogFrames() {
+    repeat(2) {
+        withFrameNanos { }
+        requestFocus()
     }
 }

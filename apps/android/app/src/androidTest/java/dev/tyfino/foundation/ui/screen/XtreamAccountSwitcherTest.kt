@@ -3,13 +3,17 @@ package dev.tyfino.foundation.ui.screen
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.xtream.XtreamAccountSummary
 import dev.tyfino.foundation.xtream.XtreamAccountsSnapshot
 import org.junit.Assert.assertEquals
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,6 +21,16 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class XtreamAccountSwitcherTest {
     @get:Rule val compose = createComposeRule()
+
+    @Before
+    fun useDpadInputMode() {
+        InstrumentationRegistry.getInstrumentation().setInTouchMode(false)
+    }
+
+    @After
+    fun restoreTouchInputMode() {
+        InstrumentationRegistry.getInstrumentation().setInTouchMode(true)
+    }
 
     @Test
     fun activeSelectionAndAllActionsAreAccessible() {
@@ -40,8 +54,12 @@ class XtreamAccountSwitcherTest {
             }
         }
 
+        compose.waitForIdle()
         compose.onNodeWithTag("xtream-account-active").assertIsSelected()
-        compose.onNodeWithTag("xtream-account-inactive").assertIsNotSelected().performClick()
+        compose.onNodeWithTag("xtream-account-inactive")
+            .assertIsNotSelected()
+            .assertIsFocused()
+            .performClick()
         compose.onNodeWithTag("xtream-add-account").performClick()
         compose.onNodeWithTag("xtream-manage-accounts").performClick()
 
@@ -70,6 +88,8 @@ class XtreamAccountSwitcherTest {
             }
         }
 
+        compose.waitForIdle()
+        compose.onNodeWithTag("xtream-account-saved").assertIsFocused()
         compose.onNodeWithTag("xtream-close-switcher").assertDoesNotExist()
     }
 
