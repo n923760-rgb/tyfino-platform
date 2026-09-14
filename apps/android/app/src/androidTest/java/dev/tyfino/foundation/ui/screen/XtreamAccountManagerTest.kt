@@ -2,7 +2,7 @@ package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -36,8 +36,10 @@ class XtreamAccountManagerTest {
             }
         }
 
+        compose.waitForIdle()
         compose.onNodeWithTag("xtream-manage-back").assertIsFocused()
         compose.onNodeWithTag("xtream-remove-inactive").performClick()
+        compose.waitForIdle()
         compose.onNodeWithTag("xtream-keep-account").assertIsFocused()
         compose.onNodeWithTag("xtream-keep-account").performClick()
         compose.runOnIdle { assertNull(removedAccountId) }
