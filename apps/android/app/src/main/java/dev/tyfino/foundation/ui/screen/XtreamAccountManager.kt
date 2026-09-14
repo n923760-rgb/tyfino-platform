@@ -47,9 +47,8 @@ internal fun XtreamAccountManager(
     val backFocus = remember { FocusRequester() }
     val confirmationFocus = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) { backFocus.requestAfterManagerDialogFrames() }
-
     Dialog(onDismissRequest = { if (!busy) onBack() }) {
+        LaunchedEffect(Unit) { backFocus.requestAfterManagerDialogFrames() }
         Surface(
             modifier = Modifier.fillMaxWidth().heightIn(max = 720.dp).testTag("xtream-account-manager"),
             shape = MaterialTheme.shapes.large,
@@ -114,8 +113,8 @@ internal fun XtreamAccountManager(
         }
     }
     confirmation?.let { account ->
-        LaunchedEffect(account.accountId) { confirmationFocus.requestAfterManagerDialogFrames() }
         Dialog(onDismissRequest = { if (!busy) confirmation = null }) {
+            LaunchedEffect(account.accountId) { confirmationFocus.requestAfterManagerDialogFrames() }
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.large,

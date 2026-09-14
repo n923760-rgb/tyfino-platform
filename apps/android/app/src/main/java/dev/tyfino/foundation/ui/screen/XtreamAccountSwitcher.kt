@@ -48,11 +48,10 @@ internal fun XtreamAccountSwitcher(
         ?.firstOrNull { it.accountId != snapshot.activeAccountId }
         ?.accountId
 
-    LaunchedEffect(snapshot, busy) {
-        if (snapshot != null && !busy) initialFocus.requestAfterDialogFrames()
-    }
-
     Dialog(onDismissRequest = { if (!busy && dismissible) onDismiss() }) {
+        LaunchedEffect(snapshot, busy) {
+            if (snapshot != null && !busy) initialFocus.requestAfterDialogFrames()
+        }
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
