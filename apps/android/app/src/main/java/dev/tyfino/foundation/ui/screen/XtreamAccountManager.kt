@@ -12,12 +12,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -40,6 +43,11 @@ internal fun XtreamAccountManager(
 ) {
     var confirmation by remember { mutableStateOf<XtreamAccountSummary?>(null) }
     val busy = removingAccountId != null
+    val backFocus = remember { FocusRequester() }
+    val confirmationFocus = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) { backFocus.requestFocus() }
+
     Dialog(onDismissRequest = { if (!busy) onBack() }) {
         Surface(
             modifier = Modifier.fillMaxWidth().heightIn(max = 720.dp).testTag("xtream-account-manager"),
@@ -96,12 +104,16 @@ internal fun XtreamAccountManager(
                     label = stringResource(R.string.back),
                     onClick = onBack,
                     enabled = !busy,
-                    modifier = Modifier.fillMaxWidth().testTag("xtream-manage-back"),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(backFocus)
+                        .testTag("xtream-manage-back"),
                 )
             }
         }
     }
     confirmation?.let { account ->
+        LaunchedEffect(account.accountId) { confirmationFocus.requestFocus() }
         Dialog(onDismissRequest = { if (!busy) confirmation = null }) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -118,7 +130,10 @@ internal fun XtreamAccountManager(
                         label = stringResource(R.string.xtream_keep_account),
                         onClick = { confirmation = null },
                         enabled = !busy,
-                        modifier = Modifier.fillMaxWidth().testTag("xtream-keep-account"),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(confirmationFocus)
+                            .testTag("xtream-keep-account"),
                     )
                     FocusVisibleButton(
                         label = stringResource(R.string.xtream_confirm_remove),

@@ -3,6 +3,7 @@ package dev.tyfino.foundation.ui.screen
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -41,7 +42,10 @@ class XtreamAccountSwitcherTest {
         }
 
         compose.onNodeWithTag("xtream-account-active").assertIsSelected()
-        compose.onNodeWithTag("xtream-account-inactive").assertIsNotSelected().performClick()
+        compose.onNodeWithTag("xtream-account-inactive")
+            .assertIsNotSelected()
+            .assertIsFocused()
+            .performClick()
         compose.onNodeWithTag("xtream-add-account").performClick()
         compose.onNodeWithTag("xtream-manage-accounts").performClick()
 
@@ -70,6 +74,7 @@ class XtreamAccountSwitcherTest {
             }
         }
 
+        compose.onNodeWithTag("xtream-account-saved").assertIsFocused()
         compose.onNodeWithTag("xtream-close-switcher").assertDoesNotExist()
     }
 
