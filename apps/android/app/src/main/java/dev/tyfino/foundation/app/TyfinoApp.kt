@@ -1,5 +1,6 @@
 package dev.tyfino.foundation.app
 
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -876,7 +877,7 @@ private fun AppBottomBar(
     selectedRoute: String?,
     onDestinationSelected: (AppDestination) -> Unit,
 ) {
-    NavigationBar {
+    NavigationBar(modifier = Modifier.focusGroup()) {
         AppDestination.entries.forEach { destination ->
             val label = stringResource(destination.labelRes)
             NavigationBarItem(
@@ -895,7 +896,10 @@ private fun AppNavigationRail(
     selectedRoute: String?,
     onDestinationSelected: (AppDestination) -> Unit,
 ) {
-    NavigationRail(windowInsets = WindowInsets.safeDrawing) {
+    NavigationRail(
+        modifier = Modifier.focusGroup(),
+        windowInsets = WindowInsets.safeDrawing,
+    ) {
         AppDestination.entries.forEach { destination ->
             val label = stringResource(destination.labelRes)
             NavigationRailItem(

@@ -3,6 +3,7 @@ package dev.tyfino.foundation.ui.screen
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -41,6 +43,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.SeriesDetailsRepository
 import dev.tyfino.foundation.xtream.SeriesDestination
@@ -133,6 +136,7 @@ internal fun SeriesDetailsContent(
     val visibleEpisodes = remember(details, selectedSeason) {
         details?.let { SeriesPresentation.episodesForSeason(it, selectedSeason) }.orEmpty()
     }
+    val initialFocus = rememberInitialFocusRequester(selection.item.providerId)
 
     LazyColumn(
         modifier = Modifier
@@ -142,8 +146,15 @@ internal fun SeriesDetailsContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item(key = "actions") {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FocusVisibleButton(label = stringResource(R.string.back), onClick = onBack)
+            Row(
+                modifier = Modifier.focusGroup(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                FocusVisibleButton(
+                    label = stringResource(R.string.back),
+                    onClick = onBack,
+                    modifier = Modifier.focusRequester(initialFocus).testTag("series-back"),
+                )
                 if (details != null || state is SeriesState.Error) {
                     FocusVisibleButton(label = stringResource(R.string.series_refresh), onClick = onRefresh)
                 }
@@ -211,7 +222,7 @@ internal fun SeriesDetailsContent(
                     }
                     item(key = "season-selector") {
                         LazyRow(
-                            modifier = Modifier.fillMaxWidth().testTag("series-seasons"),
+                            modifier = Modifier.fillMaxWidth().focusGroup().testTag("series-seasons"),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             items(details.seasons, key = SeriesSeason::seasonNumber) { season ->

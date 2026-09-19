@@ -3,6 +3,7 @@ package dev.tyfino.foundation.ui.screen
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
@@ -34,8 +35,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -62,6 +64,7 @@ import dev.tyfino.foundation.playback.MovieResumeListResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
 import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.xtream.CatalogCategory
 import dev.tyfino.foundation.xtream.CatalogFailure
 import dev.tyfino.foundation.xtream.CatalogFavoritesRepository
@@ -113,6 +116,7 @@ internal fun CatalogScreen(
     val favoriteItems = (favoritesState as? FavoritesListResult.Ready)?.items.orEmpty()
     val favoriteIds = favoriteItems.mapTo(hashSetOf()) { it.providerId }
     val scope = rememberCoroutineScope()
+    val initialFocus = rememberInitialFocusRequester(section)
     val toggleFavorite: (CatalogItem) -> Unit = { item ->
         val owner = (favoritesState as? FavoritesListResult.Ready)?.owner
         val selectedRepository = favoritesRepository
@@ -239,6 +243,9 @@ internal fun CatalogScreen(
                         repository.categories(section, forceRefresh = true) { categories = it }
                     }
                 },
+                modifier = Modifier
+                    .focusRequester(initialFocus)
+                    .testTag("catalog-initial-focus"),
             )
         }
 
@@ -419,7 +426,7 @@ private fun ContinueWatchingStrip(
             style = MaterialTheme.typography.titleLarge,
         )
         LazyRow(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().focusGroup(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(records, key = { it.catalogItem.providerId }) { record ->
@@ -450,7 +457,10 @@ private fun SeriesContinueWatchingStrip(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(stringResource(R.string.continue_watching_title), style = MaterialTheme.typography.titleLarge)
-        LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyRow(
+            modifier = Modifier.fillMaxWidth().focusGroup(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             items(records, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
                 CatalogTile(
                     label = listOfNotNull(item.seriesTitle, item.episode.title).filter { it.isNotBlank() }.joinToString(" • "),
@@ -478,7 +488,10 @@ internal fun SeriesHistoryStrip(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(stringResource(R.string.series_history_title), style = MaterialTheme.typography.titleLarge)
-        LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyRow(
+            modifier = Modifier.fillMaxWidth().focusGroup(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             items(records, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
                 val episodeLabel = item.episode.title?.takeIf(String::isNotBlank)
                     ?: item.episode.episodeNumber?.let { stringResource(R.string.series_episode_number, it) }
@@ -527,7 +540,7 @@ private fun Categories(
     onSelect: (CatalogCategory) -> Unit,
 ) {
     LazyRow(
-        modifier = Modifier.fillMaxWidth().testTag("catalog-categories"),
+        modifier = Modifier.fillMaxWidth().focusGroup().testTag("catalog-categories"),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(categories, key = { it.providerId }) { category ->
@@ -583,7 +596,7 @@ private fun ItemGrid(
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 168.dp),
-        modifier = Modifier.fillMaxSize().testTag("catalog-items"),
+        modifier = Modifier.fillMaxSize().focusGroup().testTag("catalog-items"),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

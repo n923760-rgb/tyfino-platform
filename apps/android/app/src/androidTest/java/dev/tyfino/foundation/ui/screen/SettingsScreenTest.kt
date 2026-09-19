@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -33,5 +34,16 @@ class SettingsScreenTest {
             assertEquals(1, switcherRequests)
             assertEquals(1, managementRequests)
         }
+    }
+
+    @Test
+    fun accountSwitcherReceivesInitialDpadFocus() {
+        compose.setContent {
+            MaterialTheme {
+                SettingsScreen(onOpenAccountSwitcher = {}, onManageAccounts = {})
+            }
+        }
+
+        compose.onNodeWithTag("open-account-switcher").assertIsFocused()
     }
 }

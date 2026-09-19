@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -55,6 +56,17 @@ class MovieDetailsScreenTest {
         compose.onNodeWithText("2024 • 7.5").assertExists()
         compose.onNodeWithText("Play movie").assertExists()
         compose.onNodeWithText("No usable internet connection is available.").assertExists()
+    }
+
+    @Test
+    fun backActionReceivesInitialDpadFocus() {
+        compose.setContent {
+            MaterialTheme {
+                MovieDetailsContent(selection(), MovieDetailsState.Loading, false, false, {}, {}, {})
+            }
+        }
+
+        compose.onNodeWithTag("movie-back").assertIsFocused()
     }
 
     private fun selection() = MovieSelection(

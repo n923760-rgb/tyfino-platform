@@ -8,6 +8,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -103,6 +104,17 @@ class SeriesDetailsScreenTest {
                 LiveRegionMode.Assertive,
             ),
         )
+    }
+
+    @Test
+    fun backActionReceivesInitialDpadFocus() {
+        compose.setContent {
+            MaterialTheme {
+                SeriesDetailsContent(selection(), SeriesState.Loading, false, null, {}, {}, {})
+            }
+        }
+
+        compose.onNodeWithTag("series-back").assertIsFocused()
     }
 
     private fun selection() = SeriesSelection(

@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -34,6 +36,7 @@ import dev.tyfino.foundation.playback.MovieResumeLoadResult
 import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.playback.PlaybackSelection
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.MovieDetails
@@ -117,6 +120,7 @@ internal fun MovieDetailsContent(
         is MovieDetailsState.StaleContent -> state.details
         else -> null
     }
+    val initialFocus = rememberInitialFocusRequester(selection.item.providerId)
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("movie-details"),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
@@ -124,8 +128,15 @@ internal fun MovieDetailsContent(
     ) {
         item("actions") {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    FocusVisibleButton(stringResource(R.string.back), onClick = onBack)
+                Row(
+                    modifier = Modifier.focusGroup(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    FocusVisibleButton(
+                        label = stringResource(R.string.back),
+                        onClick = onBack,
+                        modifier = Modifier.focusRequester(initialFocus).testTag("movie-back"),
+                    )
                     if (details != null || state is MovieDetailsState.Error) {
                         FocusVisibleButton(stringResource(R.string.movie_refresh), onClick = onRefresh)
                     }
@@ -133,6 +144,7 @@ internal fun MovieDetailsContent(
                 FocusVisibleButton(
                     stringResource(if (canResume) R.string.movie_resume else R.string.movie_play),
                     onClick = onPlay,
+                    modifier = Modifier.testTag("movie-play"),
                 )
             }
         }
