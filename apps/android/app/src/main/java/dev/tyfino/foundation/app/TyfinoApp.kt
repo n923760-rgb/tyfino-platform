@@ -46,8 +46,11 @@ import dev.tyfino.foundation.playback.EpisodePlaybackSelection
 import dev.tyfino.foundation.playback.CatalogHistoryRepository
 import dev.tyfino.foundation.playback.SQLiteCatalogHistoryStore
 import dev.tyfino.foundation.playback.EpisodeResumeRepository
+import dev.tyfino.foundation.playback.EpisodeHistoryRepository
+import dev.tyfino.foundation.playback.SeriesHistoryItem
 import dev.tyfino.foundation.playback.SeriesContinueWatchingItem
 import dev.tyfino.foundation.playback.SQLiteEpisodeResumeStore
+import dev.tyfino.foundation.playback.SQLiteEpisodeHistoryStore
 import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.playback.PreviousLiveChannelController
 import dev.tyfino.foundation.playback.PlaybackSelection
@@ -153,6 +156,9 @@ internal fun TyfinoApp() {
     val episodeResumeRepository = remember {
         EpisodeResumeRepository(xtreamStore, SQLiteEpisodeResumeStore(context), seriesStore, seriesDetailsRepository)
     }
+    val episodeHistoryRepository = remember {
+        EpisodeHistoryRepository(xtreamStore, SQLiteEpisodeHistoryStore(context), seriesStore, seriesDetailsRepository)
+    }
     val accountDataCleaner = remember {
         XtreamAccountDataCleaner(
             listOf(
@@ -160,6 +166,7 @@ internal fun TyfinoApp() {
                 XtreamAccountPartitionCleaner(historyRepository::clearAccount),
                 XtreamAccountPartitionCleaner(favoritesRepository::clearAccount),
                 XtreamAccountPartitionCleaner(episodeResumeRepository::clearAccount),
+                XtreamAccountPartitionCleaner(episodeHistoryRepository::clearAccount),
                 XtreamAccountPartitionCleaner(seriesDetailsRepository::clearAccount),
                 XtreamAccountPartitionCleaner(movieDetailsRepository::clearAccount),
                 XtreamAccountPartitionCleaner(movieResumeRepository::clearAccount),
@@ -194,6 +201,7 @@ internal fun TyfinoApp() {
             movieDetailsRepository = movieDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
+            episodeHistoryRepository = episodeHistoryRepository,
             previousLiveChannelController = previousLiveChannelController,
             accountStore = xtreamStore,
             accountDataCleaner = accountDataCleaner,
@@ -222,6 +230,7 @@ private fun XtreamGate(
     movieDetailsRepository: MovieDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
+    episodeHistoryRepository: EpisodeHistoryRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
     accountDataCleaner: XtreamAccountDataCleaner,
@@ -271,6 +280,7 @@ private fun XtreamGate(
                 movieDetailsRepository = movieDetailsRepository,
                 movieResumeRepository = movieResumeRepository,
                 episodeResumeRepository = episodeResumeRepository,
+                episodeHistoryRepository = episodeHistoryRepository,
                 previousLiveChannelController = previousLiveChannelController,
                 accountStore = accountStore,
                 accountRepository = repository,
@@ -411,6 +421,7 @@ private fun LicensedAppShell(
     movieDetailsRepository: MovieDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
+    episodeHistoryRepository: EpisodeHistoryRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
     accountRepository: XtreamRepository,
@@ -513,6 +524,21 @@ private fun LicensedAppShell(
             }
         }
     }
+    val playHistoryEpisode: (SeriesHistoryItem) -> Unit = { item ->
+        val account = accountStore.load()
+        if (account?.accountId == item.episode.accountId && account.generation == item.accountGeneration) {
+            EpisodePlaybackSelection.from(
+                account.accountId,
+                account.generation,
+                item.episode.providerSeriesId,
+                item.seriesGeneration,
+                item.episode,
+            )?.let { chosen ->
+                episodePlaybackSelection = chosen
+                navController.navigate(PLAYBACK_ROUTE) { launchSingleTop = true }
+            }
+        }
+    }
     val playPreviousLive: (PlaybackSelection) -> Unit = { source ->
         val request = previousLiveChannelController.beginPrevious(source)
         if (request != null) {
@@ -546,6 +572,7 @@ private fun LicensedAppShell(
             movieDetailsRepository = movieDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
+            episodeHistoryRepository = episodeHistoryRepository,
             previousLiveChannelController = previousLiveChannelController,
             accountStore = accountStore,
             seriesSelection = seriesSelection,
@@ -557,6 +584,7 @@ private fun LicensedAppShell(
             onOpenMovie = openMovie,
             onPlayEpisode = playEpisode,
             onResumeEpisode = resumeEpisode,
+            onPlayHistoryEpisode = playHistoryEpisode,
             onPreviousLive = playPreviousLive,
             onOpenSettings = { navigateTo(AppDestination.Settings) },
             onOpenAccountSwitcher = {
@@ -708,6 +736,7 @@ private fun AppNavHost(
     movieDetailsRepository: MovieDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
+    episodeHistoryRepository: EpisodeHistoryRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
     seriesSelection: SeriesSelection?,
@@ -719,6 +748,7 @@ private fun AppNavHost(
     onOpenMovie: (CatalogItem) -> Unit,
     onPlayEpisode: (SeriesEpisode, Long) -> Unit,
     onResumeEpisode: (SeriesContinueWatchingItem) -> Unit,
+    onPlayHistoryEpisode: (SeriesHistoryItem) -> Unit,
     onPreviousLive: (PlaybackSelection) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenAccountSwitcher: () -> Unit,
@@ -764,7 +794,9 @@ private fun AppNavHost(
                 favoritesRepository = favoritesRepository,
                 onPlay = onOpenSeries,
                 episodeResumeRepository = episodeResumeRepository,
+                episodeHistoryRepository = episodeHistoryRepository,
                 onResumeEpisode = onResumeEpisode,
+                onPlayHistoryEpisode = onPlayHistoryEpisode,
             )
         }
         composable(SERIES_DETAILS_ROUTE) {
@@ -814,6 +846,7 @@ private fun AppNavHost(
                         seriesRepository = seriesDetailsRepository,
                         resumeRepository = movieResumeRepository,
                         episodeResumeRepository = episodeResumeRepository,
+                        episodeHistoryRepository = episodeHistoryRepository,
                         previousLiveChannelController = previousLiveChannelController,
                         onBack = { navController.popBackStack() },
                     )

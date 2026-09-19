@@ -18,6 +18,6 @@ internal class XtreamAccountDataCleaner(
     }
 
     private companion object {
-        const val REQUIRED_PARTITIONS = 8
+        const val REQUIRED_PARTITIONS = 9
     }
 }
