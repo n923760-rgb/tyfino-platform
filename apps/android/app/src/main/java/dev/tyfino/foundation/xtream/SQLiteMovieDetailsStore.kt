@@ -55,6 +55,7 @@ internal class SQLiteMovieDetailsStore(context: Context) : MovieDetailsStore {
             },
             SQLiteDatabase.CONFLICT_REPLACE,
         ).also { check(it != -1L) }
+        Unit
     }
 
     override fun clearAccount(accountId: String) = synchronized(helper) {
