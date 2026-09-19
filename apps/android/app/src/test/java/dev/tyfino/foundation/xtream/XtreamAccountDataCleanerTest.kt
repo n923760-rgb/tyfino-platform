@@ -16,7 +16,7 @@ class XtreamAccountDataCleanerTest {
         }
 
         assertTrue(cleaner.clearAccount(ACCOUNT_ID))
-        assertEquals((0..6).map { it to ACCOUNT_ID }, calls)
+        assertEquals((0..7).map { it to ACCOUNT_ID }, calls)
     }
 
     @Test
@@ -34,7 +34,7 @@ class XtreamAccountDataCleanerTest {
         failing = false
 
         assertTrue(cleaner.clearAccount(ACCOUNT_ID))
-        assertEquals((0..6).toList(), calls)
+        assertEquals((0..7).toList(), calls)
     }
 
     @Test
@@ -48,7 +48,7 @@ class XtreamAccountDataCleanerTest {
     }
 
     private fun cleaner(clear: suspend (Int, String) -> Boolean) = XtreamAccountDataCleaner(
-        List(7) { index -> XtreamAccountPartitionCleaner { accountId -> clear(index, accountId) } },
+        List(8) { index -> XtreamAccountPartitionCleaner { accountId -> clear(index, accountId) } },
     )
 
     private companion object {

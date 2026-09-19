@@ -57,6 +57,8 @@ import dev.tyfino.foundation.ui.screen.PlaybackScreen
 import dev.tyfino.foundation.ui.screen.CatalogScreen
 import dev.tyfino.foundation.ui.screen.FoundationScreen
 import dev.tyfino.foundation.ui.screen.LicensingScreen
+import dev.tyfino.foundation.ui.screen.MovieDetailsScreen
+import dev.tyfino.foundation.ui.screen.MovieSelection
 import dev.tyfino.foundation.ui.screen.SettingsScreen
 import dev.tyfino.foundation.ui.screen.SeriesDetailsScreen
 import dev.tyfino.foundation.ui.screen.SeriesSelection
@@ -73,9 +75,12 @@ import dev.tyfino.foundation.xtream.LiveEpgRepository
 import dev.tyfino.foundation.xtream.SQLiteLiveEpgStore
 import dev.tyfino.foundation.xtream.HttpXtreamApi
 import dev.tyfino.foundation.xtream.HttpXtreamCatalogApi
+import dev.tyfino.foundation.xtream.HttpXtreamMovieDetailsApi
 import dev.tyfino.foundation.xtream.HttpXtreamSeriesApi
 import dev.tyfino.foundation.xtream.SQLiteCatalogStore
+import dev.tyfino.foundation.xtream.SQLiteMovieDetailsStore
 import dev.tyfino.foundation.xtream.SQLiteSeriesStore
+import dev.tyfino.foundation.xtream.MovieDetailsRepository
 import dev.tyfino.foundation.xtream.SeriesDetailsRepository
 import dev.tyfino.foundation.xtream.SeriesEpisode
 import dev.tyfino.foundation.xtream.SecureXtreamAccountStore
@@ -136,6 +141,9 @@ internal fun TyfinoApp() {
             store = seriesStore,
         )
     }
+    val movieDetailsRepository = remember {
+        MovieDetailsRepository(xtreamStore, HttpXtreamMovieDetailsApi(context), SQLiteMovieDetailsStore(context))
+    }
     val movieResumeRepository = remember {
         MovieResumeRepository(
             accountStore = xtreamStore,
@@ -153,6 +161,7 @@ internal fun TyfinoApp() {
                 XtreamAccountPartitionCleaner(favoritesRepository::clearAccount),
                 XtreamAccountPartitionCleaner(episodeResumeRepository::clearAccount),
                 XtreamAccountPartitionCleaner(seriesDetailsRepository::clearAccount),
+                XtreamAccountPartitionCleaner(movieDetailsRepository::clearAccount),
                 XtreamAccountPartitionCleaner(movieResumeRepository::clearAccount),
                 XtreamAccountPartitionCleaner(catalogRepository::clearAccount),
             ),
@@ -182,6 +191,7 @@ internal fun TyfinoApp() {
             historyRepository = historyRepository,
             epgRepository = epgRepository,
             seriesDetailsRepository = seriesDetailsRepository,
+            movieDetailsRepository = movieDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
             previousLiveChannelController = previousLiveChannelController,
@@ -209,6 +219,7 @@ private fun XtreamGate(
     historyRepository: CatalogHistoryRepository,
     epgRepository: LiveEpgRepository,
     seriesDetailsRepository: SeriesDetailsRepository,
+    movieDetailsRepository: MovieDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
     previousLiveChannelController: PreviousLiveChannelController,
@@ -257,6 +268,7 @@ private fun XtreamGate(
                 historyRepository = historyRepository,
                 epgRepository = epgRepository,
                 seriesDetailsRepository = seriesDetailsRepository,
+                movieDetailsRepository = movieDetailsRepository,
                 movieResumeRepository = movieResumeRepository,
                 episodeResumeRepository = episodeResumeRepository,
                 previousLiveChannelController = previousLiveChannelController,
@@ -396,6 +408,7 @@ private fun LicensedAppShell(
     historyRepository: CatalogHistoryRepository,
     epgRepository: LiveEpgRepository,
     seriesDetailsRepository: SeriesDetailsRepository,
+    movieDetailsRepository: MovieDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
     previousLiveChannelController: PreviousLiveChannelController,
@@ -414,6 +427,7 @@ private fun LicensedAppShell(
     val scope = rememberCoroutineScope()
     var playbackSelection by remember { mutableStateOf<PlaybackSelection?>(null) }
     var seriesSelection by remember { mutableStateOf<SeriesSelection?>(null) }
+    var movieSelection by remember { mutableStateOf<MovieSelection?>(null) }
     var episodePlaybackSelection by remember { mutableStateOf<EpisodePlaybackSelection?>(null) }
     var showAccountSwitcher by remember { mutableStateOf(false) }
     var accountSnapshot by remember { mutableStateOf<XtreamAccountsSnapshot?>(null) }
@@ -462,6 +476,12 @@ private fun LicensedAppShell(
         accountStore.load()?.let { account ->
             seriesSelection = SeriesSelection(account.accountId, account.generation, item)
             navController.navigate(SERIES_DETAILS_ROUTE) { launchSingleTop = true }
+        }
+    }
+    val openMovie: (CatalogItem) -> Unit = { item ->
+        accountStore.load()?.let { account ->
+            movieSelection = MovieSelection(account.accountId, account.generation, item)
+            navController.navigate(MOVIE_DETAILS_ROUTE) { launchSingleTop = true }
         }
     }
     val playEpisode: (SeriesEpisode, Long) -> Unit = { episode, generation ->
@@ -523,15 +543,18 @@ private fun LicensedAppShell(
             historyRepository = historyRepository,
             epgRepository = epgRepository,
             seriesDetailsRepository = seriesDetailsRepository,
+            movieDetailsRepository = movieDetailsRepository,
             movieResumeRepository = movieResumeRepository,
             episodeResumeRepository = episodeResumeRepository,
             previousLiveChannelController = previousLiveChannelController,
             accountStore = accountStore,
             seriesSelection = seriesSelection,
+            movieSelection = movieSelection,
             episodePlaybackSelection = episodePlaybackSelection,
             playbackSelection = playbackSelection,
             onPlay = play,
             onOpenSeries = openSeries,
+            onOpenMovie = openMovie,
             onPlayEpisode = playEpisode,
             onResumeEpisode = resumeEpisode,
             onPreviousLive = playPreviousLive,
@@ -682,15 +705,18 @@ private fun AppNavHost(
     historyRepository: CatalogHistoryRepository,
     epgRepository: LiveEpgRepository,
     seriesDetailsRepository: SeriesDetailsRepository,
+    movieDetailsRepository: MovieDetailsRepository,
     movieResumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     accountStore: XtreamAccountStore,
     seriesSelection: SeriesSelection?,
+    movieSelection: MovieSelection?,
     episodePlaybackSelection: EpisodePlaybackSelection?,
     playbackSelection: PlaybackSelection?,
     onPlay: (CatalogSection, CatalogItem) -> Unit,
     onOpenSeries: (CatalogItem) -> Unit,
+    onOpenMovie: (CatalogItem) -> Unit,
     onPlayEpisode: (SeriesEpisode, Long) -> Unit,
     onResumeEpisode: (SeriesContinueWatchingItem) -> Unit,
     onPreviousLive: (PlaybackSelection) -> Unit,
@@ -727,7 +753,7 @@ private fun AppNavHost(
                 resumeRepository = movieResumeRepository,
                 favoritesRepository = favoritesRepository,
                 historyRepository = historyRepository,
-                onPlay = { item -> onPlay(CatalogSection.Movies, item) },
+                onPlay = onOpenMovie,
             )
         }
         composable(AppDestination.Series.route) {
@@ -751,6 +777,20 @@ private fun AppNavHost(
                     repository = seriesDetailsRepository,
                     onBack = { navController.popBackStack() },
                     onEpisode = onPlayEpisode,
+                )
+            }
+        }
+        composable(MOVIE_DETAILS_ROUTE) {
+            val selection = movieSelection
+            if (selection == null) {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            } else {
+                MovieDetailsScreen(
+                    selection = selection,
+                    repository = movieDetailsRepository,
+                    resumeRepository = movieResumeRepository,
+                    onBack = { navController.popBackStack() },
+                    onPlay = { item -> onPlay(CatalogSection.Movies, item) },
                 )
             }
         }
@@ -796,6 +836,7 @@ private fun AppNavHost(
 
 private const val PLAYBACK_ROUTE = "playback"
 private const val SERIES_DETAILS_ROUTE = "series-details"
+private const val MOVIE_DETAILS_ROUTE = "movie-details"
 
 @Composable
 private fun AppBottomBar(
