@@ -10,6 +10,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -40,6 +41,28 @@ class CatalogTileAccessibilityTest {
         compose.onNodeWithTag("catalog-tile")
             .assertContentDescriptionEquals("Featured, 42% watched")
             .assertIsSelected()
+    }
+
+    @Test
+    fun artworkPlaceholderDoesNotReplaceCardDescription() {
+        compose.setContent {
+            MaterialTheme {
+                CatalogTile(
+                    label = "Featured",
+                    supporting = "2026",
+                    selected = false,
+                    onClick = {},
+                    modifier = Modifier.testTag("catalog-tile"),
+                    showArtwork = true,
+                    artworkUrl = null,
+                )
+            }
+        }
+
+        compose.onNodeWithTag("catalog-tile")
+            .assertContentDescriptionEquals("Featured, 2026")
+        compose.onNodeWithTag("catalog-artwork-placeholder", useUnmergedTree = true)
+            .assertExists()
     }
 
     @Test
