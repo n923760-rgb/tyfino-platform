@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ownerTotpSecretForEnvironment } from "./config.js";
+import { ownerTotpSecretForEnvironment, rateLimitForEnvironment } from "./config.js";
 
 test("production requires a valid OWNER TOTP secret", () => {
   assert.throws(
@@ -16,4 +16,23 @@ test("production requires a valid OWNER TOTP secret", () => {
     "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"
   );
   assert.equal(ownerTotpSecretForEnvironment("test", undefined), undefined);
+});
+
+test("production requires explicit bounded rate limits", () => {
+  assert.throws(
+    () => rateLimitForEnvironment("production", "GLOBAL_RATE_LIMIT_PER_MINUTE", undefined, 120),
+    /required in production/
+  );
+  assert.throws(
+    () => rateLimitForEnvironment("production", "GLOBAL_RATE_LIMIT_PER_MINUTE", "CHANGE_ME", 120),
+    /explicitly configured/
+  );
+  for (const invalid of ["0", "1.5", "10001", "many"]) {
+    assert.throws(
+      () => rateLimitForEnvironment("production", "GLOBAL_RATE_LIMIT_PER_MINUTE", invalid, 120),
+      /integer between 1 and 10000/
+    );
+  }
+  assert.equal(rateLimitForEnvironment("production", "GLOBAL_RATE_LIMIT_PER_MINUTE", "240", 120), 240);
+  assert.equal(rateLimitForEnvironment("test", "GLOBAL_RATE_LIMIT_PER_MINUTE", undefined, 120), 120);
 });

@@ -62,7 +62,7 @@ export async function registerAdminAuthRoutes(
   config: AppConfig
 ): Promise<void> {
   app.post("/v1/admin/auth/login", {
-    config: { rateLimit: { max: 8, timeWindow: "15 minutes" } }
+    config: { rateLimit: { max: config.rateLimits.adminAuthPer15Minutes, timeWindow: "15 minutes" } }
   }, async (request, reply) => {
     const parsed = LoginBody.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "invalid_request" });
@@ -98,7 +98,7 @@ export async function registerAdminAuthRoutes(
   });
 
   app.post("/v1/admin/auth/verify-totp", {
-    config: { rateLimit: { max: 8, timeWindow: "15 minutes" } }
+    config: { rateLimit: { max: config.rateLimits.adminAuthPer15Minutes, timeWindow: "15 minutes" } }
   }, async (request, reply) => {
     const parsed = TotpBody.safeParse(request.body);
     if (!parsed.success || !config.ownerTotpSecret) {

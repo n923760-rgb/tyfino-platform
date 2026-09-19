@@ -42,6 +42,8 @@ The service must:
 - return explicit non-success HTTP status codes for failure;
 - avoid revealing whether a guessed Activation Code exists.
 
+Rate-limit windows are fixed by route class, while their request counts are environment configuration: `GLOBAL_RATE_LIMIT_PER_MINUTE`, `ADMIN_AUTH_RATE_LIMIT_PER_15_MINUTES`, `TRIAL_START_RATE_LIMIT_PER_HOUR`, `ACTIVATION_RATE_LIMIT_PER_15_MINUTES`, and `ENTITLEMENT_REFRESH_RATE_LIMIT_PER_HOUR`. Development/test use conservative checked defaults. Production refuses to start until every count is explicitly set to an integer from 1 through 10,000; the approved values must come from traffic and abuse evidence rather than source-code assumptions.
+
 ## 3. Android licensing endpoints
 
 | Method | Path | Purpose |

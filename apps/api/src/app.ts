@@ -30,7 +30,7 @@ export async function buildApp(config: AppConfig, db: Database) {
     methods: ["GET", "POST", "PATCH", "OPTIONS"]
   });
   await app.register(helmet, { global: true });
-  await app.register(rateLimit, { global: true, max: 120, timeWindow: "1 minute" });
+  await app.register(rateLimit, { global: true, max: config.rateLimits.globalPerMinute, timeWindow: "1 minute" });
   app.addHook("onResponse", async (request, reply) => {
     request.log.info({
       request: { method: request.method, route: routeLabel(request.routeOptions.url) },
