@@ -42,6 +42,7 @@ export function DashboardPage({ role }: { role: Admin["role"] }) {
       <section className="panel"><div className="panel-title"><h2>حالة النظام</h2></div><div className="health-list">
         <div><span className="health-dot ok" />Licensing API</div><b>{data.health.status === "ready" ? "جاهز" : data.health.status}</b>
         <div><span className="health-dot ok" />قاعدة البيانات</div><b>{data.health.database === "connected" ? "متصلة" : data.health.database}</b>
+        <div><span className="health-dot ok" />مخطط قاعدة البيانات</div><b>{data.health.schema === "current" ? "محدّث" : data.health.schema}</b>
         <div><span className="health-dot ok" />آخر نشاط إداري</div><b>{data.audit[0] ? formatDate(data.audit[0].createdAt) : "لا يوجد"}</b>
       </div></section>
     </div>

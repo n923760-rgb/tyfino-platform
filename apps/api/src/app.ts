@@ -32,8 +32,25 @@ export async function buildApp(config: AppConfig, db: Database) {
   app.get("/healthz", async () => ({ status: "ok", service: "tyfino-api", version: "0.2.0" }));
   app.get("/readyz", async (_request, reply) => {
     try {
-      await db.query("SELECT 1");
-      return { status: "ready", database: "connected" };
+      const readiness = await db.query<{ schemaReady: boolean }>(
+        `SELECT (
+           to_regclass('public.admins') IS NOT NULL
+           AND to_regclass('public.activation_codes') IS NOT NULL
+           AND to_regclass('public.app_settings') IS NOT NULL
+           AND to_regclass('public.audit_logs') IS NOT NULL
+           AND to_regprocedure('public.verify_audit_log_chain()') IS NOT NULL
+           AND 2 = (
+             SELECT count(*) FROM pg_trigger
+              WHERE tgrelid = to_regclass('public.audit_logs')
+                AND tgname IN ('audit_logs_chain_before_insert', 'audit_logs_append_only')
+                AND tgenabled <> 'D'
+           )
+         ) AS "schemaReady"`
+      );
+      if (readiness.rows[0]?.schemaReady !== true) {
+        return reply.code(503).send({ status: "not_ready" });
+      }
+      return { status: "ready", database: "connected", schema: "current" };
     } catch (error) {
       app.log.error({ error }, "Database readiness check failed");
       return reply.code(503).send({ status: "not_ready" });

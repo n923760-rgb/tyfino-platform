@@ -49,3 +49,5 @@ The repository provides two Linux/PostgreSQL-client scripts:
 - `database/scripts/verify-backup-restore.sh` verifies that checksum, restores into a new disposable database whose name must start with `tyfino_restore_`, checks required tables and the audit hash chain, confirms audit mutation rejection, and removes only that disposable database.
 
 CI runs both scripts against PostgreSQL 16 on every change. This is repeatable restore evidence for the current schema; it does not approve a production backup location, retention period, encryption/key policy, schedule, recovery-point objective, or recovery-time objective. Those choices remain **OPEN**, and a production-target restore drill remains **BLOCKED** until the hosting and data-retention decisions are approved.
+
+The API exposes separate `/healthz` liveness and `/readyz` traffic-readiness probes. Container dependency checks use `/readyz`, which requires a reachable database and the current licensing/audit protection schema. Full audit-chain verification is kept out of the high-frequency readiness path and must be monitored through the authorized Admin audit endpoint.
