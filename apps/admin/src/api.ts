@@ -50,6 +50,7 @@ export const api = {
     { method: "POST", ...json({ challengeToken, code }) }
   ),
   logout: () => request<void>("/v1/admin/auth/logout", { method: "POST", ...json({}) }),
+  revokeOtherAdminSessions: () => request<{ revokedSessions: number }>("/v1/admin/auth/revoke-other-sessions", { method: "POST", ...json({}) }),
   health: () => request<{ status: string; database: string; schema: string }>("/readyz"),
   activations: () => request<{ activationCodes: Activation[] }>("/v1/admin/activation-codes"),
   createActivation: (value: object) => request<{ id: string; code: string }>("/v1/admin/activation-codes", { method: "POST", ...json(value) }),

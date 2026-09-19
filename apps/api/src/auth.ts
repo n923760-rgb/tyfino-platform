@@ -16,7 +16,7 @@ export async function ensureBootstrapAdmin(db: Database, config: AppConfig): Pro
   );
 }
 
-function sessionToken(request: FastifyRequest): string | undefined {
+export function adminSessionToken(request: FastifyRequest): string | undefined {
   const cookieToken = request.cookies.tyfino_admin_session;
   if (cookieToken) return cookieToken;
   const authorization = request.headers.authorization;
@@ -30,7 +30,7 @@ export async function requireAdmin(
   config: AppConfig,
   roles?: AdminIdentity["role"][]
 ): Promise<AdminIdentity | null> {
-  const token = sessionToken(request);
+  const token = adminSessionToken(request);
   if (!token) {
     await reply.code(401).send({ error: "authentication_required" });
     return null;

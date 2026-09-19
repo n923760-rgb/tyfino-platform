@@ -217,6 +217,7 @@ Admin authentication and authorization are enforced server-side on every route.
 | POST | `/v1/admin/auth/login` | Verify password; issue a short-lived challenge for OWNER or a bounded non-OWNER session |
 | POST | `/v1/admin/auth/verify-totp` | Consume the OWNER TOTP challenge and start the bounded Admin session |
 | POST | `/v1/admin/auth/logout` | Revoke the current Admin session |
+| POST | `/v1/admin/auth/revoke-other-sessions` | OWNER only: revoke every other active Admin session while preserving the current session |
 | GET | `/v1/admin/me` | Return the current authorized administrator |
 | GET/POST | `/v1/admin/activation-codes` | List or create application Activation Codes |
 | GET | `/v1/admin/activation-codes/:id` | Inspect redacted code and license state |
@@ -234,6 +235,8 @@ The single V1 bootstrap OWNER must complete RFC 6238 TOTP after a correct passwo
 `ADMIN_OWNER_TOTP_SECRET` is an RFC 4648 Base32 secret of at least 160 bits. Production configuration fails closed when it is absent or malformed. It is provisioned directly into the owner's authenticator and process secret store; it is never returned by an API, stored in PostgreSQL, logged, or committed. Admin and Support accounts remain password-authenticated in V1 and cannot perform OWNER-only operations.
 
 Audit inserts are serialized into an append-only SHA-256 chain inside PostgreSQL. The API recomputes the chain before returning audit history and includes `integrityVerified`; the Admin UI raises an assertive warning when verification fails. Database triggers reject ordinary `UPDATE` and `DELETE` statements. This detects and blocks application-role mutation, but it does not protect against a privileged database owner who can disable triggers and recompute the chain; production monitoring and an external integrity anchor remain operations work.
+
+The OWNER can revoke all other active Admin sessions from Settings. The current authenticated session is excluded by its token hash, the operation is transactional, and its redacted count is appended to the audit log. Admin and Support roles cannot invoke this operation.
 
 ### 5.2 Create Activation Code
 
