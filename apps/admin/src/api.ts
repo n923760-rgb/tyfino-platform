@@ -57,5 +57,5 @@ export const api = {
   resetDevice: (id: string, reason: string) => request<{ id: string; deviceBound: boolean }>(`/v1/admin/activation-codes/${id}/reset-device`, { method: "POST", ...json({ reason }) }),
   settings: () => request<{ trialEnabled: boolean }>("/v1/admin/app-settings"),
   updateSettings: (trialEnabled: boolean) => request<{ trialEnabled: boolean }>("/v1/admin/app-settings", { method: "PATCH", ...json({ trialEnabled }) }),
-  auditLogs: () => request<{ auditLogs: AuditLog[] }>("/v1/admin/audit-logs")
+  auditLogs: () => request<{ auditLogs: AuditLog[]; integrityVerified: boolean }>("/v1/admin/audit-logs")
 };

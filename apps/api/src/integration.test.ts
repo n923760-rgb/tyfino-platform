@@ -153,6 +153,47 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     assert.equal(refreshed.statusCode, 200);
     assert.equal(refreshed.json().entitlement.kind, "one_year");
 
+    await Promise.all(Array.from({ length: 12 }, (_, index) => db.query(
+      `INSERT INTO audit_logs (action, entity_type, entity_id, metadata)
+       VALUES ('audit.concurrent_test', 'test', $1, $2::jsonb)`,
+      [String(index), JSON.stringify({ index })]
+    )));
+
+    const audit = await app.inject({
+      method: "GET",
+      url: "/v1/admin/audit-logs",
+      headers: { cookie: `tyfino_admin_session=${cookie.value}` }
+    });
+    assert.equal(audit.statusCode, 200);
+    assert.equal(audit.json().integrityVerified, true);
+    assert.ok((audit.json().auditLogs as unknown[]).length > 0);
+    await assert.rejects(
+      db.query("UPDATE audit_logs SET action = 'tampered' WHERE id = (SELECT min(id) FROM audit_logs)"),
+      (error: unknown) => (error as { code?: string }).code === "55000"
+    );
+    await assert.rejects(
+      db.query("DELETE FROM audit_logs WHERE id = (SELECT min(id) FROM audit_logs)"),
+      (error: unknown) => (error as { code?: string }).code === "55000"
+    );
+    const integrityAfterRejectedMutations = await db.query<{ valid: boolean }>(
+      "SELECT verify_audit_log_chain() AS valid"
+    );
+    assert.equal(integrityAfterRejectedMutations.rows[0]?.valid, true);
+
+    const privilegedClient = await db.connect();
+    try {
+      await privilegedClient.query("BEGIN");
+      await privilegedClient.query("ALTER TABLE audit_logs DISABLE TRIGGER audit_logs_append_only");
+      await privilegedClient.query("UPDATE audit_logs SET action = 'tampered' WHERE id = (SELECT min(id) FROM audit_logs)");
+      const tamperedIntegrity = await privilegedClient.query<{ valid: boolean }>(
+        "SELECT verify_audit_log_chain() AS valid"
+      );
+      assert.equal(tamperedIntegrity.rows[0]?.valid, false);
+    } finally {
+      await privilegedClient.query("ROLLBACK");
+      privilegedClient.release();
+    }
+
     const legacyPlayer = await app.inject({ method: "GET", url: "/v1/player/config" });
     assert.equal(legacyPlayer.statusCode, 404);
     const forbiddenTables = await db.query<{ count: string }>(
