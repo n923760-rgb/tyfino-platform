@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the licensing, multiple-account Xtream authentication, catalog, artwork, playback, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. The account portfolio follows [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md). Provider-wide search, Movie details, Series episode history, final branding, and release configuration remain separate work.
+This directory contains the native Android client foundation and the licensing, multiple-account Xtream authentication, catalog, artwork, playback, Movie details, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. The account portfolio follows [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md). Provider-wide search, Series episode history, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -106,6 +106,10 @@ Catalog cards render already-validated artwork references lazily through one app
 
 Artwork networking has bounded concurrency and timeouts, rejects redirects, limits a response to 8 MiB even when Content-Length is absent, and uses an 8% memory-cache ceiling plus a 64 MiB disk-cache ceiling. Artwork is decorative: the card label and supporting metadata remain the accessibility description. Physical low-memory TV, provider/CDN, RTL, and D-pad qualification remains BLOCKED.
 
+## Movie details scope
+
+Selecting a Movie opens an explicit details destination instead of starting playback. The client requests only that Movie through `get_vod_info`, with an 8 MiB response ceiling, bounded timeouts, no redirects, defensive scalar parsing, safe artwork validation, account/generation ownership checks, and a six-hour account-scoped cache. Catalog metadata remains the fallback when optional provider details are absent. The Play action uses the original validated catalog item; provider detail metadata never rewrites playback authority. Existing eligible progress changes the action label to Resume, and account removal clears the details partition.
+
 ## Deferred contracts
 
-Full physical-device/TV qualification, release identity/signing, provider-wide search, Series episode history, and other deferred playback capabilities require their own approved work. Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.
+Full physical-device/TV qualification, release identity/signing, provider-wide search, Series episode history, and other deferred playback capabilities require their own approved work. Movie details and Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.
