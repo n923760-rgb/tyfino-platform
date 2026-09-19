@@ -203,6 +203,13 @@ Cancellation is an efficiency mechanism, not the correctness check.
 
 ## 5. Admin endpoints
 
+### 5.0 Service probes
+
+- `GET /healthz` is a process liveness probe. It does not touch PostgreSQL and remains successful while a database dependency is unavailable.
+- `GET /readyz` is a traffic-readiness probe. It returns `200` only when PostgreSQL is reachable and the required licensing tables, audit-chain verification function, and both enabled audit protection triggers are present. Failure returns only `503 {"status":"not_ready"}` without exposing database details.
+
+The readiness probe intentionally validates schema presence in constant time; full audit-chain verification remains on the authorized Admin audit endpoint so frequent orchestrator probes do not scan an unbounded audit table.
+
 Admin authentication and authorization are enforced server-side on every route.
 
 | Method | Path | Purpose |

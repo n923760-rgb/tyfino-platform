@@ -28,6 +28,13 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
   };
   const app = await buildApp(config, db);
   try {
+    const liveness = await app.inject({ method: "GET", url: "/healthz" });
+    assert.equal(liveness.statusCode, 200);
+    assert.equal(liveness.json().status, "ok");
+    const readiness = await app.inject({ method: "GET", url: "/readyz" });
+    assert.equal(readiness.statusCode, 200);
+    assert.deepEqual(readiness.json(), { status: "ready", database: "connected", schema: "current" });
+
     const login = await app.inject({
       method: "POST",
       url: "/v1/admin/auth/login",
@@ -201,6 +208,13 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
         WHERE table_schema = 'public' AND table_name IN ('provider_hosts', 'provider_accounts', 'player_sessions')`
     );
     assert.equal(forbiddenTables.rows[0]?.count, "0");
+
+    await db.query("DROP TABLE app_settings");
+    const missingSchemaReadiness = await app.inject({ method: "GET", url: "/readyz" });
+    assert.equal(missingSchemaReadiness.statusCode, 503);
+    assert.deepEqual(missingSchemaReadiness.json(), { status: "not_ready" });
+    const livenessWithoutReadiness = await app.inject({ method: "GET", url: "/healthz" });
+    assert.equal(livenessWithoutReadiness.statusCode, 200);
   } finally {
     await app.close();
     await db.end();
