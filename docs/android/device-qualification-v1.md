@@ -9,7 +9,7 @@ This document is the evidence ledger and compatibility backlog for the approved 
 | Surface | Configuration | Required evidence | Status |
 | --- | --- | --- | --- |
 | Compile and package | minSdk 24, target/compile SDK 37 | `assembleDebug` on CI | PASS |
-| Optimized release package | R8 code optimization and resource shrinking | unsigned `assembleRelease` on CI | PENDING |
+| Optimized release package | R8 code optimization and resource shrinking | unsigned `assembleRelease` on CI | PASS |
 | Repository unit suite | JVM tests for ownership, URI policy, resume, catalog, and previous channel | `testDebugUnitTest` on CI | PASS |
 | Static Android checks | Debug variant with warnings as errors | `lintDebug` on CI | PASS |
 | Compact phone runtime | Pixel 2 profile, AOSP API 27 | Managed-device `androidTest` | PASS |
@@ -19,7 +19,7 @@ The two managed devices run from clean emulator state in GitHub Actions. Represe
 
 A passing Android CI job attaches a short-lived `tyfino-debug-*` APK artifact for manual development testing. It uses temporary debug signing and the CI default of an empty licensing-service origin; it is not a production release or a configured end-to-end IPTV test build. Record the artifact's commit and any approved local build configuration in manual evidence. Reinstalling a different CI build may require removing the prior debug app and its local state because the signing key is not stable across runners.
 
-Recorded automated evidence: [Validate run 81](https://github.com/n923760-rgb/tyfino-platform/actions/runs/34392935134) on commit `04fcd50a8e5cafe039bfa9201d20268f67a8e07a`. All five automated rows above completed successfully. This evidence does not qualify any physical-device or real-media row below.
+Recorded automated evidence: [Validate run 256](https://github.com/n923760-rgb/tyfino-platform/actions/runs/35467043225) on commit `ddb06b625b86dc5f334c380baa5994b3a6fba2f9`. All six automated rows above completed successfully. This evidence does not qualify any physical-device or real-media row below.
 
 ## Required physical and media qualification
 
