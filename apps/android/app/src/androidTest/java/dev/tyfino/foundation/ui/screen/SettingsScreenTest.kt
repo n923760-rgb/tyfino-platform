@@ -1,13 +1,11 @@
 package dev.tyfino.foundation.ui.screen
 
-import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.window.Dialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
@@ -19,12 +17,11 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SettingsScreenTest {
-    @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val compose = createComposeRule()
 
     @Before
     fun useDpadInputMode() {
         InstrumentationRegistry.getInstrumentation().setInTouchMode(false)
-        compose.activity.window.decorView.requestFocus()
     }
 
     @After
@@ -56,19 +53,14 @@ class SettingsScreenTest {
     @Test
     fun accountSwitcherReceivesInitialDpadFocus() {
         compose.setContent {
-            MaterialTheme {
-                SettingsScreen(onOpenAccountSwitcher = {}, onManageAccounts = {})
+            Dialog(onDismissRequest = {}) {
+                MaterialTheme {
+                    SettingsScreen(onOpenAccountSwitcher = {}, onManageAccounts = {})
+                }
             }
         }
 
         compose.waitForIdle()
-        compose.runOnUiThread {
-            compose.activity.window.decorView.viewTreeObserver.dispatchOnWindowFocusChange(true)
-        }
-        compose.waitUntil(timeoutMillis = 5_000) {
-            compose.onAllNodesWithTag("open-account-switcher").fetchSemanticsNodes()
-                .any { it.config.getOrNull(SemanticsProperties.Focused) == true }
-        }
         compose.onNodeWithTag("open-account-switcher").assertIsFocused()
     }
 }

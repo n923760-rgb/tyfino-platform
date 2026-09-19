@@ -1,6 +1,5 @@
 package dev.tyfino.foundation.ui.screen
 
-import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,12 +11,12 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.window.Dialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.xtream.CatalogItem
@@ -36,12 +35,11 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SeriesDetailsScreenTest {
-    @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule val compose = createComposeRule()
 
     @Before
     fun useDpadInputMode() {
         InstrumentationRegistry.getInstrumentation().setInTouchMode(false)
-        compose.activity.window.decorView.requestFocus()
     }
 
     @After
@@ -125,19 +123,14 @@ class SeriesDetailsScreenTest {
     @Test
     fun backActionReceivesInitialDpadFocus() {
         compose.setContent {
-            MaterialTheme {
-                SeriesDetailsContent(selection(), SeriesState.Loading, false, null, {}, {}, {})
+            Dialog(onDismissRequest = {}) {
+                MaterialTheme {
+                    SeriesDetailsContent(selection(), SeriesState.Loading, false, null, {}, {}, {})
+                }
             }
         }
 
         compose.waitForIdle()
-        compose.runOnUiThread {
-            compose.activity.window.decorView.viewTreeObserver.dispatchOnWindowFocusChange(true)
-        }
-        compose.waitUntil(timeoutMillis = 5_000) {
-            compose.onAllNodesWithTag("series-back").fetchSemanticsNodes()
-                .any { it.config.getOrNull(SemanticsProperties.Focused) == true }
-        }
         compose.onNodeWithTag("series-back").assertIsFocused()
     }
 
