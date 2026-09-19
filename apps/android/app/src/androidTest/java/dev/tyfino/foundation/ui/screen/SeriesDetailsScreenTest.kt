@@ -130,6 +130,10 @@ class SeriesDetailsScreenTest {
             }
         }
 
+        compose.waitForIdle()
+        compose.runOnUiThread {
+            compose.activity.window.decorView.viewTreeObserver.dispatchOnWindowFocusChange(true)
+        }
         compose.waitUntil(timeoutMillis = 5_000) {
             compose.onAllNodesWithTag("series-back").fetchSemanticsNodes()
                 .any { it.config.getOrNull(SemanticsProperties.Focused) == true }

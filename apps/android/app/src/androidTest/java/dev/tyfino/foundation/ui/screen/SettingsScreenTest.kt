@@ -61,6 +61,10 @@ class SettingsScreenTest {
             }
         }
 
+        compose.waitForIdle()
+        compose.runOnUiThread {
+            compose.activity.window.decorView.viewTreeObserver.dispatchOnWindowFocusChange(true)
+        }
         compose.waitUntil(timeoutMillis = 5_000) {
             compose.onAllNodesWithTag("open-account-switcher").fetchSemanticsNodes()
                 .any { it.config.getOrNull(SemanticsProperties.Focused) == true }
