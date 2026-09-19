@@ -93,6 +93,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: Build debug application
         run: ./gradlew --no-daemon :app:assembleDebug
+      - name: Build optimized unsigned release
+        run: ./gradlew --no-daemon :app:assembleRelease
       - name: Run unit tests
         run: ./gradlew --no-daemon :app:testDebugUnitTest
       - name: Run Android lint

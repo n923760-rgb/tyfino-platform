@@ -9,6 +9,7 @@ This document is the evidence ledger and compatibility backlog for the approved 
 | Surface | Configuration | Required evidence | Status |
 | --- | --- | --- | --- |
 | Compile and package | minSdk 24, target/compile SDK 37 | `assembleDebug` on CI | PASS |
+| Optimized release package | R8 code optimization and resource shrinking | unsigned `assembleRelease` on CI | PENDING |
 | Repository unit suite | JVM tests for ownership, URI policy, resume, catalog, and previous channel | `testDebugUnitTest` on CI | PASS |
 | Static Android checks | Debug variant with warnings as errors | `lintDebug` on CI | PASS |
 | Compact phone runtime | Pixel 2 profile, AOSP API 27 | Managed-device `androidTest` | PASS |
