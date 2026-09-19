@@ -15,6 +15,7 @@ import okhttp3.OkHttpClient
 import okhttp3.ResponseBody.Companion.asResponseBody
 import okio.Buffer
 import okio.ForwardingSource
+import okio.Path.Companion.toOkioPath
 import okio.buffer
 
 class TyfinoApplication : Application(), SingletonImageLoader.Factory {
@@ -26,14 +27,13 @@ class TyfinoApplication : Application(), SingletonImageLoader.Factory {
         }
         .diskCache {
             DiskCache.Builder()
-                .directory(context.cacheDir.resolve("catalog_artwork"))
+                .directory(context.cacheDir.resolve("catalog_artwork").toOkioPath())
                 .maxSizeBytes(ARTWORK_DISK_BYTES)
                 .build()
         }
         .components {
             add(OkHttpNetworkFetcherFactory(callFactory = { artworkHttpClient() }))
         }
-        .crossfade(false)
         .build()
 
     private fun artworkHttpClient(): OkHttpClient {
@@ -73,7 +73,7 @@ internal object ArtworkNetworkPolicy {
 private class BoundedArtworkResponseInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         val response = chain.proceed(chain.request())
-        val body = response.body
+        val body = response.body ?: return response
         if (!ArtworkNetworkPolicy.acceptsContentLength(body.contentLength())) {
             response.close()
             throw IOException("Artwork response exceeds limit")
