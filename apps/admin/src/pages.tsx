@@ -132,6 +132,7 @@ export function SettingsPage({ notify, role }: { notify: Notify; role: Admin["ro
   const canManage = role === "owner" || role === "admin";
   const [reload, setReload] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [revokeSessionsOpen, setRevokeSessionsOpen] = useState(false);
   const { data, error } = useData(() => api.settings(), reload);
   async function toggle() {
     if (!data) return; setBusy(true);
@@ -139,15 +140,26 @@ export function SettingsPage({ notify, role }: { notify: Notify; role: Admin["ro
     catch (reason) { notify(errorMessage(reason), "error"); }
     finally { setBusy(false); }
   }
+  async function revokeOtherSessions() {
+    setBusy(true);
+    try {
+      const result = await api.revokeOtherAdminSessions();
+      setRevokeSessionsOpen(false);
+      notify(result.revokedSessions === 0 ? "لا توجد جلسات إدارية أخرى نشطة." : `تم إلغاء ${result.revokedSessions} جلسة إدارية أخرى.`);
+    } catch (reason) { notify(errorMessage(reason), "error"); }
+    finally { setBusy(false); }
+  }
   return <><PageHeader title="إعدادات التطبيق" description="التحكم في خيارات الترخيص العامة." />
     {error ? <EmptyState title="تعذر تحميل الإعدادات" text={error} /> : !data ? <Loading /> : <section className="settings-panel"><div className="setting-row"><div><h2>التجربة المجانية لمدة 7 أيام</h2><p>عند تفعيلها يستطيع المستخدم بدء 168 ساعة من التطبيق. تثبيت التطبيق أو تسجيل Xtream لا يبدأ التجربة تلقائيًا.</p></div><button className={`switch ${data.trialEnabled ? "on" : ""}`} role="switch" aria-checked={data.trialEnabled} aria-label="التجربة المجانية" disabled={busy || !canManage} title={canManage ? undefined : "متاح للمالك والمدير فقط"} onClick={() => void toggle()}><span /></button></div>
       <div className="setting-facts"><div><span>عدد الأجهزة</span><b>جهاز واحد لكل كود</b></div><div><span>العمل دون اتصال</span><b>حتى 72 ساعة</b></div><div><span>تحديث الترخيص</span><b>كل 12 ساعة عند الاستخدام</b></div></div></section>}
+    {role === "owner" && <section className="settings-panel"><div className="setting-row"><div><h2>الجلسات الإدارية</h2><p>إلغاء كل الجلسات الإدارية النشطة الأخرى مع إبقاء جلستك الحالية.</p></div><Button variant="danger" disabled={busy} onClick={() => setRevokeSessionsOpen(true)}>إلغاء الجلسات الأخرى</Button></div></section>}
+    {revokeSessionsOpen && <Modal title="إلغاء الجلسات الإدارية الأخرى" onClose={() => setRevokeSessionsOpen(false)}><div className="confirm-content"><p>سيتم تسجيل خروج جميع المديرين وأجهزة الإدارة الأخرى فورًا. ستبقى جلستك الحالية فقط.</p><div className="form-actions"><Button variant="secondary" disabled={busy} onClick={() => setRevokeSessionsOpen(false)}>رجوع</Button><Button variant="danger" busy={busy} onClick={() => void revokeOtherSessions()}>تأكيد الإلغاء</Button></div></div></Modal>}
   </>;
 }
 
 export function AuditPage() {
   const { data, error } = useData(() => api.auditLogs());
-  const action: Record<string, string> = { "admin.login": "تسجيل دخول", "admin.login_2fa_challenge": "بدء تحقق بخطوتين", "admin.login_2fa_failed": "فشل تحقق بخطوتين", "admin.logout": "تسجيل خروج", "activation.create": "إنشاء كود", "activation.revoke": "إلغاء كود", "activation.reset_device": "تغيير الجهاز", "settings.update": "تحديث الإعدادات" };
+  const action: Record<string, string> = { "admin.login": "تسجيل دخول", "admin.login_2fa_challenge": "بدء تحقق بخطوتين", "admin.login_2fa_failed": "فشل تحقق بخطوتين", "admin.logout": "تسجيل خروج", "admin.sessions_revoke_others": "إلغاء الجلسات الإدارية الأخرى", "activation.create": "إنشاء كود", "activation.revoke": "إلغاء كود", "activation.reset_device": "تغيير الجهاز", "settings.update": "تحديث الإعدادات" };
   return <><PageHeader title="سجل العمليات" description="أثر تدقيقي للعمليات الإدارية الحساسة." />
     {error ? <EmptyState title="تعذر تحميل السجل" text={error} /> : !data ? <Loading /> : <>{!data.integrityVerified && <div className="form-error" role="alert">فشل التحقق من سلامة تسلسل السجل. أوقف العمليات الإدارية وراجع قاعدة البيانات.</div>}{data.auditLogs.length === 0 ? <EmptyState title="السجل فارغ" text="ستظهر العمليات الإدارية هنا تلقائيًا." /> : <div className="timeline">{data.auditLogs.map((item: AuditLog) => <article key={item.id}><span className="timeline-dot" /><div><strong>{action[item.action] ?? item.action}</strong><p>{item.adminEmail || "النظام"} · {item.ipAddress || "—"}</p></div><time>{formatDate(item.createdAt)}</time></article>)}</div>}</>}
   </>;

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { buildApp } from "./app.js";
 import type { AppConfig } from "./config.js";
-import { totpCodeAt } from "./security.js";
+import { tokenHash, totpCodeAt } from "./security.js";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 
@@ -66,6 +66,51 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     assert.equal(verified.statusCode, 200);
     const cookie = verified.cookies.find((item) => item.name === "tyfino_admin_session");
     assert.ok(cookie);
+
+    const supportAdmin = await db.query<{ id: string }>(
+      `INSERT INTO admins (email, password_hash, role)
+       VALUES ('support@tyfino.test', 'unused-in-integration-test', 'support') RETURNING id`
+    );
+    const otherSessionToken = "integration-other-admin-session-token";
+    await db.query(
+      `INSERT INTO admin_sessions (admin_id, token_hash, expires_at)
+       VALUES ($1, $2, now() + interval '12 hours')`,
+      [supportAdmin.rows[0]!.id, tokenHash(otherSessionToken, config.tokenPepper)]
+    );
+    const revokedSessions = await app.inject({
+      method: "POST",
+      url: "/v1/admin/auth/revoke-other-sessions",
+      headers: { cookie: `tyfino_admin_session=${cookie.value}` },
+      payload: {}
+    });
+    assert.equal(revokedSessions.statusCode, 200);
+    assert.equal(revokedSessions.json().revokedSessions, 1);
+    const currentSessionStillValid = await app.inject({
+      method: "GET",
+      url: "/v1/admin/me",
+      headers: { cookie: `tyfino_admin_session=${cookie.value}` }
+    });
+    assert.equal(currentSessionStillValid.statusCode, 200);
+    const revokedSessionRejected = await app.inject({
+      method: "GET",
+      url: "/v1/admin/me",
+      headers: { authorization: `Bearer ${otherSessionToken}` }
+    });
+    assert.equal(revokedSessionRejected.statusCode, 401);
+
+    const forbiddenSupportToken = "integration-support-owner-operation-token";
+    await db.query(
+      `INSERT INTO admin_sessions (admin_id, token_hash, expires_at)
+       VALUES ($1, $2, now() + interval '12 hours')`,
+      [supportAdmin.rows[0]!.id, tokenHash(forbiddenSupportToken, config.tokenPepper)]
+    );
+    const supportCannotRevokeSessions = await app.inject({
+      method: "POST",
+      url: "/v1/admin/auth/revoke-other-sessions",
+      headers: { authorization: `Bearer ${forbiddenSupportToken}` },
+      payload: {}
+    });
+    assert.equal(supportCannotRevokeSessions.statusCode, 403);
 
     const consumedChallenge = await app.inject({
       method: "POST",

@@ -47,6 +47,8 @@ Administrative-only customer fields require purpose limitation, access control, 
 
 The dashboard must not add IPTV subscription administration merely because legacy tables or routes exist.
 
+The OWNER can revoke all other active administrative sessions without invalidating the current recovery session. The server enforces the OWNER role, identifies the preserved session by its hashed opaque token, performs revocation and audit insertion in one transaction, and returns only the number of sessions revoked.
+
 ## Network and logs
 
 The following are **DECIDED**:

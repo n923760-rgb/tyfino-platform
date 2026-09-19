@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { PoolClient } from "pg";
 import { z } from "zod";
-import { requireAdmin, writeAudit } from "../auth.js";
+import { adminSessionToken, requireAdmin, writeAudit } from "../auth.js";
 import type { AppConfig } from "../config.js";
 import type { Database } from "../db.js";
 import { randomToken, tokenHash, verifyPassword, verifyTotp } from "../security.js";
@@ -173,7 +173,7 @@ export async function registerAdminAuthRoutes(
   app.post("/v1/admin/auth/logout", async (request, reply) => {
     const admin = await requireAdmin(request, reply, db, config);
     if (!admin) return;
-    const token = request.cookies.tyfino_admin_session ?? request.headers.authorization?.slice(7);
+    const token = adminSessionToken(request);
     if (token) {
       await db.query("UPDATE admin_sessions SET revoked_at = now() WHERE token_hash = $1", [
         tokenHash(token, config.tokenPepper)
@@ -182,5 +182,34 @@ export async function registerAdminAuthRoutes(
     await writeAudit(db, request, admin.id, "admin.logout", "admin", admin.id);
     reply.clearCookie("tyfino_admin_session", { path: "/" });
     return reply.code(204).send();
+  });
+
+  app.post("/v1/admin/auth/revoke-other-sessions", async (request, reply) => {
+    const admin = await requireAdmin(request, reply, db, config, ["owner"]);
+    if (!admin) return;
+    const currentToken = adminSessionToken(request);
+    if (!currentToken) return reply.code(401).send({ error: "authentication_required" });
+
+    const client = await db.connect();
+    try {
+      await client.query("BEGIN");
+      const revoked = await client.query(
+        `UPDATE admin_sessions
+            SET revoked_at = now()
+          WHERE revoked_at IS NULL AND expires_at > now() AND token_hash <> $1
+          RETURNING id`,
+        [tokenHash(currentToken, config.tokenPepper)]
+      );
+      await writeAudit(client, request, admin.id, "admin.sessions_revoke_others", "admin_session", null, {
+        revokedSessions: revoked.rowCount ?? 0
+      });
+      await client.query("COMMIT");
+      return { revokedSessions: revoked.rowCount ?? 0 };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   });
 }
