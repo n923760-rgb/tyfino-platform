@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { buildApp } from "./app.js";
 import type { AppConfig } from "./config.js";
+import { totpCodeAt } from "./security.js";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 
@@ -22,7 +23,8 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     adminOrigin: "https://admin.test",
     tokenPepper: "test-pepper-that-is-at-least-thirty-two-characters",
     bootstrapEmail: "owner@tyfino.test",
-    bootstrapPassword: "test-password-long-enough"
+    bootstrapPassword: "test-password-long-enough",
+    ownerTotpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"
   };
   const app = await buildApp(config, db);
   try {
@@ -31,9 +33,55 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
       url: "/v1/admin/auth/login",
       payload: { email: config.bootstrapEmail, password: config.bootstrapPassword }
     });
-    assert.equal(login.statusCode, 200);
-    const cookie = login.cookies.find((item) => item.name === "tyfino_admin_session");
+    assert.equal(login.statusCode, 202);
+    assert.equal(login.cookies.length, 0);
+    const challenge = login.json() as { twoFactorRequired: boolean; challengeToken: string };
+    assert.equal(challenge.twoFactorRequired, true);
+    const validTotpCode = totpCodeAt(config.ownerTotpSecret!, Date.now());
+    assert.ok(validTotpCode);
+
+    const rejectedCode = await app.inject({
+      method: "POST",
+      url: "/v1/admin/auth/verify-totp",
+      payload: { challengeToken: challenge.challengeToken, code: validTotpCode === "000000" ? "000001" : "000000" }
+    });
+    assert.equal(rejectedCode.statusCode, 401);
+    assert.equal(rejectedCode.json().error, "invalid_two_factor_code");
+
+    const verified = await app.inject({
+      method: "POST",
+      url: "/v1/admin/auth/verify-totp",
+      payload: {
+        challengeToken: challenge.challengeToken,
+        code: validTotpCode
+      }
+    });
+    assert.equal(verified.statusCode, 200);
+    const cookie = verified.cookies.find((item) => item.name === "tyfino_admin_session");
     assert.ok(cookie);
+
+    const consumedChallenge = await app.inject({
+      method: "POST",
+      url: "/v1/admin/auth/verify-totp",
+      payload: { challengeToken: challenge.challengeToken, code: validTotpCode }
+    });
+    assert.equal(consumedChallenge.statusCode, 401);
+    assert.equal(consumedChallenge.json().error, "invalid_two_factor_challenge");
+
+    const replayLogin = await app.inject({
+      method: "POST",
+      url: "/v1/admin/auth/login",
+      payload: { email: config.bootstrapEmail, password: config.bootstrapPassword }
+    });
+    assert.equal(replayLogin.statusCode, 202);
+    const replayChallenge = replayLogin.json() as { challengeToken: string };
+    const replayedCounter = await app.inject({
+      method: "POST",
+      url: "/v1/admin/auth/verify-totp",
+      payload: { challengeToken: replayChallenge.challengeToken, code: validTotpCode }
+    });
+    assert.equal(replayedCounter.statusCode, 401);
+    assert.equal(replayedCounter.json().error, "invalid_two_factor_code");
 
     const issued = await app.inject({
       method: "POST",

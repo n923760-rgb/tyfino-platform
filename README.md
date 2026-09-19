@@ -38,7 +38,7 @@ sites/                     Existing web assets
 
 ## Current implementation and release boundary
 
-The current repository source registers licensing and administration routes only. The fresh-install schema contains installations, trials, activation codes, licensing sessions, administrators, settings, and audit records; it does not define IPTV provider-account tables. Integration tests reject a provider Host in a licensing request, verify that the former `/v1/player/config` route returns 404, and check that the fresh test database has no provider-host, provider-account, or player-session tables.
+The current repository source registers licensing and administration routes only. The fresh-install schema contains installations, trials, activation codes, licensing sessions, administrators, bounded OWNER login challenges, settings, and audit records; it does not define IPTV provider-account tables. The single V1 OWNER must complete a password-plus-TOTP login before an Admin session is issued. Integration tests reject a provider Host in a licensing request, verify that the former `/v1/player/config` route returns 404, and check that the fresh test database has no provider-host, provider-account, or player-session tables.
 
 This describes the checked-in implementation and fresh-test-database evidence, not an audit of any existing deployed database or server. Production deployment, migration of any pre-existing data, final Android identity/signing, licensing origin, and physical-device/media qualification remain unapproved or BLOCKED. Follow [`docs/deployment.md`](docs/deployment.md) before planning a deployment.
 

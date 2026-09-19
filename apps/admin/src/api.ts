@@ -8,6 +8,8 @@ export class ApiError extends Error {
 
 const messages: Record<string, string> = {
   invalid_credentials: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+  invalid_two_factor_challenge: "انتهت مهلة التحقق. ابدأ تسجيل الدخول مرة أخرى.",
+  invalid_two_factor_code: "رمز التحقق غير صحيح أو سبق استخدامه.",
   authentication_required: "انتهت الجلسة، سجّل الدخول مرة أخرى.",
   invalid_session: "انتهت الجلسة، سجّل الدخول مرة أخرى.",
   invalid_request: "تحقق من البيانات المدخلة.",
@@ -40,7 +42,13 @@ const json = (value: unknown): RequestInit => ({ body: JSON.stringify(value) });
 
 export const api = {
   me: () => request<{ admin: Admin }>("/v1/admin/me"),
-  login: (email: string, password: string) => request<{ admin: Admin }>("/v1/admin/auth/login", { method: "POST", ...json({ email, password }) }),
+  login: (email: string, password: string) => request<
+    { admin: Admin } | { twoFactorRequired: true; challengeToken: string }
+  >("/v1/admin/auth/login", { method: "POST", ...json({ email, password }) }),
+  verifyTotp: (challengeToken: string, code: string) => request<{ admin: Admin }>(
+    "/v1/admin/auth/verify-totp",
+    { method: "POST", ...json({ challengeToken, code }) }
+  ),
   logout: () => request<void>("/v1/admin/auth/logout", { method: "POST", ...json({}) }),
   health: () => request<{ status: string; database: string }>("/readyz"),
   activations: () => request<{ activationCodes: Activation[] }>("/v1/admin/activation-codes"),

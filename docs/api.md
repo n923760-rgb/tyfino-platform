@@ -207,7 +207,8 @@ Admin authentication and authorization are enforced server-side on every route.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| POST | `/v1/admin/auth/login` | Start a bounded Admin session |
+| POST | `/v1/admin/auth/login` | Verify password; issue a short-lived challenge for OWNER or a bounded non-OWNER session |
+| POST | `/v1/admin/auth/verify-totp` | Consume the OWNER TOTP challenge and start the bounded Admin session |
 | POST | `/v1/admin/auth/logout` | Revoke the current Admin session |
 | GET | `/v1/admin/me` | Return the current authorized administrator |
 | GET/POST | `/v1/admin/activation-codes` | List or create application Activation Codes |
@@ -219,7 +220,13 @@ Admin authentication and authorization are enforced server-side on every route.
 
 Forbidden Admin routes include provider hosts, provider accounts, IPTV credentials, M3U, Stalker/MAC Portal, packages, channels, streams, reseller operations, and IPTV expiry.
 
-### 5.1 Create Activation Code
+### 5.1 OWNER two-factor authentication
+
+The single V1 bootstrap OWNER must complete RFC 6238 TOTP after a correct password. Password verification creates only an opaque five-minute challenge and no session cookie. The challenge permits at most five code attempts. Successful verification consumes the challenge, records the accepted 30-second counter to prevent replay, issues the 12-hour Admin session, and writes redacted audit events. At most one prior/current/next time step is checked for clock drift; a previously accepted counter is never accepted again.
+
+`ADMIN_OWNER_TOTP_SECRET` is an RFC 4648 Base32 secret of at least 160 bits. Production configuration fails closed when it is absent or malformed. It is provisioned directly into the owner's authenticator and process secret store; it is never returned by an API, stored in PostgreSQL, logged, or committed. Admin and Support accounts remain password-authenticated in V1 and cannot perform OWNER-only operations.
+
+### 5.2 Create Activation Code
 
 Request:
 
@@ -314,6 +321,8 @@ Before implementation is merged, automated tests must prove:
 - one-year, Lifetime, expiry, revocation, and 72-hour offline limits behave as approved;
 - stale Android results cannot overwrite newer ownership;
 - Admin authorization is enforced on every route;
+- OWNER password success cannot create a session before a valid TOTP challenge is consumed;
+- expired/exhausted challenges, invalid codes, and replayed TOTP counters are rejected;
 - activation guessing is rate-limited without an existence oracle;
 - complete codes, tokens, and sensitive identifiers are absent from ordinary logs;
 - unknown IPTV/provider fields are rejected;

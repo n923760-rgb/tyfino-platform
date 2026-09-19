@@ -8,12 +8,27 @@ export type AppConfig = {
   tokenPepper: string;
   bootstrapEmail: string;
   bootstrapPassword?: string;
+  ownerTotpSecret?: string;
 };
 
 function required(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
   return value;
+}
+
+export function ownerTotpSecretForEnvironment(
+  appEnv: AppConfig["appEnv"],
+  rawValue: string | undefined
+): string | undefined {
+  const secret = rawValue?.trim().replace(/\s/g, "").toUpperCase();
+  if (secret && (!/^[A-Z2-7]{32,}$/.test(secret) || secret.includes("CHANGE"))) {
+    throw new Error("ADMIN_OWNER_TOTP_SECRET must be an RFC 4648 Base32 secret containing at least 160 bits");
+  }
+  if (appEnv === "production" && !secret) {
+    throw new Error("ADMIN_OWNER_TOTP_SECRET is required in production");
+  }
+  return secret;
 }
 
 export function loadConfig(): AppConfig {
@@ -33,6 +48,7 @@ export function loadConfig(): AppConfig {
   if (tokenPepper.length < 32 || tokenPepper.includes("CHANGE_ME")) {
     throw new Error("TOKEN_PEPPER must be at least 32 characters and changed from the example");
   }
+  const ownerTotpSecret = ownerTotpSecretForEnvironment(appEnv, process.env.ADMIN_OWNER_TOTP_SECRET);
   return {
     port,
     databaseUrl: required("DATABASE_URL"),
@@ -42,6 +58,7 @@ export function loadConfig(): AppConfig {
     adminOrigin: required("ADMIN_ORIGIN"),
     tokenPepper,
     bootstrapEmail: required("ADMIN_BOOTSTRAP_EMAIL").toLowerCase(),
-    bootstrapPassword
+    bootstrapPassword,
+    ownerTotpSecret
   };
 }
