@@ -59,6 +59,7 @@ class SettingsScreenTest {
             }
         }
 
+        compose.waitForIdle()
         compose.onNodeWithTag("open-account-switcher").assertIsFocused()
     }
 }

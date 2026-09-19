@@ -129,6 +129,7 @@ class SeriesDetailsScreenTest {
             }
         }
 
+        compose.waitForIdle()
         compose.onNodeWithTag("series-back").assertIsFocused()
     }
 

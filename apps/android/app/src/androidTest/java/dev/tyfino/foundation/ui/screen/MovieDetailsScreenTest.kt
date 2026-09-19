@@ -81,6 +81,7 @@ class MovieDetailsScreenTest {
             }
         }
 
+        compose.waitForIdle()
         compose.onNodeWithTag("movie-back").assertIsFocused()
     }
 
