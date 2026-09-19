@@ -84,6 +84,10 @@ The repository CI provisions Gradle 9.6.0 and runs:
 
 An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation smoke tests run on clean API 27 phone and API 35 tablet managed devices. This automated baseline does not replace the physical phone, Android TV/Google TV, API 24-class, media, RTL, accessibility, and performance checks in [`../../docs/android/device-qualification-v1.md`](../../docs/android/device-qualification-v1.md).
 
+## TV and D-pad focus scope
+
+Primary screens request a deterministic first focus target after attachment. Navigation destinations, horizontal content rails, season selectors, and adaptive catalog grids are focus groups so directional input visits related controls coherently; buttons and cards retain a visible focus border. Managed-device tests assert representative Settings, Movie details, and Series details entry targets. This is emulator evidence only: physical Android TV/Google TV traversal, overscan, Back behavior, playback controls, RTL, accessibility, and performance qualification remains `BLOCKED` until recorded under the device-qualification contract.
+
 ## Cached search scope
 
 Each Live, Movies, and Series destination searches only the active account's already-downloaded category snapshots. The search is local (no network fetch or background full-catalog synchronization), starts after two characters and a short debounce, and shows at most 50 matches. The UI states this limitation. Provider-wide search remains deferred.

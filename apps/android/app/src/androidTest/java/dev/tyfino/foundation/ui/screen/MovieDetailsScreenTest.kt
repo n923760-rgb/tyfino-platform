@@ -1,16 +1,21 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.window.Dialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.MovieDetails
 import dev.tyfino.foundation.xtream.MovieDetailsFailure
 import dev.tyfino.foundation.xtream.MovieDetailsState
 import org.junit.Assert.assertEquals
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,6 +23,16 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class MovieDetailsScreenTest {
     @get:Rule val compose = createComposeRule()
+
+    @Before
+    fun useDpadInputMode() {
+        InstrumentationRegistry.getInstrumentation().setInTouchMode(false)
+    }
+
+    @After
+    fun restoreTouchInputMode() {
+        InstrumentationRegistry.getInstrumentation().setInTouchMode(true)
+    }
 
     @Test
     fun rendersProviderDetailsAndUsesExplicitResumeAction() {
@@ -55,6 +70,20 @@ class MovieDetailsScreenTest {
         compose.onNodeWithText("2024 • 7.5").assertExists()
         compose.onNodeWithText("Play movie").assertExists()
         compose.onNodeWithText("No usable internet connection is available.").assertExists()
+    }
+
+    @Test
+    fun backActionReceivesInitialDpadFocus() {
+        compose.setContent {
+            Dialog(onDismissRequest = {}) {
+                MaterialTheme {
+                    MovieDetailsContent(selection(), MovieDetailsState.Loading, false, false, {}, {}, {})
+                }
+            }
+        }
+
+        compose.waitForIdle()
+        compose.onNodeWithTag("movie-back").assertIsFocused()
     }
 
     private fun selection() = MovieSelection(

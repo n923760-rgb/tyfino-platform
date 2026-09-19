@@ -11,17 +11,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 
 @Composable
 internal fun FoundationScreen(
     onOpenAccountSwitcher: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
+    val initialFocus = rememberInitialFocusRequester()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,7 +49,7 @@ internal fun FoundationScreen(
         FocusVisibleButton(
             label = stringResource(R.string.xtream_switch_account),
             onClick = onOpenAccountSwitcher,
-            modifier = Modifier.fillMaxWidth().testTag("open-account-switcher"),
+            modifier = Modifier.fillMaxWidth().focusRequester(initialFocus).testTag("open-account-switcher"),
         )
         FocusVisibleButton(
             label = stringResource(R.string.open_settings),

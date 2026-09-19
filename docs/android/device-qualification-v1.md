@@ -14,7 +14,7 @@ This document is the evidence ledger and compatibility backlog for the approved 
 | Compact phone runtime | Pixel 2 profile, AOSP API 27 | Managed-device `androidTest` | PASS |
 | Large-screen runtime | Nexus 9 profile, AOSP API 35 | Managed-device `androidTest` | PASS |
 
-The two managed devices run from clean emulator state in GitHub Actions. API 27 is the lowest API supported by Android build-managed devices; it does not replace the required API 24-class physical-device check. The CI uses software rendering as required for headless servers.
+The two managed devices run from clean emulator state in GitHub Actions. Representative instrumentation assertions cover deterministic entry focus on Settings, Movie details, and Series details, but the managed devices are phone/tablet profiles rather than TV profiles. API 27 is the lowest API supported by Android build-managed devices; it does not replace the required API 24-class physical-device check. The CI uses software rendering as required for headless servers.
 
 A passing Android CI job attaches a short-lived `tyfino-debug-*` APK artifact for manual development testing. It uses temporary debug signing and the CI default of an empty licensing-service origin; it is not a production release or a configured end-to-end IPTV test build. Record the artifact's commit and any approved local build configuration in manual evidence. Reinstalling a different CI build may require removing the prior debug app and its local state because the signing key is not stable across runners.
 
