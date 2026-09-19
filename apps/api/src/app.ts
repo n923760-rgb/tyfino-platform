@@ -7,12 +7,19 @@ import { ensureBootstrapAdmin } from "./auth.js";
 import type { AppConfig } from "./config.js";
 import type { Database } from "./db.js";
 import { LicensingError } from "./licensing.js";
+import { apiLoggerOptions, routeLabel, safeErrorSummary } from "./logging.js";
 import { registerAdminAuthRoutes } from "./routes/admin-auth.js";
 import { registerAdminRoutes } from "./routes/admin.js";
 import { registerLicensingRoutes } from "./routes/licensing.js";
 
 export async function buildApp(config: AppConfig, db: Database) {
-  const app = Fastify({ logger: { level: config.logLevel }, trustProxy: config.trustProxy, requestIdHeader: "x-request-id", bodyLimit: 64 * 1024 });
+  const app = Fastify({
+    logger: apiLoggerOptions(config.logLevel),
+    disableRequestLogging: true,
+    trustProxy: config.trustProxy,
+    requestIdHeader: "x-request-id",
+    bodyLimit: 64 * 1024
+  });
   await app.register(cookie);
   await app.register(cors, {
     origin: (origin, callback) => {
@@ -24,6 +31,13 @@ export async function buildApp(config: AppConfig, db: Database) {
   });
   await app.register(helmet, { global: true });
   await app.register(rateLimit, { global: true, max: 120, timeWindow: "1 minute" });
+  app.addHook("onResponse", async (request, reply) => {
+    request.log.info({
+      request: { method: request.method, route: routeLabel(request.routeOptions.url) },
+      response: { statusCode: reply.statusCode },
+      responseTimeMs: reply.elapsedTime
+    }, "Request completed");
+  });
   app.addHook("onRequest", async (request, reply) => {
     if (!request.url.startsWith("/v1/admin/")) return;
     const origin = request.headers.origin;
@@ -52,7 +66,7 @@ export async function buildApp(config: AppConfig, db: Database) {
       }
       return { status: "ready", database: "connected", schema: "current" };
     } catch (error) {
-      app.log.error({ error }, "Database readiness check failed");
+      app.log.error({ error: safeErrorSummary(error) }, "Database readiness check failed");
       return reply.code(503).send({ status: "not_ready" });
     }
   });
@@ -66,7 +80,7 @@ export async function buildApp(config: AppConfig, db: Database) {
       return reply.code(error.statusCode).send({ serverTime: new Date().toISOString(), requestId: request.id,
         error: { code: error.code, message: error.code, retryable: error.retryable } });
     }
-    request.log.error({ error }, "Unhandled request error");
+    request.log.error({ error: safeErrorSummary(error) }, "Unhandled request error");
     return reply.code(500).send({ error: "internal_error", requestId: request.id });
   });
   return app;
