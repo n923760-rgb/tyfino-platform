@@ -11,6 +11,8 @@ coverage/
 .vscode/
 backups/
 *.sql.gz
+*.dump
+*.dump.sha256
 *.pem
 *.key
 secrets/

@@ -40,3 +40,12 @@ Deployment planning must not begin until:
 Earlier VPS, DNS, Docker, and Caddy instructions are not authoritative for the current foundation. They may be reconsidered later only after the entry gate is satisfied.
 
 No DNS record, server, domain, tag, release, or deployment is changed by this document.
+
+## PostgreSQL backup and restore evidence
+
+The repository provides two Linux/PostgreSQL-client scripts:
+
+- `database/scripts/create-backup.sh` creates a restrictive-permission custom-format dump, validates its catalog, and writes a SHA-256 checksum without overwriting an existing backup.
+- `database/scripts/verify-backup-restore.sh` verifies that checksum, restores into a new disposable database whose name must start with `tyfino_restore_`, checks required tables and the audit hash chain, confirms audit mutation rejection, and removes only that disposable database.
+
+CI runs both scripts against PostgreSQL 16 on every change. This is repeatable restore evidence for the current schema; it does not approve a production backup location, retention period, encryption/key policy, schedule, recovery-point objective, or recovery-time objective. Those choices remain **OPEN**, and a production-target restore drill remains **BLOCKED** until the hosting and data-retention decisions are approved.

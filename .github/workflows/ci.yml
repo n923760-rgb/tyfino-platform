@@ -76,6 +76,44 @@ jobs:
       - name: Build
         run: npm run build
 
+  database-backup-restore:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: tyfino_backup_source
+          POSTGRES_USER: tyfino
+          POSTGRES_PASSWORD: tyfino_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tyfino -d tyfino_backup_source"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://tyfino:tyfino_test_password@127.0.0.1:5432/tyfino_backup_source
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: tyfino
+      PGPASSWORD: tyfino_test_password
+      RESTORE_DATABASE: tyfino_restore_ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Initialize representative database
+        run: |
+          psql "$DATABASE_URL" --set=ON_ERROR_STOP=1 --file=database/init/001_schema.sql
+          psql "$DATABASE_URL" --set=ON_ERROR_STOP=1 --command="INSERT INTO audit_logs (action, entity_type, metadata) VALUES ('backup.seed', 'database', '{\"source\":\"ci\"}'::jsonb)"
+      - name: Create validated backup
+        run: |
+          backup_directory=$(mktemp -d)
+          echo "BACKUP_FILE=$backup_directory/tyfino.dump" >> "$GITHUB_ENV"
+          database/scripts/create-backup.sh "$backup_directory/tyfino.dump"
+      - name: Restore and verify backup
+        run: database/scripts/verify-backup-restore.sh "$BACKUP_FILE"
+
   android:
     runs-on: ubuntu-latest
     defaults:
