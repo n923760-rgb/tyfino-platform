@@ -76,6 +76,7 @@ The repository CI provisions Gradle 9.6.0 and runs:
 
 ```shell
 ./gradlew --no-daemon :app:assembleDebug
+./gradlew --no-daemon :app:assembleRelease
 ./gradlew --no-daemon :app:testDebugUnitTest
 ./gradlew --no-daemon :app:lintDebug
 ./gradlew --no-daemon :app:phoneApi27DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
@@ -83,6 +84,8 @@ The repository CI provisions Gradle 9.6.0 and runs:
 ```
 
 An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation smoke tests run on clean API 27 phone and API 35 tablet managed devices. This automated baseline does not replace the physical phone, Android TV/Google TV, API 24-class, media, RTL, accessibility, and performance checks in [`../../docs/android/device-qualification-v1.md`](../../docs/android/device-qualification-v1.md).
+
+The Release variant runs R8 code optimization and resource shrinking in CI. Its output remains unsigned and keeps the development identity and empty default licensing origin; it is build evidence only, not a distributable production artifact. Production signing material must never be committed.
 
 ## TV and D-pad focus scope
 
