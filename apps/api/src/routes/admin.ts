@@ -163,13 +163,13 @@ export async function registerAdminRoutes(app: FastifyInstance, db: Database, co
 
   app.get("/v1/admin/audit-logs", async (request, reply) => {
     if (!(await requireAdmin(request, reply, db, config, ["owner", "admin"]))) return;
-    const result = await db.query(
+    const [result, integrity] = await Promise.all([db.query(
       `SELECT al.id, al.action, al.entity_type AS "entityType", al.entity_id AS "entityId",
               al.metadata, al.ip_address AS "ipAddress", al.created_at AS "createdAt",
               a.email AS "adminEmail"
          FROM audit_logs al LEFT JOIN admins a ON a.id = al.admin_id
         ORDER BY al.created_at DESC LIMIT 1000`
-    );
-    return { auditLogs: result.rows };
+    ), db.query<{ valid: boolean }>("SELECT verify_audit_log_chain() AS valid")]);
+    return { auditLogs: result.rows, integrityVerified: integrity.rows[0]?.valid === true };
   });
 }

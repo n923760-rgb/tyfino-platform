@@ -137,7 +137,7 @@ Development may continue with provisional identity values, but no production APK
 2. **Signing:** production signing key, controlled access, verified backup, and recovery procedure.
 3. **Production origin:** approved HTTPS licensing domain and environment configuration.
 4. **Operations:** health checks, secret management, PostgreSQL backup plus tested restore, log rotation, rate limiting, rollback procedure, and session revocation.
-5. **Admin security:** OWNER TOTP is implemented; secure secret provisioning plus append-only/tamper-evident audit handling must be qualified before internet-facing production use.
+5. **Admin security:** OWNER TOTP and a database-enforced append-only SHA-256 audit chain are implemented; secure secret provisioning, external integrity anchoring/monitoring, and privileged-database controls must be qualified before internet-facing production use.
 6. **Qualification:** physical phone and Android TV/Google TV testing, touch and D-pad, RTL/LTR, accessibility, media tracks/subtitles, low-memory behavior, and performance.
 
 Certificate pinning, Kubernetes, analytics/CRM, and crash SDKs are not V1 release requirements. Correct HTTPS, bounded behavior, backups, and qualification come first.

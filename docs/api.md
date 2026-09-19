@@ -226,6 +226,8 @@ The single V1 bootstrap OWNER must complete RFC 6238 TOTP after a correct passwo
 
 `ADMIN_OWNER_TOTP_SECRET` is an RFC 4648 Base32 secret of at least 160 bits. Production configuration fails closed when it is absent or malformed. It is provisioned directly into the owner's authenticator and process secret store; it is never returned by an API, stored in PostgreSQL, logged, or committed. Admin and Support accounts remain password-authenticated in V1 and cannot perform OWNER-only operations.
 
+Audit inserts are serialized into an append-only SHA-256 chain inside PostgreSQL. The API recomputes the chain before returning audit history and includes `integrityVerified`; the Admin UI raises an assertive warning when verification fails. Database triggers reject ordinary `UPDATE` and `DELETE` statements. This detects and blocks application-role mutation, but it does not protect against a privileged database owner who can disable triggers and recompute the chain; production monitoring and an external integrity anchor remain operations work.
+
 ### 5.2 Create Activation Code
 
 Request:
@@ -323,6 +325,7 @@ Before implementation is merged, automated tests must prove:
 - Admin authorization is enforced on every route;
 - OWNER password success cannot create a session before a valid TOTP challenge is consumed;
 - expired/exhausted challenges, invalid codes, and replayed TOTP counters are rejected;
+- ordinary audit-row updates/deletes are rejected and the full hash chain verifies after administrative workflows;
 - activation guessing is rate-limited without an existence oracle;
 - complete codes, tokens, and sensitive identifiers are absent from ordinary logs;
 - unknown IPTV/provider fields are rejected;
