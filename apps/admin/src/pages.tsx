@@ -146,7 +146,7 @@ export function SettingsPage({ notify, role }: { notify: Notify; role: Admin["ro
 
 export function AuditPage() {
   const { data, error } = useData(async () => (await api.auditLogs()).auditLogs);
-  const action: Record<string, string> = { "admin.login": "تسجيل دخول", "admin.logout": "تسجيل خروج", "activation.create": "إنشاء كود", "activation.revoke": "إلغاء كود", "activation.reset_device": "تغيير الجهاز", "settings.update": "تحديث الإعدادات" };
+  const action: Record<string, string> = { "admin.login": "تسجيل دخول", "admin.login_2fa_challenge": "بدء تحقق بخطوتين", "admin.login_2fa_failed": "فشل تحقق بخطوتين", "admin.logout": "تسجيل خروج", "activation.create": "إنشاء كود", "activation.revoke": "إلغاء كود", "activation.reset_device": "تغيير الجهاز", "settings.update": "تحديث الإعدادات" };
   return <><PageHeader title="سجل العمليات" description="أثر تدقيقي للعمليات الإدارية الحساسة." />
     {error ? <EmptyState title="تعذر تحميل السجل" text={error} /> : !data ? <Loading /> : data.length === 0 ? <EmptyState title="السجل فارغ" text="ستظهر العمليات الإدارية هنا تلقائيًا." /> : <div className="timeline">{data.map((item: AuditLog) => <article key={item.id}><span className="timeline-dot" /><div><strong>{action[item.action] ?? item.action}</strong><p>{item.adminEmail || "النظام"} · {item.ipAddress || "—"}</p></div><time>{formatDate(item.createdAt)}</time></article>)}</div>}
   </>;

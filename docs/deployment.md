@@ -30,6 +30,7 @@ Deployment planning must not begin until:
 3. Licensing and trial contracts are approved.
 4. Production endpoints and hosting details are explicitly approved.
 5. Secrets, backups, restoration, monitoring, and rollback are designed and tested.
+   OWNER TOTP provisioning must use a unique `ADMIN_OWNER_TOTP_SECRET` from the production secret store; no secret or provisioning URI may enter source control, logs, screenshots, or support messages.
 6. Android identity, versioning, signing, and release policy are approved.
 7. CI and security qualification are `PASS`; `BLOCKED` is not `PASS`.
 

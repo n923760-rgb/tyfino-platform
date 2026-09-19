@@ -24,19 +24,35 @@ function Brand({ compact = false }: { compact?: boolean }) {
 function Login({ onLogin }: { onLogin: (admin: Admin) => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [challengeToken, setChallengeToken] = useState("");
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
     const values = Object.fromEntries(new FormData(event.currentTarget));
-    try { onLogin((await api.login(String(values.email), String(values.password))).admin); }
+    try {
+      const result = await api.login(String(values.email), String(values.password));
+      if ("admin" in result) onLogin(result.admin);
+      else setChallengeToken(result.challengeToken);
+    }
+    catch (reason) { setError(errorMessage(reason)); }
+    finally { setBusy(false); }
+  }
+  async function verify(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setBusy(true); setError("");
+    const code = String(new FormData(event.currentTarget).get("code") ?? "").replace(/\s/g, "");
+    try { onLogin((await api.verifyTotp(challengeToken, code)).admin); }
     catch (reason) { setError(errorMessage(reason)); }
     finally { setBusy(false); }
   }
   return <main className="login-screen">
     <section className="login-brand" aria-label="TYFINO Control"><div className="brand-orb">T</div><p>TYFINO <b>CONTROL</b></p><h1>التراخيص.<br />بوضوح كامل.</h1><small>لوحة خاصة لإدارة تفعيل تطبيق TYFINO فقط.</small></section>
-    <section className="login-card"><Brand /><div className="login-copy"><span className="eyebrow">لوحة الإدارة</span><h2>تسجيل الدخول</h2><p>أدخل بيانات حسابك الإداري.</p></div>
-      <form className="form" onSubmit={submit}><Field label="البريد الإلكتروني"><input className="ltr" type="email" name="email" autoComplete="username" required autoFocus /></Field>
+    <section className="login-card"><Brand /><div className="login-copy"><span className="eyebrow">لوحة الإدارة</span><h2>{challengeToken ? "التحقق بخطوتين" : "تسجيل الدخول"}</h2><p>{challengeToken ? "أدخل الرمز الحالي من تطبيق المصادقة الخاص بالمالك." : "أدخل بيانات حسابك الإداري."}</p></div>
+      {challengeToken ? <form className="form" onSubmit={verify}>
+        <Field label="رمز التحقق"><input className="ltr" type="text" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" minLength={6} maxLength={6} required autoFocus /></Field>
+        {error && <div className="form-error" role="alert">{error}</div>}<Button type="submit" busy={busy}>تحقق ودخول</Button>
+        <Button type="button" variant="secondary" disabled={busy} onClick={() => { setChallengeToken(""); setError(""); }}>العودة لتسجيل الدخول</Button>
+      </form> : <form className="form" onSubmit={submit}><Field label="البريد الإلكتروني"><input className="ltr" type="email" name="email" autoComplete="username" required autoFocus /></Field>
         <Field label="كلمة المرور"><input className="ltr" type="password" name="password" autoComplete="current-password" required /></Field>
-        {error && <div className="form-error" role="alert">{error}</div>}<Button type="submit" busy={busy}>تسجيل الدخول</Button></form>
+        {error && <div className="form-error" role="alert">{error}</div>}<Button type="submit" busy={busy}>تسجيل الدخول</Button></form>}
       <footer><span className="health-dot ok" /> جلسة إدارية محمية</footer></section>
   </main>;
 }

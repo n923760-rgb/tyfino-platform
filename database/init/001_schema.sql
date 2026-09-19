@@ -8,8 +8,21 @@ CREATE TABLE admins (
   password_hash text NOT NULL,
   role text NOT NULL DEFAULT 'admin' CHECK (role IN ('owner', 'admin', 'support')),
   is_active boolean NOT NULL DEFAULT true,
+  last_totp_counter bigint,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE admin_login_challenges (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_id uuid NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+  token_hash text NOT NULL UNIQUE,
+  attempts smallint NOT NULL DEFAULT 0 CHECK (attempts BETWEEN 0 AND 5),
+  ip_address inet,
+  user_agent text,
+  expires_at timestamptz NOT NULL,
+  consumed_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE admin_sessions (
@@ -96,6 +109,8 @@ CREATE TABLE audit_logs (
 );
 
 CREATE INDEX admin_sessions_expiry_idx ON admin_sessions(expires_at) WHERE revoked_at IS NULL;
+CREATE UNIQUE INDEX admins_single_owner_idx ON admins ((role)) WHERE role = 'owner';
+CREATE INDEX admin_login_challenges_expiry_idx ON admin_login_challenges(expires_at) WHERE consumed_at IS NULL;
 CREATE INDEX activation_codes_status_idx ON activation_codes(status, grant_expires_at);
 CREATE INDEX license_sessions_installation_idx ON license_sessions(installation_id);
 CREATE INDEX license_sessions_expiry_idx ON license_sessions(expires_at) WHERE revoked_at IS NULL;
