@@ -41,7 +41,7 @@ class XtreamMovieDetailsTest {
 
     @Test
     fun parserDoesNotPersistCredentialBearingArtwork() {
-        val result = parse("""{"info":{"movie_image":"https://cdn.example/u/picture.jpg"}}""")
+        val result = parse("""{"info":{"movie_image":"https://cdn.example/credential-user/picture.jpg"}}""")
         assertNull((result as MovieDetailsResult.Success).details.posterUrl)
     }
 
@@ -49,7 +49,7 @@ class XtreamMovieDetailsTest {
         val account = SavedXtreamAccount(
             accountId = "account-a", generation = 1,
             endpoint = ProviderEndpoint("https://provider.example", false),
-            username = "u", password = "p", cleartextConsent = false,
+            username = "credential-user", password = "credential-password", cleartextConsent = false,
         )
         return XtreamMovieDetailsParser().parse(StringReader(json), account.accountId, "42", CatalogArtworkPolicy(account))
     }
