@@ -65,6 +65,7 @@ import dev.tyfino.foundation.playback.BoundedRedirectDataSource
 import dev.tyfino.foundation.playback.EpisodePlaybackSelection
 import dev.tyfino.foundation.playback.EpisodeResumeLoadResult
 import dev.tyfino.foundation.playback.EpisodeResumeRepository
+import dev.tyfino.foundation.playback.EpisodeHistoryRepository
 import dev.tyfino.foundation.playback.CatalogHistoryRepository
 import dev.tyfino.foundation.playback.MovieResumeLoadResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
@@ -194,6 +195,7 @@ internal fun EpisodePlaybackScreen(
     seriesRepository: SeriesDetailsRepository,
     resumeRepository: MovieResumeRepository,
     episodeResumeRepository: EpisodeResumeRepository,
+    episodeHistoryRepository: EpisodeHistoryRepository,
     previousLiveChannelController: PreviousLiveChannelController,
     onBack: () -> Unit,
 ) {
@@ -282,6 +284,7 @@ internal fun EpisodePlaybackScreen(
             onBack = onBack,
             episodeSelection = state.episodeSelection,
             episodeResumeRepository = episodeResumeRepository,
+            episodeHistoryRepository = episodeHistoryRepository,
         )
     }
 }
@@ -300,6 +303,7 @@ private fun PlayerSurface(
     onBack: () -> Unit,
     episodeSelection: EpisodePlaybackSelection? = null,
     episodeResumeRepository: EpisodeResumeRepository? = null,
+    episodeHistoryRepository: EpisodeHistoryRepository? = null,
     catalogHistoryRepository: CatalogHistoryRepository? = null,
     liveEpgRepository: LiveEpgRepository? = null,
 ) {
@@ -429,7 +433,14 @@ private fun PlayerSurface(
         }
     }
 
-    DisposableEffect(lifecycleOwner, reference, cleartextConsent, retryAttempt, catalogHistoryRepository) {
+    DisposableEffect(
+        lifecycleOwner,
+        reference,
+        cleartextConsent,
+        retryAttempt,
+        catalogHistoryRepository,
+        episodeHistoryRepository,
+    ) {
         var releasing = false
         var recordedStart = false
         fun releasePlayer() {
@@ -473,7 +484,10 @@ private fun PlayerSurface(
                     if (!releasing && !exitRequested) persistImmediately(snapshot(current))
                 },
                 onPlaying = {
-                    if (!recordedStart && catalogHistoryRepository != null && selection.section != CatalogSection.Series) {
+                    if (!recordedStart && episodeSelection != null && episodeHistoryRepository != null) {
+                        recordedStart = true
+                        scope.launch { episodeHistoryRepository.recordStarted(episodeSelection) }
+                    } else if (!recordedStart && catalogHistoryRepository != null && selection.section != CatalogSection.Series) {
                         recordedStart = true
                         scope.launch { catalogHistoryRepository.recordStarted(selection) }
                     }

@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the licensing, multiple-account Xtream authentication, catalog, artwork, playback, Movie details, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. The account portfolio follows [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md). Provider-wide search, Series episode history, final branding, and release configuration remain separate work.
+This directory contains the native Android client foundation and the licensing, multiple-account Xtream authentication, catalog, artwork, playback, Movie details, Series episodes, resume, cached-catalog search, favorites, Live/Movie/episode recent-history, and on-demand Live EPG slices. The account portfolio follows [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md). Provider-wide search, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -94,7 +94,7 @@ Live, Movies, and Series items can be added to an account-scoped local favorites
 
 ## Recent-history scope
 
-Live channels and Movies are recorded only after the foreground player reaches actual playback. A separate account-scoped local store retains at most 100 recent IDs across these sections and stores no titles, artwork, playback URLs, or credentials. The section's Recently watched filter rejoins only current downloaded catalog metadata; missing items stay hidden. Series episode history remains deferred, independently of episode resume and Continue Watching.
+Live channels, Movies, and Series episodes are recorded only after the foreground player reaches actual playback. Separate account-scoped stores retain at most 100 recent identities and store no titles, artwork, playback URLs, or credentials. Live/Movie history rejoins current downloaded catalog metadata; episode history rejoins the current published Series generation and is shown independently from resume-based Continue Watching. Missing or stale items stay hidden.
 
 ## Live EPG scope
 
@@ -112,4 +112,4 @@ Selecting a Movie opens an explicit details destination instead of starting play
 
 ## Deferred contracts
 
-Full physical-device/TV qualification, release identity/signing, provider-wide search, Series episode history, and other deferred playback capabilities require their own approved work. Movie details and Series episode playback, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.
+Full physical-device/TV qualification, release identity/signing, provider-wide search, and other deferred playback capabilities require their own approved work. Movie details and Series episode playback, history, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.

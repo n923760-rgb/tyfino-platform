@@ -54,6 +54,9 @@ import dev.tyfino.foundation.playback.CatalogHistoryListResult
 import dev.tyfino.foundation.playback.CatalogHistoryRepository
 import dev.tyfino.foundation.playback.EpisodeResumeListResult
 import dev.tyfino.foundation.playback.EpisodeResumeRepository
+import dev.tyfino.foundation.playback.EpisodeHistoryListResult
+import dev.tyfino.foundation.playback.EpisodeHistoryRepository
+import dev.tyfino.foundation.playback.SeriesHistoryItem
 import dev.tyfino.foundation.playback.SeriesContinueWatchingItem
 import dev.tyfino.foundation.playback.MovieResumeListResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
@@ -79,7 +82,9 @@ internal fun CatalogScreen(
     resumeRepository: MovieResumeRepository,
     onPlay: (CatalogItem) -> Unit,
     episodeResumeRepository: EpisodeResumeRepository? = null,
+    episodeHistoryRepository: EpisodeHistoryRepository? = null,
     onResumeEpisode: (SeriesContinueWatchingItem) -> Unit = {},
+    onPlayHistoryEpisode: (SeriesHistoryItem) -> Unit = {},
     favoritesRepository: CatalogFavoritesRepository? = null,
     historyRepository: CatalogHistoryRepository? = null,
 ) {
@@ -93,6 +98,7 @@ internal fun CatalogScreen(
     }
     var continueWatching by remember(section) { mutableStateOf(emptyList<ContinueWatchingItem>()) }
     var seriesContinueWatching by remember(section) { mutableStateOf(emptyList<SeriesContinueWatchingItem>()) }
+    var seriesHistory by remember(section) { mutableStateOf(emptyList<SeriesHistoryItem>()) }
     var searchText by remember(section) { mutableStateOf("") }
     var searchResult by remember(section) { mutableStateOf<CatalogSearchResult?>(null) }
     val searchActive = searchText.trim().codePointCount(0, searchText.trim().length) >= 2
@@ -168,10 +174,25 @@ internal fun CatalogScreen(
         } else emptyList()
     }
 
-    DisposableEffect(lifecycleOwner, historyRepository, section) {
+    DisposableEffect(lifecycleOwner, historyRepository, episodeHistoryRepository, section) {
         fun refreshHistory() {
-            if (historyRepository != null && section != CatalogSection.Series) {
-                scope.launch { historyState = historyRepository.recent(section) }
+            scope.launch {
+                if (historyRepository != null && section != CatalogSection.Series) {
+                    historyState = historyRepository.recent(section)
+                } else if (episodeHistoryRepository != null && section == CatalogSection.Series) {
+                    seriesHistory = when (val result = episodeHistoryRepository.recent()) {
+                        is EpisodeHistoryListResult.Ready -> {
+                            val ids = result.items.mapTo(linkedSetOf()) { it.episode.providerSeriesId }
+                            val current = repository.cachedItems(CatalogSection.Series, ids).associateBy { it.providerId }
+                            result.items.map { item ->
+                                current[item.episode.providerSeriesId]?.let {
+                                    item.copy(seriesTitle = it.name, seriesArtworkUrl = it.artworkUrl)
+                                } ?: item
+                            }
+                        }
+                        EpisodeHistoryListResult.Failure -> emptyList()
+                    }
+                }
             }
         }
         val observer = LifecycleEventObserver { _, event ->
@@ -324,6 +345,9 @@ internal fun CatalogScreen(
         if (seriesContinueWatching.isNotEmpty()) {
             SeriesContinueWatchingStrip(seriesContinueWatching, onResumeEpisode)
         }
+        if (seriesHistory.isNotEmpty()) {
+            SeriesHistoryStrip(seriesHistory, onPlayHistoryEpisode)
+        }
 
         CategoryStrip(
             state = categories,
@@ -432,6 +456,36 @@ private fun SeriesContinueWatchingStrip(
                     label = listOfNotNull(item.seriesTitle, item.episode.title).filter { it.isNotBlank() }.joinToString(" • "),
                     supporting = item.progressPercent?.let { stringResource(R.string.continue_watching_progress, it) }
                         ?: stringResource(R.string.continue_watching_resume),
+                    selected = false,
+                    onClick = { onPlay(item) },
+                    modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
+                    showArtwork = true,
+                    artworkUrl = item.seriesArtworkUrl,
+                    artworkAspectRatio = POSTER_ASPECT_RATIO,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun SeriesHistoryStrip(
+    records: List<SeriesHistoryItem>,
+    onPlay: (SeriesHistoryItem) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth().testTag("series-history"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(stringResource(R.string.series_history_title), style = MaterialTheme.typography.titleLarge)
+        LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(records, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
+                val episodeLabel = item.episode.title?.takeIf(String::isNotBlank)
+                    ?: item.episode.episodeNumber?.let { stringResource(R.string.series_episode_number, it) }
+                    ?: stringResource(R.string.series_episode_order, item.episode.providerOrder + 1)
+                CatalogTile(
+                    label = listOf(item.seriesTitle, episodeLabel).filter(String::isNotBlank).joinToString(" • "),
+                    supporting = stringResource(R.string.series_history_play),
                     selected = false,
                     onClick = { onPlay(item) },
                     modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
