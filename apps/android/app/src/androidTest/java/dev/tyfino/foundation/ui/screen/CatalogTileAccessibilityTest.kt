@@ -43,6 +43,28 @@ class CatalogTileAccessibilityTest {
     }
 
     @Test
+    fun artworkPlaceholderDoesNotReplaceCardDescription() {
+        compose.setContent {
+            MaterialTheme {
+                CatalogTile(
+                    label = "Featured",
+                    supporting = "2026",
+                    selected = false,
+                    onClick = {},
+                    modifier = Modifier.testTag("catalog-tile"),
+                    showArtwork = true,
+                    artworkUrl = null,
+                )
+            }
+        }
+
+        compose.onNodeWithTag("catalog-tile")
+            .assertContentDescriptionEquals("Featured, 2026")
+        compose.onNodeWithTag("catalog-artwork-placeholder", useUnmergedTree = true)
+            .assertExists()
+    }
+
+    @Test
     fun exposesCatalogFilterSelectionState() {
         compose.setContent {
             MaterialTheme {

@@ -1,6 +1,6 @@
 # TYFINO Android foundation
 
-This directory contains the native Android client foundation and the licensing, multiple-account Xtream authentication, catalog, playback, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. The account portfolio follows [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md). Provider-wide search, Series episode history, final branding, and release configuration remain separate work.
+This directory contains the native Android client foundation and the licensing, multiple-account Xtream authentication, catalog, artwork, playback, Series episodes, resume, cached-catalog search, favorites, Live/Movie recent-history, and on-demand Live EPG slices. The account portfolio follows [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md). Provider-wide search, Movie details, Series episode history, final branding, and release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -99,6 +99,12 @@ Live channels and Movies are recorded only after the foreground player reaches a
 ## Live EPG scope
 
 The player opens the selected Live channel's program guide only when requested. A direct per-channel provider request updates an account-owned, bounded cache; playback does not wait for guide data. The dialog shows current/next programs and a lazy schedule with localized loading, empty, stale, and error states. Closing it or changing channels invalidates older results, and account removal clears the EPG cache. Physical TV D-pad, RTL, accessibility, media, and performance qualification remains BLOCKED until recorded under the device-qualification contract.
+
+## Catalog artwork scope
+
+Catalog cards render already-validated artwork references lazily through one application-owned image loader. Live uses a landscape frame; Movies and Series use a poster frame. A local placeholder remains visible for missing, rejected, slow, redirected, oversized, or failed images, and the card stays navigable without waiting for artwork.
+
+Artwork networking has bounded concurrency and timeouts, rejects redirects, limits a response to 8 MiB even when Content-Length is absent, and uses an 8% memory-cache ceiling plus a 64 MiB disk-cache ceiling. Artwork is decorative: the card label and supporting metadata remain the accessibility description. Physical low-memory TV, provider/CDN, RTL, and D-pad qualification remains BLOCKED.
 
 ## Deferred contracts
 

@@ -34,6 +34,7 @@ internal data class SeriesContinueWatchingItem(
     val accountGeneration: Long,
     val positionMillis: Long,
     val durationMillis: Long?,
+    val seriesArtworkUrl: String? = null,
 ) {
     val progressPercent: Int?
         get() = durationMillis?.takeIf { it > 0L }?.let { ((positionMillis.toDouble() / it) * 100).toInt().coerceIn(0, 100) }

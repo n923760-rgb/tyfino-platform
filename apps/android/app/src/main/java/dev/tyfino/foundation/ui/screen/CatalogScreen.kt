@@ -2,7 +2,9 @@ package dev.tyfino.foundation.ui.screen
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.Lifecycle
@@ -44,6 +47,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.ContinueWatchingItem
 import dev.tyfino.foundation.playback.CatalogHistoryListResult
@@ -154,7 +158,9 @@ internal fun CatalogScreen(
                     val ids = result.items.mapTo(linkedSetOf()) { it.episode.providerSeriesId }
                     val current = repository.cachedItems(CatalogSection.Series, ids).associateBy { it.providerId }
                     result.items.mapNotNull { item ->
-                        current[item.episode.providerSeriesId]?.let { item.copy(seriesTitle = it.name) }
+                        current[item.episode.providerSeriesId]?.let {
+                            item.copy(seriesTitle = it.name, seriesArtworkUrl = it.artworkUrl)
+                        }
                     }
                 }
                 EpisodeResumeListResult.Failure -> emptyList()
@@ -401,6 +407,9 @@ private fun ContinueWatchingStrip(
                     selected = false,
                     onClick = { onPlay(record.catalogItem) },
                     modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
+                    showArtwork = true,
+                    artworkUrl = record.catalogItem.artworkUrl,
+                    artworkAspectRatio = POSTER_ASPECT_RATIO,
                 )
             }
         }
@@ -426,6 +435,9 @@ private fun SeriesContinueWatchingStrip(
                     selected = false,
                     onClick = { onPlay(item) },
                     modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
+                    showArtwork = true,
+                    artworkUrl = item.seriesArtworkUrl,
+                    artworkAspectRatio = POSTER_ASPECT_RATIO,
                 )
             }
         }
@@ -529,6 +541,9 @@ private fun ItemGrid(
                     selected = false,
                     onClick = { onPlay(item) },
                     modifier = Modifier.fillMaxWidth(),
+                    showArtwork = true,
+                    artworkUrl = item.artworkUrl,
+                    artworkAspectRatio = section.artworkAspectRatio(),
                 )
                 if (onToggleFavorite != null) {
                     val isFavorite = item.providerId in favoriteIds
@@ -556,6 +571,9 @@ internal fun CatalogTile(
     supporting: String = "",
     enabled: Boolean = true,
     exposeSelectionState: Boolean = false,
+    showArtwork: Boolean = false,
+    artworkUrl: String? = null,
+    artworkAspectRatio: Float = LANDSCAPE_ARTWORK_ASPECT_RATIO,
 ) {
     var focused by remember { mutableStateOf(false) }
     Card(
@@ -587,9 +605,35 @@ internal fun CatalogTile(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(if (showArtwork) 10.dp else 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            if (showArtwork) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(artworkAspectRatio)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .testTag("catalog-artwork-placeholder"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = label.trim().take(1).ifEmpty { "•" },
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (artworkUrl != null) {
+                        AsyncImage(
+                            model = artworkUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .testTag("catalog-artwork"),
+                        )
+                    }
+                }
+            }
             Text(text = label, style = MaterialTheme.typography.titleMedium, maxLines = 2)
             if (supporting.isNotEmpty()) {
                 Text(
@@ -697,6 +741,14 @@ private fun CatalogSection.titleResource(): Int = when (this) {
     CatalogSection.Movies -> R.string.catalog_movies_title
     CatalogSection.Series -> R.string.catalog_series_title
 }
+
+private fun CatalogSection.artworkAspectRatio(): Float = when (this) {
+    CatalogSection.Live -> LANDSCAPE_ARTWORK_ASPECT_RATIO
+    CatalogSection.Movies, CatalogSection.Series -> POSTER_ASPECT_RATIO
+}
+
+private const val LANDSCAPE_ARTWORK_ASPECT_RATIO = 16f / 9f
+private const val POSTER_ASPECT_RATIO = 2f / 3f
 
 @StringRes
 private fun CatalogFailure.messageResource(): Int = when (this) {
