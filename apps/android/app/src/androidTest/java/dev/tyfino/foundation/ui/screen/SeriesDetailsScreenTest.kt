@@ -13,6 +13,7 @@ import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -129,7 +130,10 @@ class SeriesDetailsScreenTest {
             }
         }
 
-        compose.waitForIdle()
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithTag("series-back").fetchSemanticsNodes()
+                .any { it.config.getOrNull(SemanticsProperties.Focused) == true }
+        }
         compose.onNodeWithTag("series-back").assertIsFocused()
     }
 

@@ -2,8 +2,10 @@ package dev.tyfino.foundation.ui.screen
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -81,7 +83,10 @@ class MovieDetailsScreenTest {
             }
         }
 
-        compose.waitForIdle()
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithTag("movie-back").fetchSemanticsNodes()
+                .any { it.config.getOrNull(SemanticsProperties.Focused) == true }
+        }
         compose.onNodeWithTag("movie-back").assertIsFocused()
     }
 
