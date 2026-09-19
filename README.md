@@ -42,6 +42,8 @@ The current repository source registers licensing and administration routes only
 
 This describes the checked-in implementation and fresh-test-database evidence, not an audit of any existing deployed database or server. Production deployment, migration of any pre-existing data, final Android identity/signing, licensing origin, and physical-device/media qualification remain unapproved or BLOCKED. Follow [`docs/deployment.md`](docs/deployment.md) before planning a deployment.
 
+The current repository-to-V1 comparison is recorded in [`docs/v1-gap-audit-2026-09-19.md`](docs/v1-gap-audit-2026-09-19.md).
+
 ## Decision vocabulary
 
 - **DECIDED**: mandatory and authoritative.
