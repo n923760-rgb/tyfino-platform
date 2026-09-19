@@ -53,4 +53,6 @@ This describes the checked-in implementation and fresh-test-database evidence, n
 
 Scoped approved contracts override general documents for their scope. Architecture and security documents override component READMEs. When documentation and implementation disagree, report the mismatch; do not silently change production behavior.
 
+The approved general baseline is [`docs/architecture.md`](docs/architecture.md), with data boundaries defined by [`docs/data-ownership.md`](docs/data-ownership.md).
+
 Read `AGENTS.md`, then read the relevant files under `docs/` before repository work.

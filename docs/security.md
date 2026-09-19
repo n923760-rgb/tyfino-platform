@@ -1,7 +1,8 @@
 # TYFINO Security & Privacy Baseline
 
-Status: PROPOSED — awaiting approval  
-Last reviewed: 2026-09-08
+Status: APPROVED BASELINE
+
+Last reviewed: 2026-09-19
 
 ## Mandatory boundaries
 
@@ -20,17 +21,14 @@ The following are **DECIDED**:
 
 ## Android credential handling
 
-Host, Username, and Password are sensitive. The Android credential-storage mechanism is **OPEN** pending a platform-supported design and recovery requirements.
-
-Until approved:
+Host, Username, and Password are sensitive. The approved implementation uses a versioned AES-GCM portfolio protected by Android Keystore and excluded from backup.
 
 - no plaintext persistence is authorized;
 - no credential backup or cloud sync is authorized;
-- no custom encryption wrapper is authorized;
 - no support export may contain credentials;
-- no crash or analytics SDK may receive credential-bearing context.
-
-Whether user-supplied cleartext HTTP provider Hosts are supported is **OPEN**. Global cleartext enablement is not authorized.
+- no crash or analytics SDK may receive credential-bearing context;
+- a user-entered HTTP provider requires explicit interception-risk confirmation;
+- automatic HTTPS downgrade, global unscoped cleartext enablement, custom trust stores, and TLS bypass are forbidden.
 
 ## Licensing security
 
@@ -41,7 +39,7 @@ The following are **DECIDED**:
 - Application licensing state must remain independent from IPTV subscription state.
 - The backend must not infer, validate, store, or administer IPTV subscription credentials.
 
-Exact activation-code hashing, device identity, rate limits, session design, and anti-trial-abuse controls remain **OPEN** until the licensing contract is approved.
+Activation-code HMAC storage, opaque random installation identity, one active installation per code, audited device reset, 12-hour refresh, and maximum 72-hour offline use are approved by `docs/api.md` and `docs/licensing-trial-contract-v1.md`. Exact production rate thresholds, retention, token rotation, and additional anti-abuse signals remain **OPEN**.
 
 ## Administrative data
 
@@ -61,8 +59,8 @@ The following are **DECIDED**:
 
 Certificate pinning, custom trust stores, provider exceptions, analytics SDKs, and crash SDKs are **DEFERRED**.
 
-## Known legacy implementation mismatch
+## Current implementation evidence and deployment limit
 
-The repository currently contains encrypted IPTV credential columns and provider-account administration from an older scope. Encryption does not make this compliant with the new data boundary.
+The checked-in fresh-install schema and registered API routes contain licensing concepts only. Automated integration tests reject provider fields and prove the former player-configuration route is absent.
 
-A separate read-only security/data-flow audit must identify routes, database fields, admin screens, migrations, and deletion risks before any remediation. No production deployment should rely on the legacy provider-account path.
+This repository evidence is not proof about an existing deployed database or server. Production remains blocked until deployment state, secrets, backups, restore, rollback, logs, and any pre-existing data are inspected under `docs/deployment.md`.
