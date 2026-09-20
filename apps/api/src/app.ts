@@ -5,7 +5,7 @@ import rateLimit from "@fastify/rate-limit";
 import Fastify from "fastify";
 import { ensureBootstrapAdmin } from "./auth.js";
 import type { AppConfig } from "./config.js";
-import type { Database } from "./db.js";
+import { assertRestrictedDatabaseRole, type Database } from "./db.js";
 import { LicensingError } from "./licensing.js";
 import { apiLoggerOptions, routeLabel, safeErrorSummary } from "./logging.js";
 import { registerAdminAuthRoutes } from "./routes/admin-auth.js";
@@ -20,6 +20,7 @@ class RateLimitError extends Error {
 }
 
 export async function buildApp(config: AppConfig, db: Database) {
+  await assertRestrictedDatabaseRole(db);
   const app = Fastify({
     logger: apiLoggerOptions(config.logLevel),
     disableRequestLogging: true,

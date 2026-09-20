@@ -32,6 +32,10 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
       entitlementRefreshPerHour: 100
     }
   };
+  await assert.rejects(buildApp(config, ownerDb), {
+    name: "UnsafeDatabaseRoleError",
+    code: "UNSAFE_DATABASE_ROLE"
+  });
   const app = await buildApp(config, db);
   try {
     const liveness = await app.inject({ method: "GET", url: "/healthz" });
