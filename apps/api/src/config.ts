@@ -9,6 +9,8 @@ export type AppConfig = {
   bootstrapEmail: string;
   bootstrapPassword?: string;
   ownerTotpSecret?: string;
+  requestTimeoutMs: number;
+  databaseStatementTimeoutMs: number;
   rateLimits: {
     globalPerMinute: number;
     adminAuthPer15Minutes: number;
@@ -57,6 +59,25 @@ export function rateLimitForEnvironment(
   return parsed;
 }
 
+export function timeoutForEnvironment(
+  appEnv: AppConfig["appEnv"],
+  name: string,
+  rawValue: string | undefined,
+  developmentDefault: number
+): number {
+  const value = rawValue?.trim();
+  if (!value) {
+    if (appEnv === "production") throw new Error(`${name} is required in production`);
+    return developmentDefault;
+  }
+  if (value.includes("CHANGE")) throw new Error(`${name} must be explicitly configured`);
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1_000 || parsed > 120_000) {
+    throw new Error(`${name} must be an integer between 1000 and 120000 milliseconds`);
+  }
+  return parsed;
+}
+
 export function loadConfig(): AppConfig {
   const port = Number(process.env.API_PORT ?? "3000");
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
@@ -82,6 +103,8 @@ export function loadConfig(): AppConfig {
     activationPer15Minutes: rateLimitForEnvironment(appEnv, "ACTIVATION_RATE_LIMIT_PER_15_MINUTES", process.env.ACTIVATION_RATE_LIMIT_PER_15_MINUTES, 8),
     entitlementRefreshPerHour: rateLimitForEnvironment(appEnv, "ENTITLEMENT_REFRESH_RATE_LIMIT_PER_HOUR", process.env.ENTITLEMENT_REFRESH_RATE_LIMIT_PER_HOUR, 20)
   };
+  const requestTimeoutMs = timeoutForEnvironment(appEnv, "HTTP_REQUEST_TIMEOUT_MS", process.env.HTTP_REQUEST_TIMEOUT_MS, 15_000);
+  const databaseStatementTimeoutMs = timeoutForEnvironment(appEnv, "DATABASE_STATEMENT_TIMEOUT_MS", process.env.DATABASE_STATEMENT_TIMEOUT_MS, 10_000);
   return {
     port,
     databaseUrl: required("DATABASE_URL"),
@@ -93,6 +116,8 @@ export function loadConfig(): AppConfig {
     bootstrapEmail: required("ADMIN_BOOTSTRAP_EMAIL").toLowerCase(),
     bootstrapPassword,
     ownerTotpSecret,
+    requestTimeoutMs,
+    databaseStatementTimeoutMs,
     rateLimits
   };
 }

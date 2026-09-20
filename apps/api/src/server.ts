@@ -4,7 +4,7 @@ import { createDatabase } from "./db.js";
 import { safeErrorSummary } from "./logging.js";
 
 const config = loadConfig();
-const pool = createDatabase(config.databaseUrl);
+const pool = createDatabase(config.databaseUrl, config.databaseStatementTimeoutMs);
 const app = await buildApp(config, pool);
 
 const shutdown = async (signal: string) => {

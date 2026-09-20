@@ -22,6 +22,8 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     bootstrapEmail: "owner@tyfino.test",
     bootstrapPassword: "test-password-long-enough",
     ownerTotpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+    requestTimeoutMs: 15_000,
+    databaseStatementTimeoutMs: 10_000,
     rateLimits: {
       globalPerMinute: 1_000,
       adminAuthPer15Minutes: 100,
