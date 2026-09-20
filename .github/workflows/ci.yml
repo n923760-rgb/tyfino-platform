@@ -91,7 +91,7 @@ jobs:
                OR has_table_privilege('tyfino_app', 'activation_codes', 'DELETE') THEN
               RAISE EXCEPTION 'application role retained forbidden table privileges';
             END IF;
-            IF NOT has_table_privilege('tyfino_app', 'audit_logs', 'INSERT')
+            IF NOT has_column_privilege('tyfino_app', 'audit_logs', 'action', 'INSERT')
                OR NOT has_table_privilege('tyfino_app', 'activation_codes', 'SELECT') THEN
               RAISE EXCEPTION 'application role is missing required runtime privileges';
             END IF;
