@@ -21,6 +21,8 @@ A single domain with paths such as `/admin` and `/api/v1` is **PROPOSED**, not f
 
 The production domain, DNS records, hosting target, API endpoints, secret management, backup location, monitoring, and deployment mechanism are **OPEN**.
 
+Fresh database initialization requires two distinct PostgreSQL identities: `POSTGRES_USER` owns the schema and is reserved for initialization, backup/restore, and controlled migrations; `POSTGRES_APP_USER` is the restricted runtime identity used in `DATABASE_URL`. Their passwords must be independently generated. Supplying the owner URL to the API defeats the audit boundary and is forbidden. An existing database does not receive `002_app_role.sh` automatically and therefore requires a reviewed privilege migration before deployment.
+
 ## Entry gate
 
 Deployment planning must not begin until:
@@ -50,5 +52,7 @@ The repository provides two Linux/PostgreSQL-client scripts:
 - `database/scripts/verify-backup-restore.sh` verifies that checksum, restores into a new disposable database whose name must start with `tyfino_restore_`, checks required tables and the audit hash chain, confirms audit mutation rejection, and removes only that disposable database.
 
 CI runs both scripts against PostgreSQL 16 on every change. This is repeatable restore evidence for the current schema; it does not approve a production backup location, retention period, encryption/key policy, schedule, recovery-point objective, or recovery-time objective. Those choices remain **OPEN**, and a production-target restore drill remains **BLOCKED** until the hosting and data-retention decisions are approved.
+
+Backups intentionally omit owners and ACLs so they remain portable. After restoring under the approved schema owner, rerun `database/init/002_app_role.sh` with the target environment's independently generated application credential before starting the API.
 
 The API exposes separate `/healthz` liveness and `/readyz` traffic-readiness probes. Container dependency checks use `/readyz`, which requires a reachable database and the current licensing/audit protection schema. Full audit-chain verification is kept out of the high-frequency readiness path and must be monitored through the authorized Admin audit endpoint.

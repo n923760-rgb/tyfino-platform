@@ -1,19 +1,16 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { buildApp } from "./app.js";
 import type { AppConfig } from "./config.js";
 import { tokenHash, totpCodeAt } from "./security.js";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
+const ownerDatabaseUrl = process.env.TEST_OWNER_DATABASE_URL;
 
-test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUrl }, async () => {
+test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUrl || !ownerDatabaseUrl }, async () => {
   const db = new pg.Pool({ connectionString: databaseUrl! });
-  const schemaPath = fileURLToPath(new URL("../../../database/init/001_schema.sql", import.meta.url));
-  await db.query("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
-  await db.query(await readFile(schemaPath, "utf8"));
+  const ownerDb = new pg.Pool({ connectionString: ownerDatabaseUrl! });
   const config: AppConfig = {
     port: 3000,
     databaseUrl: databaseUrl!,
@@ -228,18 +225,22 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     assert.ok((audit.json().auditLogs as unknown[]).length > 0);
     await assert.rejects(
       db.query("UPDATE audit_logs SET action = 'tampered' WHERE id = (SELECT min(id) FROM audit_logs)"),
-      (error: unknown) => (error as { code?: string }).code === "55000"
+      (error: unknown) => (error as { code?: string }).code === "42501"
     );
     await assert.rejects(
       db.query("DELETE FROM audit_logs WHERE id = (SELECT min(id) FROM audit_logs)"),
-      (error: unknown) => (error as { code?: string }).code === "55000"
+      (error: unknown) => (error as { code?: string }).code === "42501"
+    );
+    await assert.rejects(
+      db.query("ALTER TABLE audit_logs DISABLE TRIGGER audit_logs_append_only"),
+      (error: unknown) => (error as { code?: string }).code === "42501"
     );
     const integrityAfterRejectedMutations = await db.query<{ valid: boolean }>(
       "SELECT verify_audit_log_chain() AS valid"
     );
     assert.equal(integrityAfterRejectedMutations.rows[0]?.valid, true);
 
-    const privilegedClient = await db.connect();
+    const privilegedClient = await ownerDb.connect();
     try {
       await privilegedClient.query("BEGIN");
       await privilegedClient.query("ALTER TABLE audit_logs DISABLE TRIGGER audit_logs_append_only");
@@ -261,7 +262,7 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     );
     assert.equal(forbiddenTables.rows[0]?.count, "0");
 
-    await db.query("DROP TABLE app_settings");
+    await ownerDb.query("DROP TABLE app_settings");
     const missingSchemaReadiness = await app.inject({ method: "GET", url: "/readyz" });
     assert.equal(missingSchemaReadiness.statusCode, 503);
     assert.deepEqual(missingSchemaReadiness.json(), { status: "not_ready" });
@@ -270,5 +271,6 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
   } finally {
     await app.close();
     await db.end();
+    await ownerDb.end();
   }
 });
