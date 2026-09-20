@@ -12,12 +12,11 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        // Temporary development-safe identity. See ../README.md; production identity is OPEN.
-        applicationId = "dev.tyfino.foundation"
+        applicationId = "com.tyfino.player"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
-        versionName = "0.1.0-foundation"
+        versionName = "1.0.0"
 
         buildConfigField("String", "LICENSING_API_BASE_URL", "\"${licensingApiBaseUrl.get()}\"")
 

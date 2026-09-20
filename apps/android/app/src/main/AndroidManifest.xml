@@ -16,11 +16,12 @@
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:banner="@drawable/tv_banner_dev"
-        android:icon="@drawable/ic_app_dev"
+        android:banner="@drawable/tv_banner_tyfino"
+        android:icon="@drawable/ic_app_tyfino"
         android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_app_tyfino"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Tyfino.Foundation"
+        android:theme="@style/Theme.Tyfino"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"

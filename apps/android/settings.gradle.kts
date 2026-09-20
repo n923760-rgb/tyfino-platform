@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TYFINO-Android-Foundation"
+rootProject.name = "TYFINO-Android"
 include(":app")

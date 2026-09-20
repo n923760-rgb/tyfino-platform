@@ -5,23 +5,24 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Neutral development-only colors. Final branding remains OPEN.
-private val FoundationColors = darkColorScheme(
-    primary = Color(0xFFE1E3E8),
-    onPrimary = Color(0xFF16181C),
-    background = Color(0xFF0B0D10),
-    onBackground = Color(0xFFE5E7EB),
-    surface = Color(0xFF111419),
-    onSurface = Color(0xFFE5E7EB),
-    surfaceVariant = Color(0xFF20242B),
-    onSurfaceVariant = Color(0xFFB7BDC7),
-    outline = Color(0xFF6F7682),
+private val TyfinoColors = darkColorScheme(
+    primary = Color(0xFF38BDF8),
+    onPrimary = Color(0xFF031525),
+    secondary = Color(0xFF8B5CF6),
+    onSecondary = Color(0xFFFFFFFF),
+    background = Color(0xFF07111F),
+    onBackground = Color(0xFFF3F8FC),
+    surface = Color(0xFF0D1B2A),
+    onSurface = Color(0xFFF3F8FC),
+    surfaceVariant = Color(0xFF172A3D),
+    onSurfaceVariant = Color(0xFFC0D2E0),
+    outline = Color(0xFF66849C),
 )
 
 @Composable
 internal fun TyfinoTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = FoundationColors,
+        colorScheme = TyfinoColors,
         content = content,
     )
 }

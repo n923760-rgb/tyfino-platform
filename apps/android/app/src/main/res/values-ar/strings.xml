@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TYFINO Dev</string>
+    <string name="app_name">TYFINO</string>
     <string name="destination_home">الرئيسية</string>
     <string name="destination_live">البث المباشر</string>
     <string name="destination_movies">الأفلام</string>
     <string name="destination_series">المسلسلات</string>
     <string name="destination_settings">الإعدادات</string>
-    <string name="foundation_title">مرحبًا بك في TYFINO</string>
-    <string name="foundation_description">مشغل IPTV خفيف وسريع للهواتف والأجهزة اللوحية والقابلة للطي وAndroid TV وGoogle TV.</string>
+    <string name="home_title">مرحبًا بك في TYFINO</string>
+    <string name="home_description">مشغل IPTV خفيف وسريع للهواتف والأجهزة اللوحية والقابلة للطي وAndroid TV وGoogle TV.</string>
     <string name="home_catalog_hint">اختر البث المباشر أو الأفلام أو المسلسلات من قائمة التنقل.</string>
     <string name="open_settings">فتح الإعدادات</string>
-    <string name="settings_title">أساس الإعدادات</string>
+    <string name="settings_title">الإعدادات</string>
     <string name="settings_description">إدارة حسابات IPTV المحفوظة على هذا الجهاز.</string>
     <string name="licensing_title">فعّل TYFINO</string>
     <string name="licensing_description">ابدأ تجربتك المجانية لمدة 7 أيام أو فعّل التطبيق مباشرة. يبقى حساب IPTV على جهازك فقط.</string>
