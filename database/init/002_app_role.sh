@@ -69,8 +69,11 @@ SELECT (
 \gset
 
 \if :app_role_owns_objects
-  \echo 'Restricted application role owns database objects; transfer ownership through a reviewed migration before continuing.'
-  \quit 1
+  DO $block$
+  BEGIN
+    RAISE EXCEPTION 'Restricted application role owns database objects; transfer ownership through a reviewed migration before continuing.';
+  END
+  $block$;
 \endif
 
 SELECT format('REVOKE %I FROM %I', granted_role.rolname, member_role.rolname)
