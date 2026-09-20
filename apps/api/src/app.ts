@@ -16,6 +16,7 @@ export async function buildApp(config: AppConfig, db: Database) {
   const app = Fastify({
     logger: apiLoggerOptions(config.logLevel),
     disableRequestLogging: true,
+    requestTimeout: config.requestTimeoutMs,
     trustProxy: config.trustProxy,
     requestIdHeader: "x-request-id",
     bodyLimit: 64 * 1024
