@@ -1,11 +1,23 @@
+import java.net.URI
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-val licensingApiBaseUrl = providers.gradleProperty("TYFINO_LICENSING_API_BASE_URL")
+val developmentLicensingApiBaseUrl = providers.gradleProperty("TYFINO_LICENSING_API_BASE_URL")
     .orElse("")
     .map { value -> value.replace("\\", "\\\\").replace("\"", "\\\"") }
+val productionLicensingApiBaseUrl = "https://api.tyfino.online"
+
+check(URI(productionLicensingApiBaseUrl).let { origin ->
+    origin.scheme == "https" &&
+        origin.host == "api.tyfino.online" &&
+        origin.port == -1 &&
+        (origin.path.isNullOrEmpty() || origin.path == "/") &&
+        origin.query == null &&
+        origin.fragment == null
+}) { "The production licensing origin must be the approved HTTPS origin without a path, query, or fragment." }
 
 android {
     namespace = "dev.tyfino.foundation"
@@ -18,13 +30,19 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        buildConfigField("String", "LICENSING_API_BASE_URL", "\"${licensingApiBaseUrl.get()}\"")
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            buildConfigField(
+                "String",
+                "LICENSING_API_BASE_URL",
+                "\"${developmentLicensingApiBaseUrl.get()}\"",
+            )
+        }
         release {
+            buildConfigField("String", "LICENSING_API_BASE_URL", "\"$productionLicensingApiBaseUrl\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

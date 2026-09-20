@@ -12,13 +12,13 @@ This directory contains the native TYFINO Android client and the licensing, mult
 - Activation Codes are normalized locally, sent only to the activation endpoint, cleared from UI state immediately, and never persisted or logged.
 - No IPTV Host, Username, Password, catalog, stream URL, or viewing data crosses the licensing boundary.
 
-The production licensing origin remains OPEN. Development builds accept it only as an explicit Gradle property:
+Release builds use the approved production licensing origin `https://api.tyfino.online`. It is fixed in the Release build type so a local development property cannot silently redirect a production binary. Development builds remain disconnected by default and accept a test origin only as an explicit Gradle property:
 
 ```shell
 ./gradlew :app:assembleDebug -PTYFINO_LICENSING_API_BASE_URL=https://approved-origin.example
 ```
 
-Without that property, the UI remains usable but licensing network actions fail safely as unavailable.
+Without that property, a Debug build's UI remains usable but licensing network actions fail safely as unavailable.
 
 ## Implemented Xtream authentication slice
 
@@ -67,7 +67,7 @@ Official references checked on 2026-09-08:
 - Initial version code/name: `1` / `1.0.0`
 - TYFINO vector icon, Android TV banner, and dark cyan/violet theme
 
-The application identity is approved and must not be changed after distribution. Production signing, licensing endpoint, signing-key custody, and release approval remain separate protected decisions.
+The application identity and production licensing endpoint are approved and must not be changed after distribution. Production signing, signing-key custody, and release approval remain separate protected decisions.
 
 The former `dev.tyfino.foundation` development application ID and `com.tyfino.player` are separate Android applications. Pre-release test devices must remove the old development install; no production customer data migration is implied or required.
 
@@ -86,7 +86,7 @@ The repository CI provisions Gradle 9.6.0 and runs:
 
 An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation smoke tests run on clean API 27 phone and API 35 tablet managed devices. This automated baseline does not replace the physical phone, Android TV/Google TV, API 24-class, media, RTL, accessibility, and performance checks in [`../../docs/android/device-qualification-v1.md`](../../docs/android/device-qualification-v1.md).
 
-The Release variant runs R8 code optimization and resource shrinking in CI. Its output remains unsigned and keeps the development identity and empty default licensing origin; it is build evidence only, not a distributable production artifact. Production signing material must never be committed.
+The Release variant runs R8 code optimization and resource shrinking in CI and embeds only the approved `https://api.tyfino.online` licensing origin. Its output remains unsigned; it is build evidence only, not a distributable production artifact. Production signing material must never be committed.
 
 ## TV and D-pad focus scope
 
