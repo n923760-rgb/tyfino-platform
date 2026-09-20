@@ -16,6 +16,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  deployment-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate deployment configuration and scripts
+        run: |
+          cp .env.example .env
+          bash -n infrastructure/server/bootstrap-ubuntu.sh
+          bash -n infrastructure/server/deploy-preproduction.sh
+          docker compose config --format json > /tmp/tyfino-compose.json
+          jq -e '
+            (.services.api.environment | has("POSTGRES_PASSWORD") | not) and
+            (.services.api.environment | has("POSTGRES_APP_PASSWORD") | not) and
+            (.services.caddy.environment | keys | sort == ["ADMIN_DOMAIN", "API_DOMAIN", "ROOT_DOMAIN"])
+          ' /tmp/tyfino-compose.json
+
   api:
     runs-on: ubuntu-latest
     services:
