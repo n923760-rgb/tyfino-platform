@@ -26,8 +26,8 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     databaseStatementTimeoutMs: 10_000,
     rateLimits: {
       globalPerMinute: 1_000,
-      adminAuthPer15Minutes: 100,
-      trialStartPerHour: 100,
+      adminAuthPer15Minutes: 2,
+      trialStartPerHour: 2,
       activationPer15Minutes: 100,
       entitlementRefreshPerHour: 100
     }
@@ -263,6 +263,31 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
         WHERE table_schema = 'public' AND table_name IN ('provider_hosts', 'provider_accounts', 'player_sessions')`
     );
     assert.equal(forbiddenTables.rows[0]?.count, "0");
+
+    const rateLimitedAdmin = await app.inject({
+      method: "POST",
+      url: "/v1/admin/auth/login",
+      payload: { email: config.bootstrapEmail, password: config.bootstrapPassword }
+    });
+    assert.equal(rateLimitedAdmin.statusCode, 429);
+    assert.equal(rateLimitedAdmin.json().error, "rate_limited");
+    assert.equal(typeof rateLimitedAdmin.json().requestId, "string");
+    assert.ok(rateLimitedAdmin.headers["retry-after"]);
+
+    const rateLimitedLicensing = await app.inject({
+      method: "POST",
+      url: "/v1/licensing/trials/start",
+      payload: { installationId: "C".repeat(43), platform: "android", appVersion: "1.0.0" }
+    });
+    assert.equal(rateLimitedLicensing.statusCode, 429);
+    assert.deepEqual(rateLimitedLicensing.json().error, {
+      code: "RATE_LIMITED",
+      message: "RATE_LIMITED",
+      retryable: true
+    });
+    assert.equal(typeof rateLimitedLicensing.json().serverTime, "string");
+    assert.equal(typeof rateLimitedLicensing.json().requestId, "string");
+    assert.ok(rateLimitedLicensing.headers["retry-after"]);
 
     await ownerDb.query("DROP TABLE app_settings");
     const missingSchemaReadiness = await app.inject({ method: "GET", url: "/readyz" });

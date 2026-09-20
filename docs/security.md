@@ -61,6 +61,8 @@ The following are **DECIDED**:
 - Cancellation is propagated and is not logged as an application failure.
 - Security failures must not be hidden behind generic success or retry loops.
 
+Rate-limit failures retain HTTP 429 and `Retry-After` through the shared error handler. Licensing clients receive the stable `RATE_LIMITED` contract, while administrative clients receive a localized-safe machine code; neither response exposes configured limits or limiter internals.
+
 The API disables Fastify's raw request logging and emits one bounded completion event containing only the HTTP method, matched route template, status, duration, and request ID. Query strings, concrete path identifiers, headers, cookies, and bodies are not included. Pino redaction additionally censors authorization/cookie headers and known password, activation-code, challenge, session-token, TOTP, pepper, and database-URL fields if future structured logs include them. Error logs retain only the error type and non-secret machine code; error messages are not emitted.
 
 Certificate pinning, custom trust stores, provider exceptions, analytics SDKs, and crash SDKs are **DEFERRED**.

@@ -44,6 +44,8 @@ The service must:
 
 Rate-limit windows are fixed by route class, while their request counts are environment configuration: `GLOBAL_RATE_LIMIT_PER_MINUTE`, `ADMIN_AUTH_RATE_LIMIT_PER_15_MINUTES`, `TRIAL_START_RATE_LIMIT_PER_HOUR`, `ACTIVATION_RATE_LIMIT_PER_15_MINUTES`, and `ENTITLEMENT_REFRESH_RATE_LIMIT_PER_HOUR`. Development/test use conservative checked defaults. Production refuses to start until every count is explicitly set to an integer from 1 through 10,000; the approved values must come from traffic and abuse evidence rather than source-code assumptions.
 
+Exceeded licensing limits return HTTP 429 with `Retry-After` and the standard licensing error envelope using `RATE_LIMITED`. Exceeded admin limits return HTTP 429 with `Retry-After`, opaque `requestId`, and `error: "rate_limited"`. Responses do not disclose configured thresholds or internal limiter state.
+
 `HTTP_REQUEST_TIMEOUT_MS` bounds receipt of the complete inbound HTTP request and `DATABASE_STATEMENT_TIMEOUT_MS` asks PostgreSQL to cancel overlong statements. Development/test defaults are 15 seconds and 10 seconds respectively. Production refuses to start until both are explicitly configured between 1 and 120 seconds; approved values must be supported by production latency evidence.
 
 ## 3. Android licensing endpoints

@@ -12,6 +12,13 @@ import { registerAdminAuthRoutes } from "./routes/admin-auth.js";
 import { registerAdminRoutes } from "./routes/admin.js";
 import { registerLicensingRoutes } from "./routes/licensing.js";
 
+class RateLimitError extends Error {
+  constructor(public readonly statusCode: number) {
+    super("RATE_LIMITED");
+    this.name = "RateLimitError";
+  }
+}
+
 export async function buildApp(config: AppConfig, db: Database) {
   const app = Fastify({
     logger: apiLoggerOptions(config.logLevel),
@@ -31,7 +38,12 @@ export async function buildApp(config: AppConfig, db: Database) {
     methods: ["GET", "POST", "PATCH", "OPTIONS"]
   });
   await app.register(helmet, { global: true });
-  await app.register(rateLimit, { global: true, max: config.rateLimits.globalPerMinute, timeWindow: "1 minute" });
+  await app.register(rateLimit, {
+    global: true,
+    max: config.rateLimits.globalPerMinute,
+    timeWindow: "1 minute",
+    errorResponseBuilder: (_request, context) => new RateLimitError(context.statusCode)
+  });
   app.addHook("onResponse", async (request, reply) => {
     request.log.info({
       request: { method: request.method, route: routeLabel(request.routeOptions.url) },
@@ -77,6 +89,16 @@ export async function buildApp(config: AppConfig, db: Database) {
   await registerLicensingRoutes(app, db, config);
   app.setNotFoundHandler(async (_request, reply) => reply.code(404).send({ error: "not_found" }));
   app.setErrorHandler(async (error, request, reply) => {
+    if (error instanceof RateLimitError) {
+      if (request.url.startsWith("/v1/licensing/")) {
+        return reply.code(error.statusCode).send({
+          serverTime: new Date().toISOString(),
+          requestId: request.id,
+          error: { code: "RATE_LIMITED", message: "RATE_LIMITED", retryable: true }
+        });
+      }
+      return reply.code(error.statusCode).send({ error: "rate_limited", requestId: request.id });
+    }
     if (error instanceof LicensingError) {
       return reply.code(error.statusCode).send({ serverTime: new Date().toISOString(), requestId: request.id,
         error: { code: error.code, message: error.code, retryable: error.retryable } });
