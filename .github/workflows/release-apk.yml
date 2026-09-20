@@ -23,10 +23,11 @@ jobs:
       TYFINO_ANDROID_KEY_ALIAS: ${{ secrets.TYFINO_ANDROID_KEY_ALIAS }}
       TYFINO_ANDROID_KEY_PASSWORD: ${{ secrets.TYFINO_ANDROID_KEY_PASSWORD }}
       TYFINO_ANDROID_CERT_SHA256: ${{ secrets.TYFINO_ANDROID_CERT_SHA256 }}
-      TYFINO_ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/tyfino-release.p12
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Configure signing key path
+        run: printf '%s\n' "TYFINO_ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/tyfino-release.p12" >> "$GITHUB_ENV"
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
