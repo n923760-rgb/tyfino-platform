@@ -25,6 +25,8 @@ Fresh database initialization requires two distinct PostgreSQL identities: `POST
 
 For an existing database, stop the API, take and validate a backup, set the four `POSTGRES_*` variables, and run `database/init/002_app_role.sh` as the schema owner before restarting traffic. The script is transactional and idempotent: it rotates the application password, removes inherited roles and all direct privileges in `public`, then grants only the reviewed runtime matrix. It preserves application rows and fails closed if the application role owns database objects, because ownership must be transferred through a separately reviewed migration. CI starts with an intentionally overprivileged legacy role, runs this migration twice, proves existing audit data remains, and then runs the API integration suite through the restricted identity. This repository evidence does not authorize execution against production without the backup, maintenance window, credential delivery, and rollback controls required by this document.
 
+The API also verifies the connected PostgreSQL identity before constructing the HTTP service. Startup fails if that identity is a superuser, can create databases or roles, can replicate or bypass row security, can create in the current database or `public` schema, owns the database/schema/public objects, or belongs to another role. CI proves the schema owner is rejected and the migrated runtime role is accepted. This check is defense in depth and does not replace correct secret separation.
+
 ## Entry gate
 
 Deployment planning must not begin until:
