@@ -67,7 +67,7 @@ Official references checked on 2026-09-08:
 - Initial version code/name: `1` / `1.0.0`
 - TYFINO vector icon, Android TV banner, and dark cyan/violet theme
 
-The application identity and production licensing endpoint are approved and must not be changed after distribution. Production signing, signing-key custody, and release approval remain separate protected decisions.
+The application identity, production licensing endpoint, and Direct APK distribution path are approved and must not be changed after distribution. The protected signing workflow is defined by [`../../docs/android/direct-apk-release-v1.md`](../../docs/android/direct-apk-release-v1.md); key generation, verified backup custody, and release approval remain separate gates.
 
 The former `dev.tyfino.foundation` development application ID and `com.tyfino.player` are separate Android applications. Pre-release test devices must remove the old development install; no production customer data migration is implied or required.
 
@@ -86,7 +86,7 @@ The repository CI provisions Gradle 9.6.0 and runs:
 
 An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation smoke tests run on clean API 27 phone and API 35 tablet managed devices. This automated baseline does not replace the physical phone, Android TV/Google TV, API 24-class, media, RTL, accessibility, and performance checks in [`../../docs/android/device-qualification-v1.md`](../../docs/android/device-qualification-v1.md).
 
-The Release variant runs R8 code optimization and resource shrinking in CI and embeds only the approved `https://api.tyfino.online` licensing origin. Its output remains unsigned; it is build evidence only, not a distributable production artifact. Production signing material must never be committed.
+The ordinary Release variant runs R8 code optimization and resource shrinking in CI and embeds only the approved `https://api.tyfino.online` licensing origin. It remains unsigned by default and is build evidence only. The manual protected workflow signs only when explicitly requested with provisioned environment secrets, verifies the approved certificate fingerprint, and produces an owner-review artifact without publishing it. Production signing material must never be committed.
 
 ## TV and D-pad focus scope
 
