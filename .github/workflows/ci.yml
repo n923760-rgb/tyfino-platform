@@ -23,17 +23,26 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: tyfino_test
-          POSTGRES_USER: tyfino
-          POSTGRES_PASSWORD: tyfino_test_password
+          POSTGRES_USER: tyfino_owner
+          POSTGRES_PASSWORD: tyfino_owner_test_password
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U tyfino -d tyfino_test"
+          --health-cmd "pg_isready -U tyfino_owner -d tyfino_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
-      TEST_DATABASE_URL: postgresql://tyfino:tyfino_test_password@127.0.0.1:5432/tyfino_test
+      TEST_DATABASE_URL: postgresql://tyfino_app:tyfino_app_test_password@127.0.0.1:5432/tyfino_test
+      TEST_OWNER_DATABASE_URL: postgresql://tyfino_owner:tyfino_owner_test_password@127.0.0.1:5432/tyfino_test
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: tyfino_owner
+      PGPASSWORD: tyfino_owner_test_password
+      POSTGRES_DB: tyfino_test
+      POSTGRES_USER: tyfino_owner
+      POSTGRES_APP_USER: tyfino_app
+      POSTGRES_APP_PASSWORD: tyfino_app_test_password
     defaults:
       run:
         working-directory: apps/api
@@ -48,6 +57,10 @@ jobs:
           cache-dependency-path: apps/api/package-lock.json
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
+      - name: Initialize schema and restricted application role
+        run: |
+          psql "$TEST_OWNER_DATABASE_URL" --set=ON_ERROR_STOP=1 --file=../../database/init/001_schema.sql
+          ../../database/init/002_app_role.sh
       - name: Type-check
         run: npm run typecheck
       - name: Test
@@ -83,21 +96,25 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: tyfino_backup_source
-          POSTGRES_USER: tyfino
-          POSTGRES_PASSWORD: tyfino_test_password
+          POSTGRES_USER: tyfino_owner
+          POSTGRES_PASSWORD: tyfino_owner_test_password
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U tyfino -d tyfino_backup_source"
+          --health-cmd "pg_isready -U tyfino_owner -d tyfino_backup_source"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
-      DATABASE_URL: postgresql://tyfino:tyfino_test_password@127.0.0.1:5432/tyfino_backup_source
+      DATABASE_URL: postgresql://tyfino_owner:tyfino_owner_test_password@127.0.0.1:5432/tyfino_backup_source
       PGHOST: 127.0.0.1
       PGPORT: 5432
-      PGUSER: tyfino
-      PGPASSWORD: tyfino_test_password
+      PGUSER: tyfino_owner
+      PGPASSWORD: tyfino_owner_test_password
+      POSTGRES_DB: tyfino_backup_source
+      POSTGRES_USER: tyfino_owner
+      POSTGRES_APP_USER: tyfino_app
+      POSTGRES_APP_PASSWORD: tyfino_app_test_password
       RESTORE_DATABASE: tyfino_restore_ci
     steps:
       - name: Checkout
@@ -105,7 +122,18 @@ jobs:
       - name: Initialize representative database
         run: |
           psql "$DATABASE_URL" --set=ON_ERROR_STOP=1 --file=database/init/001_schema.sql
+          database/init/002_app_role.sh
           psql "$DATABASE_URL" --set=ON_ERROR_STOP=1 --command="INSERT INTO audit_logs (action, entity_type, metadata) VALUES ('backup.seed', 'database', '{\"source\":\"ci\"}'::jsonb)"
+      - name: Prove application role cannot bypass audit protection
+        run: |
+          if PGUSER="$POSTGRES_APP_USER" PGPASSWORD="$POSTGRES_APP_PASSWORD" psql --dbname="$POSTGRES_DB" --set=ON_ERROR_STOP=1 --command="UPDATE audit_logs SET action = 'forbidden'"; then
+            echo "Restricted application role unexpectedly updated audit_logs" >&2
+            exit 1
+          fi
+          if PGUSER="$POSTGRES_APP_USER" PGPASSWORD="$POSTGRES_APP_PASSWORD" psql --dbname="$POSTGRES_DB" --set=ON_ERROR_STOP=1 --command="ALTER TABLE audit_logs DISABLE TRIGGER audit_logs_append_only"; then
+            echo "Restricted application role unexpectedly altered audit protection" >&2
+            exit 1
+          fi
       - name: Create validated backup
         run: |
           backup_directory=$(mktemp -d)

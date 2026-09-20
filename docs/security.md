@@ -49,6 +49,8 @@ The dashboard must not add IPTV subscription administration merely because legac
 
 The OWNER can revoke all other active administrative sessions without invalidating the current recovery session. The server enforces the OWNER role, identifies the preserved session by its hashed opaque token, performs revocation and audit insertion in one transaction, and returns only the number of sessions revoked.
 
+Fresh PostgreSQL initialization separates the schema-owner credential from the API credential. `tyfino_app`-style roles are non-superuser, cannot create roles or databases, cannot alter tables or triggers, receive only the table/column operations used by the licensing service, and have `SELECT` plus business-field `INSERT` access to `audit_logs` without `UPDATE` or `DELETE`. CI runs the full API integration suite through this restricted role and separately proves that audit mutation and trigger disabling are denied. The schema-owner credential must not be supplied to the API container.
+
 ## Network and logs
 
 The following are **DECIDED**:
