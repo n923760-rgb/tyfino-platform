@@ -24,7 +24,14 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     tokenPepper: "test-pepper-that-is-at-least-thirty-two-characters",
     bootstrapEmail: "owner@tyfino.test",
     bootstrapPassword: "test-password-long-enough",
-    ownerTotpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"
+    ownerTotpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+    rateLimits: {
+      globalPerMinute: 1_000,
+      adminAuthPer15Minutes: 100,
+      trialStartPerHour: 100,
+      activationPer15Minutes: 100,
+      entitlementRefreshPerHour: 100
+    }
   };
   const app = await buildApp(config, db);
   try {

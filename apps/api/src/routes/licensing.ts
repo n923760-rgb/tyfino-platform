@@ -44,7 +44,7 @@ function sendError(reply: { code: (status: number) => { send: (body: unknown) =>
 
 export async function registerLicensingRoutes(app: FastifyInstance, db: Database, config: AppConfig): Promise<void> {
   app.post("/v1/licensing/trials/start", {
-    config: { rateLimit: { max: 5, timeWindow: "1 hour" } }
+    config: { rateLimit: { max: config.rateLimits.trialStartPerHour, timeWindow: "1 hour" } }
   }, async (request, reply) => {
     const parsed = InstallationBody.safeParse(request.body);
     if (!parsed.success) return sendError(reply, request.id, new LicensingError(400, "INVALID_REQUEST"));
@@ -82,7 +82,7 @@ export async function registerLicensingRoutes(app: FastifyInstance, db: Database
   });
 
   app.post("/v1/licensing/activations", {
-    config: { rateLimit: { max: 8, timeWindow: "15 minutes" } }
+    config: { rateLimit: { max: config.rateLimits.activationPer15Minutes, timeWindow: "15 minutes" } }
   }, async (request, reply) => {
     const parsed = ActivationBody.safeParse(request.body);
     if (!parsed.success) return sendError(reply, request.id, new LicensingError(400, "INVALID_REQUEST"));
@@ -134,7 +134,7 @@ export async function registerLicensingRoutes(app: FastifyInstance, db: Database
   });
 
   app.post("/v1/licensing/entitlements/refresh", {
-    config: { rateLimit: { max: 20, timeWindow: "1 hour" } }
+    config: { rateLimit: { max: config.rateLimits.entitlementRefreshPerHour, timeWindow: "1 hour" } }
   }, async (request, reply) => {
     const parsed = InstallationBody.safeParse(request.body);
     const token = bearerToken(request);
