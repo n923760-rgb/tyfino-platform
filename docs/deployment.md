@@ -21,7 +21,9 @@ A single domain with paths such as `/admin` and `/api/v1` is **PROPOSED**, not f
 
 The production domain, DNS records, hosting target, API endpoints, secret management, backup location, monitoring, and deployment mechanism are **OPEN**.
 
-Fresh database initialization requires two distinct PostgreSQL identities: `POSTGRES_USER` owns the schema and is reserved for initialization, backup/restore, and controlled migrations; `POSTGRES_APP_USER` is the restricted runtime identity used in `DATABASE_URL`. Their passwords must be independently generated. Supplying the owner URL to the API defeats the audit boundary and is forbidden. An existing database does not receive `002_app_role.sh` automatically and therefore requires a reviewed privilege migration before deployment.
+Fresh database initialization requires two distinct PostgreSQL identities: `POSTGRES_USER` owns the schema and is reserved for initialization, backup/restore, and controlled migrations; `POSTGRES_APP_USER` is the restricted runtime identity used in `DATABASE_URL`. Their passwords must be independently generated. Supplying the owner URL to the API defeats the audit boundary and is forbidden.
+
+For an existing database, stop the API, take and validate a backup, set the four `POSTGRES_*` variables, and run `database/init/002_app_role.sh` as the schema owner before restarting traffic. The script is transactional and idempotent: it rotates the application password, removes inherited roles and all direct privileges in `public`, then grants only the reviewed runtime matrix. It preserves application rows and fails closed if the application role owns database objects, because ownership must be transferred through a separately reviewed migration. CI starts with an intentionally overprivileged legacy role, runs this migration twice, proves existing audit data remains, and then runs the API integration suite through the restricted identity. This repository evidence does not authorize execution against production without the backup, maintenance window, credential delivery, and rollback controls required by this document.
 
 ## Entry gate
 

@@ -57,10 +57,53 @@ jobs:
           cache-dependency-path: apps/api/package-lock.json
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
-      - name: Initialize schema and restricted application role
+      - name: Initialize schema and simulate an overprivileged existing role
         run: |
           psql "$TEST_OWNER_DATABASE_URL" --set=ON_ERROR_STOP=1 --file=../../database/init/001_schema.sql
+          psql "$TEST_OWNER_DATABASE_URL" --set=ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE tyfino_legacy_power NOLOGIN;
+          CREATE ROLE tyfino_app LOGIN PASSWORD 'temporary_overprivileged_password';
+          CREATE SCHEMA tyfino_legacy_owned AUTHORIZATION tyfino_app;
+          GRANT tyfino_legacy_power TO tyfino_app;
+          GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO tyfino_app;
+          GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO tyfino_app;
+          GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO tyfino_app;
+          INSERT INTO audit_logs (action, entity_type, metadata)
+          VALUES ('migration.seed', 'database', '{"preserve":true}'::jsonb);
+          SQL
+      - name: Migrate and verify the restricted application role
+        run: |
+          if ../../database/init/002_app_role.sh; then
+            echo "Role migration unexpectedly accepted application-owned objects" >&2
+            exit 1
+          fi
+          psql "$TEST_OWNER_DATABASE_URL" --set=ON_ERROR_STOP=1 --command="DROP SCHEMA tyfino_legacy_owned"
           ../../database/init/002_app_role.sh
+          ../../database/init/002_app_role.sh
+          psql "$TEST_OWNER_DATABASE_URL" --set=ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF pg_has_role('tyfino_app', 'tyfino_legacy_power', 'MEMBER') THEN
+              RAISE EXCEPTION 'application role retained inherited legacy privileges';
+            END IF;
+            IF has_table_privilege('tyfino_app', 'audit_logs', 'UPDATE')
+               OR has_table_privilege('tyfino_app', 'audit_logs', 'DELETE')
+               OR has_table_privilege('tyfino_app', 'activation_codes', 'DELETE') THEN
+              RAISE EXCEPTION 'application role retained forbidden table privileges';
+            END IF;
+            IF NOT has_column_privilege('tyfino_app', 'audit_logs', 'action', 'INSERT')
+               OR NOT has_table_privilege('tyfino_app', 'activation_codes', 'SELECT') THEN
+              RAISE EXCEPTION 'application role is missing required runtime privileges';
+            END IF;
+            IF NOT EXISTS (
+              SELECT 1 FROM audit_logs
+               WHERE action = 'migration.seed' AND metadata = '{"preserve":true}'::jsonb
+            ) THEN
+              RAISE EXCEPTION 'role migration did not preserve existing data';
+            END IF;
+          END
+          $$;
+          SQL
       - name: Type-check
         run: npm run typecheck
       - name: Test
