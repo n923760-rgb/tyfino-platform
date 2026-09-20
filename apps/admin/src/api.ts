@@ -17,6 +17,7 @@ const messages: Record<string, string> = {
   activation_not_found: "كود التفعيل غير موجود.",
   activation_inactive: "لا يمكن تعديل كود ملغي أو منتهي.",
   code_generation_failed: "تعذر إنشاء كود جديد. حاول مرة أخرى.",
+  rate_limited: "طلبات كثيرة خلال وقت قصير. انتظر قليلًا ثم حاول مرة أخرى.",
   request_failed: "تعذر الاتصال بالخادم. حاول مرة أخرى.",
   internal_error: "حدث خطأ داخلي. حاول مرة أخرى."
 };
