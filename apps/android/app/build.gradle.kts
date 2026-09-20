@@ -9,6 +9,9 @@ val developmentLicensingApiBaseUrl = providers.gradleProperty("TYFINO_LICENSING_
     .orElse("")
     .map { value -> value.replace("\\", "\\\\").replace("\"", "\\\"") }
 val productionLicensingApiBaseUrl = "https://api.tyfino.online"
+val signRelease = providers.gradleProperty("TYFINO_SIGN_RELEASE")
+    .orElse("false")
+    .map { value -> value.toBooleanStrict() }
 
 check(URI(productionLicensingApiBaseUrl).let { origin ->
     origin.scheme == "https" &&
@@ -33,6 +36,23 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (signRelease.get()) {
+            create("release") {
+                val keystorePath = providers.environmentVariable("TYFINO_ANDROID_KEYSTORE_PATH").orNull
+                    ?: error("TYFINO_ANDROID_KEYSTORE_PATH is required for a signed Release build.")
+                storeFile = file(keystorePath)
+                storePassword = providers.environmentVariable("TYFINO_ANDROID_STORE_PASSWORD").orNull
+                    ?: error("TYFINO_ANDROID_STORE_PASSWORD is required for a signed Release build.")
+                keyAlias = providers.environmentVariable("TYFINO_ANDROID_KEY_ALIAS").orNull
+                    ?: error("TYFINO_ANDROID_KEY_ALIAS is required for a signed Release build.")
+                keyPassword = providers.environmentVariable("TYFINO_ANDROID_KEY_PASSWORD").orNull
+                    ?: error("TYFINO_ANDROID_KEY_PASSWORD is required for a signed Release build.")
+                storeType = "PKCS12"
+            }
+        }
+    }
+
     buildTypes {
         debug {
             buildConfigField(
@@ -43,6 +63,9 @@ android {
         }
         release {
             buildConfigField("String", "LICENSING_API_BASE_URL", "\"$productionLicensingApiBaseUrl\"")
+            if (signRelease.get()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
