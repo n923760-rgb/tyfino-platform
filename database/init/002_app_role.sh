@@ -19,6 +19,8 @@ psql --set=ON_ERROR_STOP=1 --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" <
 \getenv app_user POSTGRES_APP_USER
 \getenv app_password POSTGRES_APP_PASSWORD
 
+BEGIN;
+
 SELECT format('CREATE ROLE %I', :'app_user')
  WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'app_user')
 \gexec
@@ -26,6 +28,68 @@ SELECT format('CREATE ROLE %I', :'app_user')
 ALTER ROLE :"app_user" WITH
   LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION
   PASSWORD :'app_password';
+
+SELECT (
+  EXISTS (
+    SELECT 1
+      FROM pg_class object
+      JOIN pg_roles owner ON owner.oid = object.relowner
+      JOIN pg_namespace namespace ON namespace.oid = object.relnamespace
+     WHERE owner.rolname = :'app_user'
+       AND namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+       AND namespace.nspname !~ '^pg_toast'
+  ) OR EXISTS (
+    SELECT 1
+      FROM pg_proc object
+      JOIN pg_roles owner ON owner.oid = object.proowner
+      JOIN pg_namespace namespace ON namespace.oid = object.pronamespace
+     WHERE owner.rolname = :'app_user'
+       AND namespace.nspname NOT IN ('pg_catalog', 'information_schema')
+       AND namespace.nspname !~ '^pg_toast'
+  ) OR EXISTS (
+    SELECT 1
+      FROM pg_namespace object
+      JOIN pg_roles owner ON owner.oid = object.nspowner
+     WHERE owner.rolname = :'app_user'
+       AND object.nspname NOT IN ('pg_catalog', 'information_schema')
+       AND object.nspname !~ '^pg_toast'
+  ) OR EXISTS (
+    SELECT 1
+      FROM pg_database object
+      JOIN pg_roles owner ON owner.oid = object.datdba
+     WHERE owner.rolname = :'app_user'
+       AND object.datname = current_database()
+  ) OR EXISTS (
+    SELECT 1
+      FROM pg_extension object
+      JOIN pg_roles owner ON owner.oid = object.extowner
+     WHERE owner.rolname = :'app_user'
+  )
+) AS app_role_owns_objects
+\gset
+
+\if :app_role_owns_objects
+  \echo 'Restricted application role owns database objects; transfer ownership through a reviewed migration before continuing.'
+  \quit 1
+\endif
+
+SELECT format('REVOKE %I FROM %I', granted_role.rolname, member_role.rolname)
+  FROM pg_auth_members membership
+  JOIN pg_roles granted_role ON granted_role.oid = membership.roleid
+  JOIN pg_roles member_role ON member_role.oid = membership.member
+ WHERE member_role.rolname = :'app_user'
+\gexec
+
+SELECT format('REVOKE ALL PRIVILEGES ON DATABASE %I FROM %I', current_database(), :'app_user')
+\gexec
+REVOKE ALL PRIVILEGES ON SCHEMA public FROM :"app_user";
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM :"app_user";
+REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM :"app_user";
+REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM :"app_user";
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL PRIVILEGES ON TABLES FROM :"app_user";
+ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL PRIVILEGES ON SEQUENCES FROM :"app_user";
+ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL PRIVILEGES ON FUNCTIONS FROM :"app_user";
 
 SELECT format('GRANT CONNECT ON DATABASE %I TO %I', current_database(), :'app_user')
 \gexec
@@ -76,6 +140,8 @@ GRANT USAGE, SELECT ON SEQUENCE audit_logs_id_seq TO :"app_user";
 GRANT EXECUTE ON FUNCTION audit_log_hash(bigint, uuid, text, text, text, jsonb, inet, timestamptz, text)
   TO :"app_user";
 GRANT EXECUTE ON FUNCTION verify_audit_log_chain() TO :"app_user";
+
+COMMIT;
 SQL
 
 echo "Restricted PostgreSQL application role configured: $POSTGRES_APP_USER"
