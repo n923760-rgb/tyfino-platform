@@ -1,3 +1,5 @@
+import java.net.URI
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -8,7 +10,7 @@ val developmentLicensingApiBaseUrl = providers.gradleProperty("TYFINO_LICENSING_
     .map { value -> value.replace("\\", "\\\\").replace("\"", "\\\"") }
 val productionLicensingApiBaseUrl = "https://api.tyfino.online"
 
-check(java.net.URI(productionLicensingApiBaseUrl).let { origin ->
+check(URI(productionLicensingApiBaseUrl).let { origin ->
     origin.scheme == "https" &&
         origin.host == "api.tyfino.online" &&
         origin.port == -1 &&
