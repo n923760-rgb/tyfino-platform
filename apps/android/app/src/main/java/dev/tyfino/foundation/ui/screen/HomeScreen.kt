@@ -20,7 +20,7 @@ import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 
 @Composable
-internal fun FoundationScreen(
+internal fun HomeScreen(
     onOpenAccountSwitcher: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
@@ -30,15 +30,15 @@ internal fun FoundationScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 32.dp)
-            .testTag("foundation-screen"),
+            .testTag("home-screen"),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         Text(
-            text = stringResource(R.string.foundation_title),
+            text = stringResource(R.string.home_title),
             style = MaterialTheme.typography.headlineLarge,
         )
         Text(
-            text = stringResource(R.string.foundation_description),
+            text = stringResource(R.string.home_description),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

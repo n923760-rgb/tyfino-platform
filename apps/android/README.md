@@ -1,6 +1,6 @@
-# TYFINO Android foundation
+# TYFINO Android
 
-This directory contains the native Android client foundation and the licensing, multiple-account Xtream authentication, catalog, artwork, playback, Movie details, Series episodes, resume, cached-catalog search, favorites, Live/Movie/episode recent-history, and on-demand Live EPG slices. The account portfolio follows [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md). Provider-wide search, final branding, and release configuration remain separate work.
+This directory contains the native TYFINO Android client and the licensing, multiple-account Xtream authentication, catalog, artwork, playback, Movie details, Series episodes, resume, cached-catalog search, favorites, Live/Movie/episode recent-history, and on-demand Live EPG slices. The account portfolio follows [the multiple Xtream accounts contract](../../docs/android/multiple-xtream-accounts-contract-v1.md). Provider-wide search and production release configuration remain separate work.
 
 ## Implemented licensing slice
 
@@ -38,12 +38,12 @@ Authentication fetches no catalog, EPG, playback URLs, or streams. Those feature
 
 | Item | Value | Status | Reason |
 | --- | --- | --- | --- |
-| Language | Kotlin 2.4.10 | DECIDED for this foundation | Stable Kotlin/Compose compiler plugin compatible with the selected Android build toolchain. |
+| Language | Kotlin 2.4.10 | DECIDED for TYFINO V1 | Stable Kotlin/Compose compiler plugin compatible with the selected Android build toolchain. |
 | UI | Jetpack Compose, stable BOM 2026.08.00 | DECIDED | Approved native UI direction and official compatibility management. |
-| Build plugin | Android Gradle Plugin 9.4.0 | DECIDED for this foundation | Current stable AGP supporting API 37; no preview tooling. |
-| Gradle | 9.6.0 | DECIDED for this foundation | Required/default version for AGP 9.4.0. The checked-in wrapper pins and verifies the distribution. |
+| Build plugin | Android Gradle Plugin 9.4.0 | DECIDED for TYFINO V1 | Current stable AGP supporting API 37; no preview tooling. |
+| Gradle | 9.6.0 | DECIDED for TYFINO V1 | Required/default version for AGP 9.4.0. The checked-in wrapper pins and verifies the distribution. |
 | JDK | 17 | DECIDED | Required/default JDK for AGP 9.4.0. |
-| compileSdk / targetSdk | 37 / 37 | DECIDED for this foundation | Uses the current Android platform and exceeds the Google Play API 36 minimum. |
+| compileSdk / targetSdk | 37 / 37 | DECIDED for TYFINO V1 | Uses the current Android platform and exceeds the Google Play API 36 minimum. |
 | minSdk | 24 | PROVISIONAL | Current stable Navigation requires API 24; target-device coverage must be approved before product release. |
 | Module count | One `app` module | DECIDED | Minimum maintainable structure; feature modules are not justified yet. |
 | Adaptive API | Material 3 Adaptive 1.3.0 | DECIDED | Official window-size API for resizing, foldables, multi-window, and large screens. |
@@ -59,16 +59,17 @@ Official references checked on 2026-09-08:
 - <https://developer.android.com/jetpack/androidx/releases/navigation>
 - <https://developer.android.com/jetpack/androidx/releases/activity>
 
-## OPEN temporary values
+## Application identity
 
-Android requires identifiers before the protected production values have been approved. The following values are development-only and must not be treated as final:
+- Stable application ID: `com.tyfino.player`
+- Internal source namespace: `dev.tyfino.foundation` (not part of the installed or Play Store identity)
+- App label: `TYFINO`
+- Initial version code/name: `1` / `1.0.0`
+- TYFINO vector icon, Android TV banner, and dark cyan/violet theme
 
-- Namespace and application ID: `dev.tyfino.foundation`
-- App label: `TYFINO Dev`
-- Version code/name: `1` / `0.1.0-foundation`
-- Neutral icon, TV banner, and theme colors
+The application identity is approved and must not be changed after distribution. Production signing, licensing endpoint, signing-key custody, and release approval remain separate protected decisions.
 
-There is no production signing configuration, production endpoint, ABI policy, or final branding in this project.
+The former `dev.tyfino.foundation` development application ID and `com.tyfino.player` are separate Android applications. Pre-release test devices must remove the old development install; no production customer data migration is implied or required.
 
 ## Build and checks
 

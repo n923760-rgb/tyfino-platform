@@ -59,7 +59,7 @@ import dev.tyfino.foundation.playback.SQLiteMovieResumeStore
 import dev.tyfino.foundation.ui.screen.EpisodePlaybackScreen
 import dev.tyfino.foundation.ui.screen.PlaybackScreen
 import dev.tyfino.foundation.ui.screen.CatalogScreen
-import dev.tyfino.foundation.ui.screen.FoundationScreen
+import dev.tyfino.foundation.ui.screen.HomeScreen
 import dev.tyfino.foundation.ui.screen.LicensingScreen
 import dev.tyfino.foundation.ui.screen.MovieDetailsScreen
 import dev.tyfino.foundation.ui.screen.MovieSelection
@@ -472,7 +472,7 @@ private fun LicensedAppShell(
             navController.navigate(destination.route) {
                 launchSingleTop = true
                 restoreState = true
-                popUpTo(AppDestination.Foundation.route) {
+                popUpTo(AppDestination.Home.route) {
                     saveState = true
                 }
             }
@@ -758,11 +758,11 @@ private fun AppNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = AppDestination.Foundation.route,
+        startDestination = AppDestination.Home.route,
         modifier = modifier,
     ) {
-        composable(AppDestination.Foundation.route) {
-            FoundationScreen(
+        composable(AppDestination.Home.route) {
+            HomeScreen(
                 onOpenAccountSwitcher = onOpenAccountSwitcher,
                 onOpenSettings = onOpenSettings,
             )

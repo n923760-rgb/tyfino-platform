@@ -22,7 +22,7 @@ Use this form for a **single build on one physical Android device**. Save a sepa
 ## Install and entry
 
 1. In the matching private GitHub Actions **Validate** run, download its `tyfino-debug-*` artifact. Extract the ZIP and install `app-debug.apk` on the test Android device. Record the exact run and commit above. This artifact expires after seven days.
-2. Confirm the device shows **TYFINO Dev** and the explicit trial/activation choices. Installation or app launch must not start the trial automatically.
+2. Confirm the device shows **TYFINO** with the approved icon/banner and the explicit trial/activation choices. Installation or app launch must not start the trial automatically.
 3. A CI APK has **no licensing service origin configured**. Mark activation, IPTV login, catalog, and media scenarios `BLOCKED` for that build. Only an approved, separately configured test build can run those scenarios.
 4. Never attach real activation codes, provider credentials, host URLs, playback links, authorization headers, cookies, or manifest excerpts to this record.
 

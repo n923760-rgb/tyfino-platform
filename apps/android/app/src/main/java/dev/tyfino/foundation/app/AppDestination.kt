@@ -7,7 +7,7 @@ internal enum class AppDestination(
     val route: String,
     @StringRes val labelRes: Int,
 ) {
-    Foundation("foundation", R.string.destination_home),
+    Home("home", R.string.destination_home),
     Live("live", R.string.destination_live),
     Movies("movies", R.string.destination_movies),
     Series("series", R.string.destination_series),
