@@ -60,7 +60,7 @@ jobs:
           test -x "$apksigner_path"
           mkdir -p build/release-output
           "$apksigner_path" verify --verbose --print-certs "$apk_path" | tee build/release-output/certificate.txt
-          actual_fingerprint="$(awk -F': ' '/Signer #1 certificate SHA-256 digest/{print tolower($2); exit}' build/release-output/certificate.txt | tr -d ':[:space:]')"
+          actual_fingerprint="$(awk -F': ' 'tolower($0) ~ /certificate sha-256 digest:/ {sub(/^.*digest:[[:space:]]*/, "", $0); print tolower($0); exit}' build/release-output/certificate.txt | tr -d ':[:space:]')"
           expected_fingerprint="$(printf '%s' "$TYFINO_ANDROID_CERT_SHA256" | tr '[:upper:]' '[:lower:]' | tr -d ':[:space:]')"
           test -n "$actual_fingerprint"
           if [[ "$actual_fingerprint" != "$expected_fingerprint" ]]; then
