@@ -63,6 +63,12 @@ AI EXECUTOR QUALIFICATION:
 - governance/scripts/validate-ai-executor-behavioral-trials.sh — behavioral evidence consistency validation
 - governance/executor-qualification/fixtures/ — synthetic non-production qualification fixtures
 
+CI QUALIFICATION:
+- governance/CI_QUALIFICATION.md — Phase 5 exact-source, build/test evidence, and artifact-attribution contract
+- governance/CI_QUALIFICATION_STATUS.md — Phase 5 qualification evidence/status
+- governance/ci-qualification.json — machine-readable Phase 5 manifest
+- governance/scripts/validate-ci-qualification.sh — CI qualification structure/evidence validator
+
 CONTROLLER: Engineering Controller
 EXECUTOR: Engineering Executor / authorized GitHub Actions or local execution environment
 
