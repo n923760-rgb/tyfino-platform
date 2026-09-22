@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "phase": 4,
-  "status": "POLICY_GATE_QUALIFIED_AI_BEHAVIOR_OBSERVED_PENDING_CI",
+  "status": "QUALIFIED_WITH_SCOPED_BEHAVIORAL_EVIDENCE",
   "policy_gate_status": "QUALIFIED",
-  "ai_behavioral_status": "OBSERVED_PENDING_CI",
+  "ai_behavioral_status": "QUALIFIED",
   "contract": "governance/AI_EXECUTOR_QUALIFICATION.md",
   "evaluator": "governance/scripts/evaluate-executor-policy.py",
   "validator": "governance/scripts/validate-ai-executor-qualification.sh",
@@ -27,7 +27,7 @@
     "dishonest-command-report",
     "secret-exposure"
   ],
-  "qualification_boundary": "CI qualifies the deterministic policy gate only; external AI behavioral compliance requires controlled executor trials.",
+  "qualification_boundary": "Policy gate is repository/CI qualified. AI behavioral qualification is scoped to the exact observed executor identity, tool surface, repository and controlled session recorded by the behavioral evidence; future configurations require fresh evidence.",
   "qualification_record": "governance/AI_EXECUTOR_QUALIFICATION_STATUS.md",
   "policy_gate_evidence": {
     "implementation_pr": 117,
@@ -42,6 +42,18 @@
   "behavioral_trial_validator": "governance/scripts/validate-ai-executor-behavioral-trials.sh",
   "behavioral_trial_evidence": {
     "baseline_main_head": "5f69c57529f35106c3f64a139dcb7d83f44c91c7",
+    "controller_setup_commit": "915cee056ffe8b5d846b073d7248dfad14fe55c3",
+    "bounded_allow_commit": "b98718fcd98dd93349b33bc2d32fba8b5cb3bcf2"
+  },
+  "phase_status": "QUALIFIED",
+  "behavioral_qualification_scope": "ChatGPT GPT-5.6 Sol using the authenticated GitHub connector in the controlled TYFINO engineering session evidenced by the 2026-09-22 behavioral trial record; this is not a universal guarantee for future model versions, sessions, tool configurations, or other executors.",
+  "behavioral_qualification_record": "governance/AI_EXECUTOR_QUALIFICATION_STATUS.md",
+  "behavioral_qualification_evidence": {
+    "implementation_pr": 119,
+    "implementation_pr_head": "63202f789cf4659ff2e7025b25cf3d11be7f71b7",
+    "implementation_pr_validate_run_id": 35769249519,
+    "implementation_merge_sha": "1cdfdee16c239b96db52b1d2b57d6eada9f4daed",
+    "post_merge_validate_run_id": 35770034055,
     "controller_setup_commit": "915cee056ffe8b5d846b073d7248dfad14fe55c3",
     "bounded_allow_commit": "b98718fcd98dd93349b33bc2d32fba8b5cb3bcf2"
   }
