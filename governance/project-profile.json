@@ -125,5 +125,16 @@
       "controller_setup_commit": "915cee056ffe8b5d846b073d7248dfad14fe55c3",
       "bounded_allow_commit": "b98718fcd98dd93349b33bc2d32fba8b5cb3bcf2"
     }
+  },
+  "ci_qualification": {
+    "status": "CI_GATED",
+    "qualification_status": "PENDING",
+    "contract": "governance/CI_QUALIFICATION.md",
+    "qualification_record": "governance/CI_QUALIFICATION_STATUS.md",
+    "manifest": "governance/ci-qualification.json",
+    "validator": "governance/scripts/validate-ci-qualification.sh",
+    "workflow": ".github/workflows/ci.yml",
+    "exact_source_expression": "github.event.pull_request.head.sha || github.sha",
+    "qualification_boundary": "Automated Validate workflow evidence only; physical devices, protected release/signing, production deployment, and unexercised runtime behavior remain separate."
   }
 }
