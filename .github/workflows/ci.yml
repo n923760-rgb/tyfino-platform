@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate engineering environment manifest
+        run: bash governance/scripts/validate-engineering-environment.sh
       - name: Validate deployment configuration and scripts
         run: |
           cp .env.example .env

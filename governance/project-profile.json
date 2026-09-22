@@ -48,5 +48,15 @@
     "permanent_release_artifact_deletion"
   ],
   "evidence_policy": "Use exact task source identity and attributable CI/runtime evidence; never treat BLOCKED, SKIPPED, or NOT RUN as PASS.",
-  "deployment_policy": "Production deployment remains separately gated by docs/deployment.md."
+  "deployment_policy": "Production deployment remains separately gated by docs/deployment.md.",
+  "engineering_environment": {
+    "status": "PARTIAL",
+    "contract": "governance/ENGINEERING_ENVIRONMENT_CONTRACT.md",
+    "manifest": "governance/engineering-environment.json",
+    "validation_script": "governance/scripts/validate-engineering-environment.sh",
+    "repository_declared_environment": "CI_GATED",
+    "github_runner": "PER_RUN_QUALIFICATION",
+    "development_vps": "NOT_QUALIFIED",
+    "production_host": "NOT_QUALIFIED"
+  }
 }

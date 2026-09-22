@@ -1,0 +1,63 @@
+{
+  "status": "PARTIAL",
+  "source_environment_qualified": true,
+  "qualification_scope": "repository-declared build/test environment only",
+  "toolchains": {
+    "node": {
+      "major": 22,
+      "local_selector": ".nvmrc"
+    },
+    "java": {
+      "distribution": "temurin",
+      "major": 17,
+      "local_selector": ".java-version"
+    },
+    "gradle": {
+      "version": "9.6.0",
+      "wrapper": "apps/android/gradle/wrapper/gradle-wrapper.properties",
+      "distribution_sha256": "bbaeb2fef8710818cf0e261201dab964c572f92b942812df0c3620d62a529a01"
+    },
+    "postgres": {
+      "image": "postgres:16-alpine"
+    },
+    "android": {
+      "compile_sdk": 37,
+      "target_sdk": 37,
+      "min_sdk": 24
+    }
+  },
+  "managed_device_qualification": [
+    "phone-api-27",
+    "tablet-api-35"
+  ],
+  "reproducibility_anchors": [
+    "apps/api/package-lock.json",
+    "apps/admin/package-lock.json",
+    "apps/android/gradle/wrapper/gradle-wrapper.properties",
+    "docker-compose.yml",
+    ".github/workflows/ci.yml"
+  ],
+  "health_checks": {
+    "postgres": "docker-compose db healthcheck + CI service healthcheck",
+    "api": "docker-compose /readyz healthcheck"
+  },
+  "backup_restore": {
+    "create": "database/scripts/create-backup.sh",
+    "verify": "database/scripts/verify-backup-restore.sh",
+    "ci_job": "database-backup-restore"
+  },
+  "external_environment": {
+    "github_runner_image": {
+      "selector": "ubuntu-latest",
+      "pinned": false,
+      "qualified_per_run": true
+    },
+    "development_vps": {
+      "qualified": false
+    },
+    "production_host": {
+      "qualified": false
+    }
+  },
+  "validation_script": "governance/scripts/validate-engineering-environment.sh"
+}
