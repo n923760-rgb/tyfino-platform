@@ -51,6 +51,13 @@ TASK / RESULT PROTOCOL:
 - governance/task-result-protocol.json — machine-readable protocol manifest
 - governance/scripts/validate-task-result-protocol.sh — CI drift/structure validation
 
+AI EXECUTOR QUALIFICATION:
+- governance/AI_EXECUTOR_QUALIFICATION.md — Phase 4 behavioral requirements and qualification boundary
+- governance/ai-executor-qualification.json — machine-readable Phase 4 manifest
+- governance/scripts/evaluate-executor-policy.py — deterministic fail-closed policy evaluator
+- governance/scripts/validate-ai-executor-qualification.sh — safe fixture validation
+- governance/executor-qualification/fixtures/ — synthetic non-production qualification fixtures
+
 CONTROLLER: Engineering Controller
 EXECUTOR: Engineering Executor / authorized GitHub Actions or local execution environment
 
