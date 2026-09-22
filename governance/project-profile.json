@@ -1,5 +1,5 @@
 {
-  "status": "ADOPTION_QUALIFICATION_IN_PROGRESS",
+  "status": "QUALIFIED",
   "governance_baseline": {
     "repository": "n923760-rgb/engineering-governance",
     "version": "v1.0.0"
@@ -9,6 +9,14 @@
   "official_branch": "main",
   "repository_instruction_file": "AGENTS.md",
   "project_baseline": "README.md",
+  "qualification_record": "governance/ADOPTION_STATUS.md",
+  "qualification_evidence": {
+    "adoption_pr": 106,
+    "adoption_pr_head": "49be6a9f18292733bf0edded675481e607b67680",
+    "adoption_pr_validate_run_id": 35746762235,
+    "adoption_merge_sha": "344aabffd2921fdd7c849167606b17a1ea08ddac",
+    "post_merge_validate_run_id": 35747421502
+  },
   "ci": {
     "validation_workflow": ".github/workflows/ci.yml",
     "protected_signed_apk_workflow": ".github/workflows/release-apk.yml"

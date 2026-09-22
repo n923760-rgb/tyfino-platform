@@ -1,58 +1,66 @@
 # TYFINO Governance Adoption Status
 
-Status: QUALIFICATION IN PROGRESS
+Status: QUALIFIED
 
 Governance baseline: Engineering Governance v1.0.0
 
-## Read-Only Live Qualification
+## Qualification Evidence
 
-Observed before this adoption branch was created:
+The TYFINO repository has completed the governance-adoption qualification flow.
 
-- Repository identity: `n923760-rgb/tyfino-platform`
-- Official branch: `main`
-- Verified official HEAD: `0ab59398d64e936430cced924d0cd8f4fdc56c3f`
-- Open pull requests: none
-- Root repository instructions: `AGENTS.md`
-- Validation workflow: `.github/workflows/ci.yml`
-- Latest Validate run on the verified official HEAD: PASS
-- Latest manually triggered Build signed APK on the verified official HEAD: PASS
-- Production deployment remains unqualified and separately gated by `docs/deployment.md`
+Verified adoption sequence:
 
-This SHA is historical qualification evidence only. Future tasks must query current source live and must not reuse it as an expected HEAD.
+- Initial live source before adoption: `main@0ab59398d64e936430cced924d0cd8f4fdc56c3f`
+- Adoption PR: #106
+- Adoption PR exact head: `49be6a9f18292733bf0edded675481e607b67680`
+- PR Validate run: `35746762235` / run #304 — PASS
+- Owner explicitly authorized merge.
+- Adoption merge commit: `344aabffd2921fdd7c849167606b17a1ea08ddac`
+- Post-merge Validate run: `35747421502` / run #305 — PASS
+- All post-merge jobs passed:
+  - deployment-config;
+  - api;
+  - admin;
+  - database-backup-restore;
+  - android;
+  - android-instrumentation (phone-api-27);
+  - android-instrumentation (tablet-api-35).
 
-## Adoption Implementation Task
+The adoption diff was governance-only: `AGENTS.md` plus files under `governance/`. It did not modify Android behavior, API/Admin/database behavior, CI test logic, signing workflow behavior, deployment behavior, or product architecture.
 
-Branch: `governance/adopt-v1`
+These SHAs and run IDs are historical qualification evidence only. Every future engineering task must re-query live repository, PR, CI, and environment state when they matter.
 
-Scope:
-- add TYFINO-specific governance profile;
-- add environment contract and authoritative resource map;
-- link the existing `AGENTS.md` hierarchy to Engineering Governance v1.0.0;
-- do not change product, API, Android behavior, signing behavior, deployment behavior, or CI test logic.
+## Qualified Operating Model
 
-## Qualification Required Before Adoption Is Complete
+TYFINO engineering now follows Engineering Governance v1.0.0:
 
-- [x] Read current repository instructions.
-- [x] Verify repository identity and official branch.
-- [x] Verify official HEAD before mutation.
-- [x] Verify there was no conflicting open PR before branch creation.
-- [x] Inspect current CI and signed-APK workflow.
-- [x] Inspect current deployment/security boundaries.
-- [ ] Review the complete adoption diff.
-- [ ] Governance adoption PR passes TYFINO Validate on its exact PR source.
-- [ ] Owner explicitly authorizes merge.
-- [ ] Post-merge Validate passes on the resulting exact `main` SHA.
+Current Problem → Current Source → Isolated Change → Evidence → Review → Merge Decision
 
-Only after the remaining checks pass should this status change to `QUALIFIED`.
+For each future source task:
+- verify live repository identity and official `main` HEAD;
+- read `AGENTS.md`, this project profile, and applicable scoped contracts;
+- define one bounded engineering scope;
+- use an isolated branch/PR for repository mutation;
+- run the smallest deterministic test first, then relevant regressions;
+- record PASS / FAIL / BLOCKED / SKIPPED / NOT RUN honestly;
+- tie important conclusions to exact source and execution evidence;
+- perform protected actions only when explicitly authorized by the current owner instruction.
 
-## Deliberately Not Qualified by This Adoption
+## Deliberately Not Qualified by Governance Adoption
+
+Governance adoption does **not** mean the TYFINO product is production-qualified.
+
+The following remain separately gated:
 
 - production deployment;
 - production server/VPS state;
 - production database migration;
 - physical Android TV/Google TV qualification;
+- API-24-class physical-device qualification;
+- real-provider/media playback qualification;
+- RTL/accessibility/performance physical-device qualification;
 - signing-key custody beyond repository workflow evidence;
-- production backup destination/retention/restore target;
+- production backup destination, retention, and restore target;
 - unresolved OPEN product/deployment decisions.
 
-Those require their own bounded Task Packets and evidence.
+Those require their own bounded Task Packets and attributable evidence.
