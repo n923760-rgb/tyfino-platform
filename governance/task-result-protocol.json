@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "status": "PHASE_3_IMPLEMENTATION_CANDIDATE",
+  "task_template": "governance/templates/TASK_PACKET.md",
+  "result_template": "governance/templates/RESULT_PACKET.md",
+  "protocol": "governance/TASK_RESULT_PROTOCOL.md",
+  "durable_records_root": "governance/task-records",
+  "validation_script": "governance/scripts/validate-task-result-protocol.sh",
+  "allowed_task_types": [
+    "READ-ONLY DIAGNOSIS",
+    "IMPLEMENTATION",
+    "RUNTIME QUALIFICATION",
+    "CI INVESTIGATION",
+    "INFRASTRUCTURE MAINTENANCE"
+  ],
+  "allowed_validation_statuses": [
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "SKIPPED",
+    "NOT RUN"
+  ],
+  "task_required_sections": [
+    "Task Identity",
+    "Role",
+    "Task Type",
+    "Authority",
+    "Repository Identity",
+    "Scope",
+    "Out of Scope",
+    "Live Gate",
+    "Task",
+    "Validation",
+    "Artifacts",
+    "Stop Conditions",
+    "Report Path",
+    "Success Criteria"
+  ],
+  "result_required_sections": [
+    "Task Identity",
+    "Repository Identity",
+    "Authority",
+    "Scope",
+    "Commands Actually Run",
+    "Validation Actually Run",
+    "Validation Not Run",
+    "Findings",
+    "Changes",
+    "Artifacts",
+    "Failure Analysis",
+    "Residual Risks",
+    "Recommended Next Action"
+  ]
+}

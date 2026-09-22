@@ -21,6 +21,12 @@ TYFINO customization:
 - governance/scripts/validate-engineering-environment.sh
 - governance/ADOPTION_STATUS.md
 - governance/REPOSITORY_FOUNDATION_STATUS.md
+- governance/TASK_RESULT_PROTOCOL.md
+- governance/task-result-protocol.json
+- governance/templates/TASK_PACKET.md
+- governance/templates/RESULT_PACKET.md
+- governance/task-records/README.md
+- governance/scripts/validate-task-result-protocol.sh
 
 ## Repository Instructions
 
