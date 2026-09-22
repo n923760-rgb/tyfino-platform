@@ -43,6 +43,13 @@ REPOSITORY FOUNDATION:
 - .github/CODEOWNERS — repository ownership
 - .github/pull_request_template.md — atomic task/evidence PR discipline
 
+TASK / RESULT PROTOCOL:
+- governance/TASK_RESULT_PROTOCOL.md — Phase 3 packet rules, storage, evidence, and qualification boundary
+- governance/templates/TASK_PACKET.md — standard atomic work order
+- governance/templates/RESULT_PACKET.md — standard attributable execution result
+- governance/task-result-protocol.json — machine-readable protocol manifest
+- governance/scripts/validate-task-result-protocol.sh — CI drift/structure validation
+
 CONTROLLER: Engineering Controller
 EXECUTOR: Engineering Executor / authorized GitHub Actions or local execution environment
 
