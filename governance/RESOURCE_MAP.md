@@ -28,6 +28,11 @@ TYFINO customization:
 - governance/templates/RESULT_PACKET.md
 - governance/task-records/README.md
 - governance/scripts/validate-task-result-protocol.sh
+- governance/AI_EXECUTOR_QUALIFICATION.md
+- governance/ai-executor-qualification.json
+- governance/scripts/evaluate-executor-policy.py
+- governance/scripts/validate-ai-executor-qualification.sh
+- governance/executor-qualification/fixtures/
 
 ## Repository Instructions
 
