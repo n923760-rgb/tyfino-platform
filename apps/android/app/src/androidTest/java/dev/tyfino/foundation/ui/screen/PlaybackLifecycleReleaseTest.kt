@@ -44,6 +44,14 @@ class PlaybackLifecycleReleaseTest {
         )
         val accountStore = FixedAccountStore(account)
         val resumeRepository = MovieResumeRepository(accountStore, EmptyResumeStore)
+        val previousLiveChannelController = PreviousLiveChannelController()
+        val selection = PlaybackSelection(
+            accountId = account.accountId,
+            accountGeneration = account.generation,
+            section = CatalogSection.Live,
+            providerItemId = "42",
+            containerExtension = "m3u8",
+        )
         val visible = mutableStateOf(true)
 
         try {
@@ -51,16 +59,10 @@ class PlaybackLifecycleReleaseTest {
                 MaterialTheme {
                     if (visible.value) {
                         PlaybackScreen(
-                            selection = PlaybackSelection(
-                                accountId = account.accountId,
-                                accountGeneration = account.generation,
-                                section = CatalogSection.Live,
-                                providerItemId = "42",
-                                containerExtension = "m3u8",
-                            ),
+                            selection = selection,
                             accountStore = accountStore,
                             resumeRepository = resumeRepository,
-                            previousLiveChannelController = PreviousLiveChannelController(),
+                            previousLiveChannelController = previousLiveChannelController,
                             onPreviousLive = {},
                             onBack = {},
                         )
