@@ -22,6 +22,15 @@ jq -e '
    .qualification_evidence.post_merge_validate_run_number == 341
   else true end)
 ' governance/governance-qualification.json >/dev/null || fail "Invalid Phase 6 manifest or qualification evidence"
+jq -e '
+ .governance_qualification.status == "CI_GATED" and
+ .governance_qualification.qualification_status == "QUALIFIED" and
+ .governance_qualification.qualification_evidence.implementation_pr == 124 and
+ .governance_qualification.qualification_evidence.implementation_pr_head == "60746c985d77e26a7a29bb1740dd93ee42f96019" and
+ .governance_qualification.qualification_evidence.implementation_pr_validate_run_id == 35783372970 and
+ .governance_qualification.qualification_evidence.implementation_merge_sha == "6822ec730bb09efda9b345d98fa16f3e83255c8e" and
+ .governance_qualification.qualification_evidence.post_merge_validate_run_id == 35783938855
+' governance/project-profile.json >/dev/null || fail "Project profile Phase 6 qualification evidence is invalid"
 grep -Fq 'GOVERNANCE_QUALIFICATION.md' governance/PROJECT_PROFILE.md || fail "Project profile missing Phase 6"
 grep -Fq 'governance-qualification.json' governance/RESOURCE_MAP.md || fail "Resource map missing Phase 6"
 grep -Fq 'Run governance qualification adversarial suite' .github/workflows/ci.yml || fail "CI does not run Phase 6 suite"
