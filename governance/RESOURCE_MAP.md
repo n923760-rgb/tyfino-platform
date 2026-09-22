@@ -22,6 +22,7 @@ TYFINO customization:
 - governance/ADOPTION_STATUS.md
 - governance/REPOSITORY_FOUNDATION_STATUS.md
 - governance/TASK_RESULT_PROTOCOL.md
+- governance/TASK_RESULT_PROTOCOL_STATUS.md
 - governance/task-result-protocol.json
 - governance/templates/TASK_PACKET.md
 - governance/templates/RESULT_PACKET.md
