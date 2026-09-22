@@ -76,6 +76,14 @@
     "result_template": "governance/templates/RESULT_PACKET.md",
     "durable_records_root": "governance/task-records",
     "validation_script": "governance/scripts/validate-task-result-protocol.sh",
-    "qualification_status": "PENDING"
+    "qualification_status": "QUALIFIED",
+    "qualification_record": "governance/TASK_RESULT_PROTOCOL_STATUS.md",
+    "qualification_evidence": {
+      "implementation_pr": 115,
+      "implementation_pr_head": "66189cc91abc90cdd8bd9dea80ba2e0635d9321a",
+      "implementation_pr_validate_run_id": 35761796453,
+      "implementation_merge_sha": "a82f0bdfd05968ad2a340631a111bbe00f1bc831",
+      "post_merge_validate_run_id": 35762279885
+    }
   }
 }
