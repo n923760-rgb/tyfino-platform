@@ -1,7 +1,8 @@
 # TYFINO Project Governance Profile
 
-Status: ADOPTION QUALIFICATION IN PROGRESS
+Status: QUALIFIED
 Governance baseline: Engineering Governance v1.0.0
+Qualification record: governance/ADOPTION_STATUS.md
 
 ## Project Identity
 
@@ -80,6 +81,7 @@ EVIDENCE LOCATION: task-specific CI runs, reports, logs, runtime records, checks
 REPORT LOCATION: task Result Packet or PR evidence.
 
 Never classify BLOCKED, SKIPPED, or NOT RUN as PASS.
+Never reuse the historical adoption SHA as a future Task Packet expected HEAD; fetch current live state.
 
 ## Deployment Boundary
 
