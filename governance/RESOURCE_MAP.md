@@ -17,10 +17,13 @@ TYFINO customization:
 - governance/project-profile.json
 - governance/ENGINEERING_ENVIRONMENT_CONTRACT.md
 - governance/ADOPTION_STATUS.md
+- governance/REPOSITORY_FOUNDATION_STATUS.md
 
 ## Repository Instructions
 
 - AGENTS.md
+- .github/CODEOWNERS
+- .github/pull_request_template.md
 
 ## Project / Architecture Baselines
 

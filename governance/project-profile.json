@@ -10,6 +10,11 @@
   "repository_instruction_file": "AGENTS.md",
   "project_baseline": "README.md",
   "qualification_record": "governance/ADOPTION_STATUS.md",
+  "repository_foundation": {
+    "status": "PARTIAL",
+    "status_record": "governance/REPOSITORY_FOUNDATION_STATUS.md",
+    "default_branch_protection": "BLOCKED_EXTERNAL_SETTING"
+  },
   "qualification_evidence": {
     "adoption_pr": 106,
     "adoption_pr_head": "49be6a9f18292733bf0edded675481e607b67680",

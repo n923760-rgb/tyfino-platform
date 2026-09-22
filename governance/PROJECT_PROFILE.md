@@ -3,6 +3,7 @@
 Status: QUALIFIED
 Governance baseline: Engineering Governance v1.0.0
 Qualification record: governance/ADOPTION_STATUS.md
+Repository foundation record: governance/REPOSITORY_FOUNDATION_STATUS.md
 
 ## Project Identity
 
@@ -36,6 +37,11 @@ SUBSYSTEM CONTRACTS:
 CI SYSTEM:
 - .github/workflows/ci.yml — Validate
 - .github/workflows/release-apk.yml — manual protected signed APK build
+
+REPOSITORY FOUNDATION:
+- governance/REPOSITORY_FOUNDATION_STATUS.md — Phase 1 repository-foundation qualification and external protection gate
+- .github/CODEOWNERS — repository ownership
+- .github/pull_request_template.md — atomic task/evidence PR discipline
 
 CONTROLLER: Engineering Controller
 EXECUTOR: Engineering Executor / authorized GitHub Actions or local execution environment
