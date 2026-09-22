@@ -51,12 +51,21 @@
   "deployment_policy": "Production deployment remains separately gated by docs/deployment.md.",
   "engineering_environment": {
     "status": "PARTIAL",
+    "source_environment": "QUALIFIED",
+    "status_record": "governance/ENGINEERING_ENVIRONMENT_STATUS.md",
     "contract": "governance/ENGINEERING_ENVIRONMENT_CONTRACT.md",
     "manifest": "governance/engineering-environment.json",
     "validation_script": "governance/scripts/validate-engineering-environment.sh",
     "repository_declared_environment": "CI_GATED",
     "github_runner": "PER_RUN_QUALIFICATION",
     "development_vps": "NOT_QUALIFIED",
-    "production_host": "NOT_QUALIFIED"
+    "production_host": "NOT_QUALIFIED",
+    "qualification_evidence": {
+      "implementation_pr": 113,
+      "implementation_pr_head": "c7807f9394b7913b79fbdf50f40ded6012cfafd4",
+      "implementation_pr_validate_run_id": 35755270171,
+      "implementation_merge_sha": "bff03a177bb0f25b36de51ae182ce6d3a29fcf7c",
+      "post_merge_validate_run_id": 35758844321
+    }
   }
 }
