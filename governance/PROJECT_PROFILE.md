@@ -53,6 +53,7 @@ TASK / RESULT PROTOCOL:
 
 AI EXECUTOR QUALIFICATION:
 - governance/AI_EXECUTOR_QUALIFICATION.md — Phase 4 behavioral requirements and qualification boundary
+- governance/AI_EXECUTOR_QUALIFICATION_STATUS.md — policy-gate qualification evidence and remaining behavioral gate
 - governance/ai-executor-qualification.json — machine-readable Phase 4 manifest
 - governance/scripts/evaluate-executor-policy.py — deterministic fail-closed policy evaluator
 - governance/scripts/validate-ai-executor-qualification.sh — safe fixture validation
