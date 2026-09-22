@@ -19,7 +19,7 @@ The two managed devices run from clean emulator state in GitHub Actions. Represe
 
 A passing Android CI job attaches a short-lived `tyfino-debug-*` APK artifact for manual development testing. It uses temporary debug signing and the CI default of an empty licensing-service origin; it is not a production release or a configured end-to-end IPTV test build. Record the artifact's commit and any approved local build configuration in manual evidence. Reinstalling a different CI build may require removing the prior debug app and its local state because the signing key is not stable across runners.
 
-Recorded automated evidence: [Validate run 256](https://github.com/n923760-rgb/tyfino-platform/actions/runs/35467043225) on commit `ddb06b625b86dc5f334c380baa5994b3a6fba2f9`. All six automated rows above completed successfully. This evidence does not qualify any physical-device or real-media row below.
+Recorded automated evidence: [Validate run 356](https://github.com/n923760-rgb/tyfino-platform/actions/runs/35791471555) on official `main@510ec6176aa75ea3e58264be355b22a1db111073` completed 7/7 jobs successfully. It covers all six automated rows above. The API 27 phone and API 35 tablet instrumentation also exercise synthetic, local progressive Movie prepare/seek, HLS transport-stream prepare, missing-media failure, repeated player recreation, and closure of an active media connection when the actual playback destination leaves composition. These are managed-emulator assertions with test-only media; they do not qualify physical devices, production decoders, provider compatibility, full lifecycle stress, or release performance.
 
 ## Required physical and media qualification
 
@@ -33,7 +33,7 @@ Recorded automated evidence: [Validate run 256](https://github.com/n923760-rgb/t
 | Media failure matrix | offline, timeout, rejected HTTP/redirect, unsupported format, decoder failure, non-seekable stream | BLOCKED |
 | Lifecycle stress | rapid Back, navigation, logout, account replacement, and repeated channel switching | BLOCKED |
 
-These rows remain `BLOCKED` because no approved provider test fixture and no physical-device evidence are attached. They must not be reported as `PASS` from emulator smoke tests.
+These rows remain `BLOCKED` because no qualifying physical-device, real-provider/media, and performance evidence is attached. Synthetic local fixtures qualify only the bounded automated behavior recorded above. They must not be reported as `PASS` for the physical matrix.
 
 ## Evidence protocol
 
@@ -55,7 +55,7 @@ Evidence must never contain a provider host, username, password, activation code
 ### P0 — required before release qualification
 
 - Run the full physical-device and media matrix above.
-- Verify that one player and surface are released without leaked Activity or continuing network/audio work.
+- Verify on physical devices that the player and surface release without a leaked Activity or continuing network/audio work. The managed-emulator connection-closure assertion covers only destination exit.
 - Measure cold start, catalog scrolling, player startup, dropped frames, memory, and CPU on the API 24-class device.
 - Confirm TV overscan/safe areas and deterministic D-pad focus for Back, Previous channel, Audio, Subtitles, Retry, and Media3 controls.
 - Confirm Arabic RTL and TalkBack do not expose provider IDs or secret-bearing values.
@@ -63,8 +63,8 @@ Evidence must never contain a provider host, username, password, activation code
 
 ### P1 — compatibility follow-up
 
-- Add approved credential-free local Live HLS/TS and progressive Movie fixtures for repeatable player integration tests.
-- Add lifecycle leak detection and a bounded playback startup benchmark.
+- Credential-free local HLS/TS and progressive Movie fixtures: implemented and exercised by managed-device instrumentation in Validate #356.
+- Add broader lifecycle leak detection and a bounded playback startup benchmark; the current destination-exit connection assertion is narrower.
 - Expand emulator coverage to a TV profile once player entry can use a deterministic local fixture.
 - Add fold/unfold automation when a stable CI device profile is available.
 
