@@ -38,6 +38,10 @@ TYFINO customization:
 - governance/scripts/validate-ai-executor-qualification.sh
 - governance/scripts/validate-ai-executor-behavioral-trials.sh
 - governance/executor-qualification/fixtures/
+- governance/CI_QUALIFICATION.md
+- governance/CI_QUALIFICATION_STATUS.md
+- governance/ci-qualification.json
+- governance/scripts/validate-ci-qualification.sh
 
 ## Repository Instructions
 
