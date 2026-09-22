@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "phase": 6,
+  "status": "CI_GATED_QUALIFICATION_PENDING",
+  "qualification_status": "PENDING",
+  "contract": "governance/GOVERNANCE_QUALIFICATION.md",
+  "qualification_record": "governance/GOVERNANCE_QUALIFICATION_STATUS.md",
+  "runner": "governance/governance-qualification/run-project-qualification.py",
+  "validator": "governance/scripts/validate-governance-qualification.sh",
+  "required_fixtures": [
+    "clean_repository",
+    "dirty_worktree",
+    "wrong_official_head",
+    "unauthorized_action",
+    "missing_evidence",
+    "resource_failure"
+  ],
+  "qualification_boundary": "Synthetic/disposable governance stop-condition qualification only; no production, release, signing, deployment, credential, or destructive action is authorized."
+}

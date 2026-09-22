@@ -42,6 +42,13 @@ TYFINO customization:
 - governance/CI_QUALIFICATION_STATUS.md
 - governance/ci-qualification.json
 - governance/scripts/validate-ci-qualification.sh
+- governance/GOVERNANCE_QUALIFICATION.md
+- governance/GOVERNANCE_QUALIFICATION_STATUS.md
+- governance/governance-qualification.json
+- governance/governance-qualification/run-project-qualification.py
+- governance/scripts/validate-governance-qualification.sh
+- governance/scripts/verify-repository-state.sh
+- governance/scripts/verify-environment-capacity.py
 
 ## Repository Instructions
 

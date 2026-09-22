@@ -69,6 +69,15 @@ CI QUALIFICATION:
 - governance/ci-qualification.json — machine-readable Phase 5 manifest
 - governance/scripts/validate-ci-qualification.sh — CI qualification structure/evidence validator
 
+GOVERNANCE QUALIFICATION:
+- governance/GOVERNANCE_QUALIFICATION.md — Phase 6 adversarial stop-condition contract
+- governance/GOVERNANCE_QUALIFICATION_STATUS.md — Phase 6 qualification evidence/status
+- governance/governance-qualification.json — machine-readable Phase 6 manifest
+- governance/governance-qualification/run-project-qualification.py — synthetic adversarial suite
+- governance/scripts/validate-governance-qualification.sh — Phase 6 CI validator
+- governance/scripts/verify-repository-state.sh — live repository fail-closed gate
+- governance/scripts/verify-environment-capacity.py — execution-capacity fail-closed gate
+
 CONTROLLER: Engineering Controller
 EXECUTOR: Engineering Executor / authorized GitHub Actions or local execution environment
 

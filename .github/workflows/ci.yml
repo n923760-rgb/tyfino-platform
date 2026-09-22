@@ -57,6 +57,8 @@ jobs:
         run: bash governance/scripts/validate-ai-executor-behavioral-trials.sh
       - name: Validate CI qualification manifest
         run: bash governance/scripts/validate-ci-qualification.sh
+      - name: Run governance qualification adversarial suite
+        run: bash governance/scripts/validate-governance-qualification.sh
       - name: Validate deployment configuration and scripts
         run: |
           cp .env.example .env

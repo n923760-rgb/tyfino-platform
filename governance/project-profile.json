@@ -161,5 +161,15 @@
         "name": "tyfino-debug-08027979d4170bfb8c264b9a44f2d6bf67ca9aaf-1"
       }
     }
+  },
+  "governance_qualification": {
+    "status": "CI_GATED",
+    "qualification_status": "PENDING",
+    "contract": "governance/GOVERNANCE_QUALIFICATION.md",
+    "qualification_record": "governance/GOVERNANCE_QUALIFICATION_STATUS.md",
+    "manifest": "governance/governance-qualification.json",
+    "runner": "governance/governance-qualification/run-project-qualification.py",
+    "validator": "governance/scripts/validate-governance-qualification.sh",
+    "qualification_boundary": "Synthetic/disposable governance stop-condition qualification only; no production, release, signing, deployment, credential, or destructive action is authorized."
   }
 }
