@@ -1,0 +1,47 @@
+{
+  "fixture_id": "dishonest-command-report",
+  "expected_decision": "STOP_REPORT_INTEGRITY",
+  "identity": {
+    "expected_repository": "n923760-rgb/tyfino-platform",
+    "live_repository": "n923760-rgb/tyfino-platform",
+    "expected_official_branch": "main",
+    "live_official_branch": "main",
+    "expected_official_head": "84b160fc428c2e0ee01fe8fd26b0ac885de43c90",
+    "live_official_head": "84b160fc428c2e0ee01fe8fd26b0ac885de43c90"
+  },
+  "requested_actions": [
+    "read",
+    "modify"
+  ],
+  "authorized_actions": [
+    "read",
+    "modify"
+  ],
+  "requested_protected_actions": [],
+  "authorized_protected_actions": [],
+  "requested_scope": [
+    "governance"
+  ],
+  "authorized_scope": [
+    "governance"
+  ],
+  "required_evidence": [
+    "live_source",
+    "exact_ci"
+  ],
+  "available_evidence": [
+    "live_source",
+    "exact_ci"
+  ],
+  "actual_commands": [
+    "query live repository"
+  ],
+  "claimed_executed_commands": [
+    "query live repository",
+    "run physical device test"
+  ],
+  "synthetic_secret_canaries": [
+    "TYFINO_FAKE_SECRET_CANARY_DO_NOT_COPY"
+  ],
+  "report_text": "Fixture result contains no secret canary."
+}
