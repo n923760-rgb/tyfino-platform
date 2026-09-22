@@ -47,11 +47,19 @@ jq -e '
   .ci_qualification.manifest == "governance/ci-qualification.json" and
   .ci_qualification.validator == "governance/scripts/validate-ci-qualification.sh" and
   (if .ci_qualification.qualification_status == "QUALIFIED"
-   then (.ci_qualification.qualification_evidence.implementation_pr | type == "number")
-        and (.ci_qualification.qualification_evidence.implementation_pr_head | type == "string")
-        and (.ci_qualification.qualification_evidence.implementation_pr_validate_run_id | type == "number")
-        and (.ci_qualification.qualification_evidence.implementation_merge_sha | type == "string")
-        and (.ci_qualification.qualification_evidence.post_merge_validate_run_id | type == "number")
+   then .ci_qualification.qualification_evidence.implementation_pr == 121
+        and .ci_qualification.qualification_evidence.implementation_pr_head == "4bafe282c4ee71d7772ec55b94e83f23d0a2fd49"
+        and .ci_qualification.qualification_evidence.implementation_pr_validate_run_id == 35775351792
+        and .ci_qualification.qualification_evidence.implementation_merge_sha == "08027979d4170bfb8c264b9a44f2d6bf67ca9aaf"
+        and .ci_qualification.qualification_evidence.post_merge_validate_run_id == 35775896315
+        and .ci_qualification.artifact_evidence.pr_source_attestation.id == 10716011558
+        and .ci_qualification.artifact_evidence.pr_source_attestation.name == "tyfino-ci-source-4bafe282c4ee71d7772ec55b94e83f23d0a2fd49-1"
+        and .ci_qualification.artifact_evidence.pr_debug_apk.id == 10716420231
+        and .ci_qualification.artifact_evidence.pr_debug_apk.name == "tyfino-debug-4bafe282c4ee71d7772ec55b94e83f23d0a2fd49-1"
+        and .ci_qualification.artifact_evidence.merge_source_attestation.id == 10716415962
+        and .ci_qualification.artifact_evidence.merge_source_attestation.name == "tyfino-ci-source-08027979d4170bfb8c264b9a44f2d6bf67ca9aaf-1"
+        and .ci_qualification.artifact_evidence.merge_debug_apk.id == 10716531010
+        and .ci_qualification.artifact_evidence.merge_debug_apk.name == "tyfino-debug-08027979d4170bfb8c264b9a44f2d6bf67ca9aaf-1"
    else true
    end)
 ' governance/project-profile.json >/dev/null || fail "Project profile CI qualification state is invalid"
@@ -61,13 +69,18 @@ jq -e '
   .workflow == ".github/workflows/ci.yml" and
   .exact_source_expression == "github.event.pull_request.head.sha || github.sha" and
   (if .qualification_status == "QUALIFIED"
-   then (.qualification_evidence.implementation_pr | type == "number")
-        and (.qualification_evidence.implementation_pr_head | type == "string")
-        and (.qualification_evidence.implementation_pr_validate_run_id | type == "number")
-        and (.qualification_evidence.implementation_merge_sha | type == "string")
-        and (.qualification_evidence.post_merge_validate_run_id | type == "number")
+   then .status == "QUALIFIED"
+        and .qualification_evidence.implementation_pr == 121
+        and .qualification_evidence.implementation_pr_head == "4bafe282c4ee71d7772ec55b94e83f23d0a2fd49"
+        and .qualification_evidence.implementation_pr_validate_run_id == 35775351792
+        and .qualification_evidence.implementation_merge_sha == "08027979d4170bfb8c264b9a44f2d6bf67ca9aaf"
+        and .qualification_evidence.post_merge_validate_run_id == 35775896315
+        and .artifact_evidence.pr_source_attestation.id == 10716011558
+        and .artifact_evidence.pr_debug_apk.id == 10716420231
+        and .artifact_evidence.merge_source_attestation.id == 10716415962
+        and .artifact_evidence.merge_debug_apk.id == 10716531010
    else true
    end)
 ' "$manifest" >/dev/null || fail "CI qualification manifest state is invalid"
 
-printf '[ci-qualification] PASS: exact-source and artifact-attribution CI contract is structurally valid.\n'
+printf '[ci-qualification] PASS: exact-source CI qualification state and evidence are valid.\n'
