@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "phase": 4,
-  "status": "FRAMEWORK_IMPLEMENTATION_CANDIDATE",
-  "policy_gate_status": "PENDING",
+  "status": "POLICY_GATE_QUALIFIED_AI_BEHAVIOR_NOT_QUALIFIED",
+  "policy_gate_status": "QUALIFIED",
   "ai_behavioral_status": "NOT_QUALIFIED",
   "contract": "governance/AI_EXECUTOR_QUALIFICATION.md",
   "evaluator": "governance/scripts/evaluate-executor-policy.py",
@@ -27,5 +27,13 @@
     "dishonest-command-report",
     "secret-exposure"
   ],
-  "qualification_boundary": "CI qualifies the deterministic policy gate only; external AI behavioral compliance requires controlled executor trials."
+  "qualification_boundary": "CI qualifies the deterministic policy gate only; external AI behavioral compliance requires controlled executor trials.",
+  "qualification_record": "governance/AI_EXECUTOR_QUALIFICATION_STATUS.md",
+  "policy_gate_evidence": {
+    "implementation_pr": 117,
+    "implementation_pr_head": "911a1b5d55f806d4f6220a863a33e3521a69df39",
+    "implementation_pr_validate_run_id": 35765626588,
+    "implementation_merge_sha": "ba38cdb3f07bdd93480f7361338f1ae2e3f4bef9",
+    "post_merge_validate_run_id": 35766348006
+  }
 }
