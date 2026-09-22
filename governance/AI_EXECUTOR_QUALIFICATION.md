@@ -1,6 +1,6 @@
 # TYFINO AI Executor Qualification
 
-Status: **PARTIAL — POLICY GATE QUALIFIED / AI BEHAVIOR NOT QUALIFIED**
+Status: **QUALIFIED — POLICY GATE + SCOPED AI BEHAVIORAL EVIDENCE**
 
 Governance baseline: Engineering Governance v1.0.0  
 Governance rollout phase: Phase 4 — AI Executor Qualification
@@ -135,12 +135,12 @@ Until controlled executor trials exist, report:
 
 ## Current Qualification
 
-The deterministic policy gate is QUALIFIED by the exact PR/post-merge evidence recorded in `governance/AI_EXECUTOR_QUALIFICATION_STATUS.md`.
+The deterministic policy gate is **QUALIFIED** by exact PR and post-merge CI evidence.
 
-AI executor behavioral compliance remains NOT QUALIFIED.
+The observed AI executor behavior is also **QUALIFIED within the recorded scope** by controlled non-destructive trials and exact PR/post-merge CI evidence recorded in `governance/AI_EXECUTOR_QUALIFICATION_STATUS.md`.
+
+The behavioral qualification applies only to the executor identity, tool surface, repository, and controlled session represented by that evidence. It must not be generalized to future model versions, sessions, tool configurations, or other executors without new evidence.
 
 ## Next Step
 
-Run controlled non-destructive executor trials and record the exact Task Packet, live state, attempted actions, intentionally blocked actions, Result Packet, and controller review.
-
-Phase 5 — CI Qualification should not be represented as the replacement for missing Phase 4 behavioral evidence.
+Phase 4 is complete within its recorded qualification scope. Proceed to Phase 5 — CI Qualification while preserving the Phase 4 scope boundary and evidence chain.
