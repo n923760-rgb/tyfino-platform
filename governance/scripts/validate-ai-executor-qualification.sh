@@ -51,4 +51,12 @@ jq -e '
 ' governance/project-profile.json >/dev/null \
   || fail "Project profile qualification boundary or policy-gate evidence is invalid"
 
-printf '[ai-executor-qualification] PASS: deterministic policy fixtures are internally consistent; AI behavior remains NOT_QUALIFIED.\n'
+jq -e '
+  .policy_gate_status == "QUALIFIED" and
+  .ai_behavioral_status == "NOT_QUALIFIED" and
+  .qualification_record == "governance/AI_EXECUTOR_QUALIFICATION_STATUS.md"
+' "$manifest" >/dev/null || fail "Manifest qualification state is inconsistent"
+
+[[ -f governance/AI_EXECUTOR_QUALIFICATION_STATUS.md ]]   || fail "Missing Phase 4 qualification status record"
+
+printf '[ai-executor-qualification] PASS: policy gate is QUALIFIED; AI behavior remains NOT_QUALIFIED.\n'
