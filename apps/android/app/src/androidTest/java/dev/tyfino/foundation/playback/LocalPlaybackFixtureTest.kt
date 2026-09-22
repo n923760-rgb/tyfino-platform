@@ -197,7 +197,7 @@ class LocalPlaybackFixtureTest {
     }
 }
 
-private class PlaybackFixtureServer(
+internal class PlaybackFixtureServer(
     assets: AssetManager,
 ) : Closeable {
     private val fixtures = mapOf(
@@ -216,6 +216,8 @@ private class PlaybackFixtureServer(
     )
     private val socket = ServerSocket(0, 8, InetAddress.getByName("127.0.0.1"))
     private val running = AtomicBoolean(false)
+    private val activeSlowStreams = AtomicInteger(0)
+    private val clients = mutableSetOf<Socket>()
     private var acceptThread: Thread? = null
 
     fun start() {
@@ -227,16 +229,28 @@ private class PlaybackFixtureServer(
         ) {
             while (running.get()) {
                 val client = runCatching { socket.accept() }.getOrNull() ?: break
-                runCatching { client.use(::serve) }
+                synchronized(clients) { clients += client }
+                try {
+                    runCatching { client.use(::serve) }
+                } finally {
+                    synchronized(clients) { clients -= client }
+                }
             }
         }
     }
 
-    fun url(path: String): String = "http://127.0.0.1:${socket.localPort}$path"
+    fun baseUrl(): String = "http://127.0.0.1:${socket.localPort}"
+
+    fun url(path: String): String = "${baseUrl()}$path"
+
+    fun activeSlowStreamCount(): Int = activeSlowStreams.get()
 
     override fun close() {
         if (!running.compareAndSet(true, false)) return
         runCatching { socket.close() }
+        synchronized(clients) {
+            clients.toList().forEach { client -> runCatching { client.close() } }
+        }
         acceptThread?.join(2_000)
         acceptThread = null
     }
@@ -261,6 +275,22 @@ private class PlaybackFixtureServer(
 
         if (method != "GET" && method != "HEAD") {
             respond(client, 405, "Method Not Allowed", "text/plain", ByteArray(0), null, method)
+            return
+        }
+        if (path == STREAMING_PLAYLIST_PATH) {
+            respond(
+                client = client,
+                status = 200,
+                reason = "OK",
+                contentType = "application/vnd.apple.mpegurl",
+                body = STREAMING_PLAYLIST.toByteArray(StandardCharsets.US_ASCII),
+                range = null,
+                method = method,
+            )
+            return
+        }
+        if (path == STREAMING_SEGMENT_PATH) {
+            respondSlowStream(client, method)
             return
         }
         val fixture = fixtures[path]
@@ -298,6 +328,32 @@ private class PlaybackFixtureServer(
             range = range?.let { "bytes ${it.first}-${it.last}/${fixture.bytes.size}" },
             method = method,
         )
+    }
+
+    private fun respondSlowStream(client: Socket, method: String) {
+        val chunk = requireNotNull(fixtures["/live/segment000.ts"]).bytes
+        val declaredLength = chunk.size.toLong() * SLOW_STREAM_CHUNKS
+        val output = client.getOutputStream()
+        val headers = buildString {
+            append("HTTP/1.1 200 OK\r\n")
+            append("Content-Type: video/mp2t\r\n")
+            append("Content-Length: $declaredLength\r\n")
+            append("Connection: close\r\n\r\n")
+        }
+        output.write(headers.toByteArray(StandardCharsets.US_ASCII))
+        output.flush()
+        if (method == "HEAD") return
+
+        activeSlowStreams.incrementAndGet()
+        try {
+            repeat(SLOW_STREAM_CHUNKS) {
+                output.write(chunk)
+                output.flush()
+                Thread.sleep(SLOW_STREAM_DELAY_MILLIS)
+            }
+        } finally {
+            activeSlowStreams.decrementAndGet()
+        }
     }
 
     private fun respond(
@@ -339,4 +395,19 @@ private class PlaybackFixtureServer(
         val bytes: ByteArray,
         val contentType: String,
     )
+
+    private companion object {
+        const val STREAMING_PLAYLIST_PATH = "/live/fixture/fixture/42.m3u8"
+        const val STREAMING_SEGMENT_PATH = "/live/fixture/fixture/segment000.ts"
+        const val SLOW_STREAM_CHUNKS = 512
+        const val SLOW_STREAM_DELAY_MILLIS = 50L
+        val STREAMING_PLAYLIST = """
+            #EXTM3U
+            #EXT-X-VERSION:3
+            #EXT-X-TARGETDURATION:2
+            #EXT-X-MEDIA-SEQUENCE:0
+            #EXTINF:2.0,
+            segment000.ts
+        """.trimIndent() + "\n"
+    }
 }
