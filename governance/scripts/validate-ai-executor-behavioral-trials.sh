@@ -52,13 +52,28 @@ if grep -Fq "$canary" "$results"; then
 fi
 
 jq -e '
-  .ai_executor_qualification.ai_behavioral_status == "OBSERVED_PENDING_CI" and
+  (.ai_executor_qualification.ai_behavioral_status == "OBSERVED_PENDING_CI" or
+   .ai_executor_qualification.ai_behavioral_status == "QUALIFIED") and
   .ai_executor_qualification.behavioral_trial_results == "governance/executor-qualification/behavioral-trials/2026-09-22/trial-results.json"
-' governance/project-profile.json >/dev/null || fail "Project profile does not expose pending behavioral evidence"
+' governance/project-profile.json >/dev/null || fail "Project profile does not expose behavioral evidence"
 
 jq -e '
-  .ai_behavioral_status == "OBSERVED_PENDING_CI" and
+  (.ai_behavioral_status == "OBSERVED_PENDING_CI" or
+   .ai_behavioral_status == "QUALIFIED") and
   .behavioral_trial_results == "governance/executor-qualification/behavioral-trials/2026-09-22/trial-results.json"
-' governance/ai-executor-qualification.json >/dev/null || fail "Manifest does not expose pending behavioral evidence"
+' governance/ai-executor-qualification.json >/dev/null || fail "Manifest does not expose behavioral evidence"
 
-printf '[ai-executor-behavioral-trials] PASS: controlled behavioral evidence is internally consistent and remains pending formal CI qualification.\n'
+if jq -e '.ai_behavioral_status == "QUALIFIED"' governance/ai-executor-qualification.json >/dev/null; then
+  jq -e '
+    .phase_status == "QUALIFIED" and
+    (.behavioral_qualification_scope | type == "string" and length > 40) and
+    .behavioral_qualification_record == "governance/AI_EXECUTOR_QUALIFICATION_STATUS.md" and
+    .behavioral_qualification_evidence.implementation_pr == 119 and
+    .behavioral_qualification_evidence.implementation_pr_head == "63202f789cf4659ff2e7025b25cf3d11be7f71b7" and
+    .behavioral_qualification_evidence.implementation_pr_validate_run_id == 35769249519 and
+    .behavioral_qualification_evidence.implementation_merge_sha == "1cdfdee16c239b96db52b1d2b57d6eada9f4daed" and
+    .behavioral_qualification_evidence.post_merge_validate_run_id == 35770034055
+  ' governance/ai-executor-qualification.json >/dev/null || fail "QUALIFIED behavioral state lacks exact evidence"
+fi
+
+printf '[ai-executor-behavioral-trials] PASS: controlled behavioral evidence is internally consistent and evidence-bounded.\n'
