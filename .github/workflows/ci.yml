@@ -275,6 +275,28 @@ jobs:
         run: ./gradlew --no-daemon :app:assembleDebug
       - name: Build optimized unsigned release
         run: ./gradlew --no-daemon :app:assembleRelease
+      - name: Record optimized unsigned release metadata
+        run: |
+          apk="app/build/outputs/apk/release/app-release-unsigned.apk"
+          test -f "$apk"
+          bytes="$(stat -c '%s' "$apk")"
+          sha256="$(sha256sum "$apk" | awk '{print $1}')"
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg source_sha "${{ github.event.pull_request.head.sha || github.sha }}" \
+            --arg variant "release-unsigned" \
+            --arg sha256 "$sha256" \
+            --argjson size_bytes "$bytes" \
+            '{repository:$repository,source_sha:$source_sha,variant:$variant,sha256:$sha256,size_bytes:$size_bytes}' \
+            > /tmp/tyfino-release-metadata.json
+          cat /tmp/tyfino-release-metadata.json
+      - name: Upload optimized unsigned release metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: tyfino-release-metadata-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
+          path: /tmp/tyfino-release-metadata.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Run unit tests
         run: ./gradlew --no-daemon :app:testDebugUnitTest
       - name: Run Android lint
