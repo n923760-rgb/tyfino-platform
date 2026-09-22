@@ -41,7 +41,8 @@ jq -e '
   .ai_executor_qualification.framework_status == "CI_GATED" and
   (.ai_executor_qualification.policy_gate_status == "PENDING" or
    .ai_executor_qualification.policy_gate_status == "QUALIFIED") and
-  .ai_executor_qualification.ai_behavioral_status == "NOT_QUALIFIED" and
+  (.ai_executor_qualification.ai_behavioral_status == "NOT_QUALIFIED" or
+   .ai_executor_qualification.ai_behavioral_status == "OBSERVED_PENDING_CI") and
   (if .ai_executor_qualification.policy_gate_status == "QUALIFIED"
    then .ai_executor_qualification.qualification_record == "governance/AI_EXECUTOR_QUALIFICATION_STATUS.md"
         and (.ai_executor_qualification.policy_gate_evidence.implementation_pr_validate_run_id | type == "number")
@@ -53,7 +54,8 @@ jq -e '
 
 jq -e '
   .policy_gate_status == "QUALIFIED" and
-  .ai_behavioral_status == "NOT_QUALIFIED" and
+  (.ai_behavioral_status == "NOT_QUALIFIED" or
+   .ai_behavioral_status == "OBSERVED_PENDING_CI") and
   .qualification_record == "governance/AI_EXECUTOR_QUALIFICATION_STATUS.md"
 ' "$manifest" >/dev/null || fail "Manifest qualification state is inconsistent"
 

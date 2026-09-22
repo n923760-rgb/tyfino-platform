@@ -27,6 +27,8 @@ jobs:
         run: bash governance/scripts/validate-task-result-protocol.sh
       - name: Validate AI executor policy fixtures
         run: bash governance/scripts/validate-ai-executor-qualification.sh
+      - name: Validate AI executor behavioral trial records
+        run: bash governance/scripts/validate-ai-executor-behavioral-trials.sh
       - name: Validate deployment configuration and scripts
         run: |
           cp .env.example .env

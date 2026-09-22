@@ -53,10 +53,14 @@ TASK / RESULT PROTOCOL:
 
 AI EXECUTOR QUALIFICATION:
 - governance/AI_EXECUTOR_QUALIFICATION.md — Phase 4 behavioral requirements and qualification boundary
-- governance/AI_EXECUTOR_QUALIFICATION_STATUS.md — policy-gate qualification evidence and remaining behavioral gate
+- governance/AI_EXECUTOR_QUALIFICATION_STATUS.md — policy-gate evidence and behavioral qualification status
+- governance/AI_EXECUTOR_BEHAVIORAL_TRIAL_PROTOCOL.md — controlled non-destructive behavioral trial protocol
+- governance/executor-qualification/behavioral-trials/2026-09-22/trial-plan.json — immutable issued trial plan
+- governance/executor-qualification/behavioral-trials/2026-09-22/trial-results.json — observed trial Result record
 - governance/ai-executor-qualification.json — machine-readable Phase 4 manifest
 - governance/scripts/evaluate-executor-policy.py — deterministic fail-closed policy evaluator
 - governance/scripts/validate-ai-executor-qualification.sh — safe fixture validation
+- governance/scripts/validate-ai-executor-behavioral-trials.sh — behavioral evidence consistency validation
 - governance/executor-qualification/fixtures/ — synthetic non-production qualification fixtures
 
 CONTROLLER: Engineering Controller
