@@ -1,6 +1,6 @@
 # TYFINO Governance Adoption Status
 
-Status: QUALIFICATION IN PROGRESS
+Status: QUALIFIED
 
 Governance baseline: Engineering Governance v1.0.0
 
@@ -38,12 +38,12 @@ Scope:
 - [x] Verify there was no conflicting open PR before branch creation.
 - [x] Inspect current CI and signed-APK workflow.
 - [x] Inspect current deployment/security boundaries.
-- [ ] Review the complete adoption diff.
-- [ ] Governance adoption PR passes TYFINO Validate on its exact PR source.
-- [ ] Owner explicitly authorizes merge.
-- [ ] Post-merge Validate passes on the resulting exact `main` SHA.
+- [x] Review the complete adoption diff.
+- [x] Governance adoption PR #106 passed TYFINO Validate on exact PR source `49be6a9f18292733bf0edded675481e607b67680` (run `35746762235`).
+- [x] Owner explicitly authorized merge.
+- [x] Post-merge Validate passed on exact `main` SHA `344aabffd2921fdd7c849167606b17a1ea08ddac` (run `35747421502`).
 
-Only after the remaining checks pass should this status change to `QUALIFIED`.
+All adoption qualification checks passed. TYFINO now uses Engineering Governance v1.0.0 for subsequent engineering work.
 
 ## Deliberately Not Qualified by This Adoption
 
