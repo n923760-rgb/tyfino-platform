@@ -45,6 +45,7 @@ REPOSITORY FOUNDATION:
 
 TASK / RESULT PROTOCOL:
 - governance/TASK_RESULT_PROTOCOL.md — Phase 3 packet rules, storage, evidence, and qualification boundary
+- governance/TASK_RESULT_PROTOCOL_STATUS.md — exact Phase 3 qualification evidence
 - governance/templates/TASK_PACKET.md — standard atomic work order
 - governance/templates/RESULT_PACKET.md — standard attributable execution result
 - governance/task-result-protocol.json — machine-readable protocol manifest
