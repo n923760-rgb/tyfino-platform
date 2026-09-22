@@ -29,6 +29,7 @@ TYFINO customization:
 - governance/task-records/README.md
 - governance/scripts/validate-task-result-protocol.sh
 - governance/AI_EXECUTOR_QUALIFICATION.md
+- governance/AI_EXECUTOR_QUALIFICATION_STATUS.md
 - governance/ai-executor-qualification.json
 - governance/scripts/evaluate-executor-policy.py
 - governance/scripts/validate-ai-executor-qualification.sh
