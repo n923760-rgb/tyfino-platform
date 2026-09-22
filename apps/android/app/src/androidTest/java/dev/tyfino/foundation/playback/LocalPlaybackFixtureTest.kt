@@ -82,6 +82,28 @@ class LocalPlaybackFixtureTest {
         }
     }
 
+    @Test
+    fun missingMediaFixtureReportsFailureWithoutBecomingReady() {
+        val player = createPlayer()
+        try {
+            prepareAndAwaitFailure(player, server.url("/missing.mp4"))
+        } finally {
+            onMain { player.release() }
+        }
+    }
+
+    @Test
+    fun progressiveFixtureSurvivesRepeatedPlayerRecreation() {
+        repeat(4) {
+            val player = createPlayer()
+            try {
+                prepareAndAwaitReady(player, server.url("/movie.mp4"))
+            } finally {
+                onMain { player.release() }
+            }
+        }
+    }
+
     private fun createPlayer(): ExoPlayer = onMain {
         val context = instrumentation.targetContext.applicationContext
         val mediaSourceFactory = DefaultMediaSourceFactory(context)
@@ -119,6 +141,43 @@ class LocalPlaybackFixtureTest {
         )
         assertNull("Local playback fixture failed to prepare.", failure.get())
         assertEquals(Player.STATE_READY, state.get())
+        onMain { player.removeListener(listener) }
+    }
+
+    private fun prepareAndAwaitFailure(player: ExoPlayer, uri: String) {
+        val terminal = CountDownLatch(1)
+        val state = AtomicInteger(Player.STATE_IDLE)
+        val failure = AtomicReference<PlaybackException?>()
+        val listener = object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                state.set(playbackState)
+                if (playbackState == Player.STATE_READY) terminal.countDown()
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                failure.set(error)
+                terminal.countDown()
+            }
+        }
+
+        onMain {
+            player.addListener(listener)
+            player.setMediaItem(MediaItem.fromUri(uri))
+            player.prepare()
+        }
+
+        assertTrue(
+            "Timed out waiting for the expected credential-free playback failure.",
+            terminal.await(20, TimeUnit.SECONDS),
+        )
+        assertTrue(
+            "Missing local media unexpectedly reached Player.STATE_READY.",
+            state.get() != Player.STATE_READY,
+        )
+        assertTrue(
+            "Missing local media did not report a PlaybackException.",
+            failure.get() != null,
+        )
         onMain { player.removeListener(listener) }
     }
 
