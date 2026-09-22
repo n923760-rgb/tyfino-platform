@@ -1,6 +1,6 @@
 # TYFINO Direct APK Release Contract v1
 
-Status: **DECIDED distribution path / BLOCKED signing material**  
+Status: **DECIDED distribution path / PARTIAL signing qualification / FIRST RELEASE BLOCKED**  
 Approved distribution path: Direct APK  
 Approved: 2026-09-20
 
@@ -47,14 +47,28 @@ The manual `Build signed APK` workflow:
 
 The workflow does not publish the APK to customers. Distribution remains a separate explicit release action.
 
+## Current qualification evidence
+
+As of 2026-09-22, repository evidence shows:
+
+- the manual protected `Build signed APK` workflow completed successfully on then-official `main@0ab59398d64e936430cced924d0cd8f4fdc56c3f`;
+- workflow run: `35568182674` — **PASS**;
+- the workflow verified the APK signature and configured SHA-256 certificate fingerprint before artifact upload;
+- owner-review artifact `tyfino-signed-apk-0ab59398d64e936430cced924d0cd8f4fdc56c3f-1` was created with 30-day retention and is not customer distribution.
+
+This evidence proves that protected signing material was usable in the GitHub environment for that run. It does **not** prove how the key was originally generated, that two independent owner-controlled encrypted backups exist, that either backup has passed a recovery drill, or that the checksum/fingerprint has been retained durably outside the expiring CI artifact.
+
 ## First-release gate
 
-The first signed APK remains blocked until all of the following are proven:
+The first customer release remains blocked until all of the following are proven:
 
-- the key is generated with strong independent passwords;
-- two recoverable encrypted backups exist;
-- the certificate fingerprint is recorded and matches the workflow secret;
-- the manual workflow succeeds from the official `main` commit;
-- the resulting APK checksum is recorded;
-- physical phone and Android TV/Google TV qualification passes;
-- production operations, off-site backup, monitoring, retention, and rollback gates are approved.
+- **NOT PROVEN** — the key was generated with strong independent passwords under owner control;
+- **NOT PROVEN** — two recoverable encrypted backups exist in separate owner-controlled locations;
+- **PARTIAL** — the configured certificate fingerprint matched the successfully signed APK, but durable owner-controlled fingerprint/recovery evidence remains required;
+- **PASS for workflow operation** — manual workflow run `35568182674` succeeded from the official `main` commit that existed at execution time;
+- **PARTIAL** — the workflow generated an APK SHA-256 checksum inside the 30-day owner-review artifact, but durable owner-controlled retention is not proven;
+- **BLOCKED** — physical phone and Android TV/Google TV qualification has not been recorded as passing;
+- **BLOCKED** — production operations, off-site backup, monitoring, retention, and rollback gates are not yet approved;
+- **NOT AUTHORIZED** — customer distribution/release has not been authorized by the owner.
+
+A successful signing workflow is qualification evidence only. It is not a release decision.
