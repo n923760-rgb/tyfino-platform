@@ -13,7 +13,14 @@
   "repository_foundation": {
     "status": "PARTIAL",
     "status_record": "governance/REPOSITORY_FOUNDATION_STATUS.md",
-    "default_branch_protection": "BLOCKED_EXTERNAL_SETTING"
+    "default_branch_protection": "BLOCKED_EXTERNAL_SETTING",
+    "qualification_evidence": {
+      "guardrails_pr": 111,
+      "guardrails_pr_head": "abf8c190c634890123956736c7da1cd31e203a04",
+      "guardrails_pr_validate_run_id": 35752226884,
+      "guardrails_merge_sha": "797ba27210c82595400829857c7c9bcf7b9b3a36",
+      "guardrails_post_merge_validate_run_id": 35752833373
+    }
   },
   "qualification_evidence": {
     "adoption_pr": 106,
