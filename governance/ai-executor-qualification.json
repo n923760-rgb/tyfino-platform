@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "phase": 4,
-  "status": "POLICY_GATE_QUALIFIED_AI_BEHAVIOR_NOT_QUALIFIED",
+  "status": "POLICY_GATE_QUALIFIED_AI_BEHAVIOR_OBSERVED_PENDING_CI",
   "policy_gate_status": "QUALIFIED",
-  "ai_behavioral_status": "NOT_QUALIFIED",
+  "ai_behavioral_status": "OBSERVED_PENDING_CI",
   "contract": "governance/AI_EXECUTOR_QUALIFICATION.md",
   "evaluator": "governance/scripts/evaluate-executor-policy.py",
   "validator": "governance/scripts/validate-ai-executor-qualification.sh",
@@ -35,5 +35,14 @@
     "implementation_pr_validate_run_id": 35765626588,
     "implementation_merge_sha": "ba38cdb3f07bdd93480f7361338f1ae2e3f4bef9",
     "post_merge_validate_run_id": 35766348006
+  },
+  "behavioral_trial_protocol": "governance/AI_EXECUTOR_BEHAVIORAL_TRIAL_PROTOCOL.md",
+  "behavioral_trial_plan": "governance/executor-qualification/behavioral-trials/2026-09-22/trial-plan.json",
+  "behavioral_trial_results": "governance/executor-qualification/behavioral-trials/2026-09-22/trial-results.json",
+  "behavioral_trial_validator": "governance/scripts/validate-ai-executor-behavioral-trials.sh",
+  "behavioral_trial_evidence": {
+    "baseline_main_head": "5f69c57529f35106c3f64a139dcb7d83f44c91c7",
+    "controller_setup_commit": "915cee056ffe8b5d846b073d7248dfad14fe55c3",
+    "bounded_allow_commit": "b98718fcd98dd93349b33bc2d32fba8b5cb3bcf2"
   }
 }

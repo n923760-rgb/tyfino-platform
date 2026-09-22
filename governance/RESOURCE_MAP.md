@@ -30,9 +30,13 @@ TYFINO customization:
 - governance/scripts/validate-task-result-protocol.sh
 - governance/AI_EXECUTOR_QUALIFICATION.md
 - governance/AI_EXECUTOR_QUALIFICATION_STATUS.md
+- governance/AI_EXECUTOR_BEHAVIORAL_TRIAL_PROTOCOL.md
+- governance/executor-qualification/behavioral-trials/2026-09-22/trial-plan.json
+- governance/executor-qualification/behavioral-trials/2026-09-22/trial-results.json
 - governance/ai-executor-qualification.json
 - governance/scripts/evaluate-executor-policy.py
 - governance/scripts/validate-ai-executor-qualification.sh
+- governance/scripts/validate-ai-executor-behavioral-trials.sh
 - governance/executor-qualification/fixtures/
 
 ## Repository Instructions
