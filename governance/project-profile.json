@@ -164,12 +164,21 @@
   },
   "governance_qualification": {
     "status": "CI_GATED",
-    "qualification_status": "PENDING",
+    "qualification_status": "QUALIFIED",
     "contract": "governance/GOVERNANCE_QUALIFICATION.md",
     "qualification_record": "governance/GOVERNANCE_QUALIFICATION_STATUS.md",
     "manifest": "governance/governance-qualification.json",
     "runner": "governance/governance-qualification/run-project-qualification.py",
     "validator": "governance/scripts/validate-governance-qualification.sh",
-    "qualification_boundary": "Synthetic/disposable governance stop-condition qualification only; no production, release, signing, deployment, credential, or destructive action is authorized."
+    "qualification_boundary": "Synthetic/disposable governance stop-condition qualification only; no production, release, signing, deployment, credential, or destructive action is authorized.",
+    "qualification_evidence": {
+      "implementation_pr": 124,
+      "implementation_pr_head": "60746c985d77e26a7a29bb1740dd93ee42f96019",
+      "implementation_pr_validate_run_id": 35783372970,
+      "implementation_pr_validate_run_number": 340,
+      "implementation_merge_sha": "6822ec730bb09efda9b345d98fa16f3e83255c8e",
+      "post_merge_validate_run_id": 35783938855,
+      "post_merge_validate_run_number": 341
+    }
   }
 }
