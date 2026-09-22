@@ -278,19 +278,7 @@ internal class PlaybackFixtureServer(
             return
         }
         if (path == STREAMING_PLAYLIST_PATH) {
-            respond(
-                client = client,
-                status = 200,
-                reason = "OK",
-                contentType = "application/vnd.apple.mpegurl",
-                body = STREAMING_PLAYLIST.toByteArray(StandardCharsets.US_ASCII),
-                range = null,
-                method = method,
-            )
-            return
-        }
-        if (path == STREAMING_SEGMENT_PATH) {
-            respondSlowStream(client, method)
+            respondSlowPlaylist(client, method)
             return
         }
         val fixture = fixtures[path]
@@ -330,13 +318,14 @@ internal class PlaybackFixtureServer(
         )
     }
 
-    private fun respondSlowStream(client: Socket, method: String) {
-        val chunk = requireNotNull(fixtures["/live/segment000.ts"]).bytes
-        val declaredLength = chunk.size.toLong() * SLOW_STREAM_CHUNKS
+    private fun respondSlowPlaylist(client: Socket, method: String) {
+        val playlist = STREAMING_PLAYLIST.toByteArray(StandardCharsets.US_ASCII)
+        val keepAlive = "# lifecycle-fixture\n".toByteArray(StandardCharsets.US_ASCII)
+        val declaredLength = playlist.size.toLong() + keepAlive.size.toLong() * SLOW_STREAM_CHUNKS
         val output = client.getOutputStream()
         val headers = buildString {
             append("HTTP/1.1 200 OK\r\n")
-            append("Content-Type: video/mp2t\r\n")
+            append("Content-Type: application/vnd.apple.mpegurl\r\n")
             append("Content-Length: $declaredLength\r\n")
             append("Connection: close\r\n\r\n")
         }
@@ -346,10 +335,12 @@ internal class PlaybackFixtureServer(
 
         activeSlowStreams.incrementAndGet()
         try {
+            output.write(playlist)
+            output.flush()
             repeat(SLOW_STREAM_CHUNKS) {
-                output.write(chunk)
-                output.flush()
                 Thread.sleep(SLOW_STREAM_DELAY_MILLIS)
+                output.write(keepAlive)
+                output.flush()
             }
         } finally {
             activeSlowStreams.decrementAndGet()
@@ -398,7 +389,6 @@ internal class PlaybackFixtureServer(
 
     private companion object {
         const val STREAMING_PLAYLIST_PATH = "/live/fixture/fixture/42.m3u8"
-        const val STREAMING_SEGMENT_PATH = "/live/fixture/fixture/segment000.ts"
         const val SLOW_STREAM_CHUNKS = 512
         const val SLOW_STREAM_DELAY_MILLIS = 50L
         val STREAMING_PLAYLIST = """
