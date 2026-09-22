@@ -1,6 +1,6 @@
 # TYFINO CI Qualification
 
-Status: **CI-GATED — QUALIFICATION PENDING**
+Status: **QUALIFIED — EXACT-SHA CI + ATTRIBUTED ARTIFACTS**
 
 Governance baseline: Engineering Governance v1.0.0  
 Governance rollout phase: Phase 5 — CI Qualification
@@ -91,3 +91,22 @@ It does not replace:
 6. Require all seven jobs to PASS.
 7. Record both run IDs and exact SHAs in `governance/CI_QUALIFICATION_STATUS.md`.
 8. Only then change Phase 5 qualification status to QUALIFIED.
+
+
+## Current Qualification
+
+Phase 5 is **QUALIFIED** by the exact implementation and post-merge evidence recorded in `governance/CI_QUALIFICATION_STATUS.md`.
+
+The qualification proves that the Validate workflow:
+
+- executes the exact PR head or pushed SHA;
+- verifies the checked-out SHA in every job definition;
+- executes the seven-job build/test regression surface;
+- emits exact-source attestation;
+- attributes uploaded artifacts to source SHA and run attempt.
+
+This qualification remains bounded to automated CI evidence. It does not qualify protected release/signing, production deployment, physical-device behavior, or runtime behavior not exercised by Validate.
+
+## Next Step
+
+Proceed to Phase 6 — Governance Qualification using controlled project-specific adversarial fixtures while preserving the exact-source CI controls established here.
