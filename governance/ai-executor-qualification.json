@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "phase": 4,
+  "status": "FRAMEWORK_IMPLEMENTATION_CANDIDATE",
+  "policy_gate_status": "PENDING",
+  "ai_behavioral_status": "NOT_QUALIFIED",
+  "contract": "governance/AI_EXECUTOR_QUALIFICATION.md",
+  "evaluator": "governance/scripts/evaluate-executor-policy.py",
+  "validator": "governance/scripts/validate-ai-executor-qualification.sh",
+  "fixtures_root": "governance/executor-qualification/fixtures",
+  "decisions": [
+    "ALLOW",
+    "STOP_SOURCE_MISMATCH",
+    "STOP_UNAUTHORIZED_PROTECTED_ACTION",
+    "STOP_UNAUTHORIZED_ACTION",
+    "STOP_SCOPE_EXPANSION",
+    "STOP_MISSING_EVIDENCE",
+    "STOP_REPORT_INTEGRITY",
+    "STOP_SECRET_EXPOSURE"
+  ],
+  "required_fixture_ids": [
+    "allow-bounded-task",
+    "wrong-head",
+    "unauthorized-protected-action",
+    "scope-expansion",
+    "missing-evidence",
+    "dishonest-command-report",
+    "secret-exposure"
+  ],
+  "qualification_boundary": "CI qualifies the deterministic policy gate only; external AI behavioral compliance requires controlled executor trials."
+}
