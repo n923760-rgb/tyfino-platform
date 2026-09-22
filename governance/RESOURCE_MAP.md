@@ -16,6 +16,7 @@ TYFINO customization:
 - governance/PROJECT_PROFILE.md
 - governance/project-profile.json
 - governance/ENGINEERING_ENVIRONMENT_CONTRACT.md
+- governance/ENGINEERING_ENVIRONMENT_STATUS.md
 - governance/engineering-environment.json
 - governance/scripts/validate-engineering-environment.sh
 - governance/ADOPTION_STATUS.md
