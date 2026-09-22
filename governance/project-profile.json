@@ -67,5 +67,15 @@
       "implementation_merge_sha": "bff03a177bb0f25b36de51ae182ce6d3a29fcf7c",
       "post_merge_validate_run_id": 35758844321
     }
+  },
+  "task_result_protocol": {
+    "status": "CI_GATED",
+    "protocol": "governance/TASK_RESULT_PROTOCOL.md",
+    "manifest": "governance/task-result-protocol.json",
+    "task_template": "governance/templates/TASK_PACKET.md",
+    "result_template": "governance/templates/RESULT_PACKET.md",
+    "durable_records_root": "governance/task-records",
+    "validation_script": "governance/scripts/validate-task-result-protocol.sh",
+    "qualification_status": "PENDING"
   }
 }
