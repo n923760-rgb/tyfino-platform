@@ -26,7 +26,7 @@ class PlaybackLifecycleReleaseTest {
     val compose = createComposeRule()
 
     @Test
-    fun leavingPlaybackDestinationClosesActiveMediaConnection() {
+    fun repeatedPlaybackDestinationExitsCloseEachMediaConnection() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val server = PlaybackFixtureServer(instrumentation.context.assets).also { it.start() }
         val account = SavedXtreamAccount(
@@ -50,7 +50,7 @@ class PlaybackLifecycleReleaseTest {
             providerItemId = "42",
             containerExtension = "m3u8",
         )
-        val visible = mutableStateOf(true)
+        val visible = mutableStateOf(false)
 
         try {
             compose.setContent {
@@ -68,19 +68,21 @@ class PlaybackLifecycleReleaseTest {
                 }
             }
 
-            // Compose-owned playback work must advance through the test rule while we wait
-            // for the loopback connection, rather than blocking the test coroutine with sleep.
-            compose.waitUntil(timeoutMillis = 10_000L) {
-                server.activeSlowStreamCount() > 0
-            }
+            // Re-entering must create a new active connection after each previous
+            // destination has released its player and closed the old connection.
+            repeat(3) {
+                compose.runOnIdle { visible.value = true }
+                compose.waitUntil(timeoutMillis = 10_000L) {
+                    server.activeSlowStreamCount() > 0
+                }
 
-            compose.runOnIdle { visible.value = false }
-            compose.waitForIdle()
-
-            compose.waitUntil(timeoutMillis = 5_000L) {
-                server.activeSlowStreamCount() == 0
+                compose.runOnIdle { visible.value = false }
+                compose.waitForIdle()
+                compose.waitUntil(timeoutMillis = 5_000L) {
+                    server.activeSlowStreamCount() == 0
+                }
+                assertEquals(0, server.activeSlowStreamCount())
             }
-            assertEquals(0, server.activeSlowStreamCount())
         } finally {
             server.close()
         }
