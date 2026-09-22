@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "phase": 5,
+  "status": "CI_GATED_QUALIFICATION_PENDING",
+  "qualification_status": "PENDING",
+  "contract": "governance/CI_QUALIFICATION.md",
+  "qualification_record": "governance/CI_QUALIFICATION_STATUS.md",
+  "workflow": ".github/workflows/ci.yml",
+  "validator": "governance/scripts/validate-ci-qualification.sh",
+  "exact_source_expression": "github.event.pull_request.head.sha || github.sha",
+  "required_job_names": [
+    "deployment-config",
+    "api",
+    "admin",
+    "database-backup-restore",
+    "android",
+    "android-instrumentation (phone-api-27)",
+    "android-instrumentation (tablet-api-35)"
+  ],
+  "artifact_policy": {
+    "source_attestation_name": "tyfino-ci-source-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}",
+    "debug_apk_name": "tyfino-debug-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}",
+    "instrumentation_failure_name": "android-test-${{ matrix.device }}-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}"
+  },
+  "qualification_boundary": "Phase 5 qualifies automated Validate workflow evidence only; physical-device, protected release/signing, production deployment, and unexercised runtime behavior remain separate."
+}
