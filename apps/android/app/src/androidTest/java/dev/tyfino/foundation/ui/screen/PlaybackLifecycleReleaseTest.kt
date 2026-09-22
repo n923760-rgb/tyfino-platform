@@ -15,9 +15,7 @@ import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.ProviderEndpoint
 import dev.tyfino.foundation.xtream.SavedXtreamAccount
 import dev.tyfino.foundation.xtream.XtreamAccountStore
-import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -70,20 +68,16 @@ class PlaybackLifecycleReleaseTest {
                 }
             }
 
-            waitUntil(
-                message = "Playback never opened the bounded local streaming connection.",
-                timeoutMillis = 10_000L,
-            ) {
+            // Compose-owned playback work must advance through the test rule while we wait
+            // for the loopback connection, rather than blocking the test coroutine with sleep.
+            compose.waitUntil(timeoutMillis = 10_000L) {
                 server.activeSlowStreamCount() > 0
             }
 
             compose.runOnIdle { visible.value = false }
             compose.waitForIdle()
 
-            waitUntil(
-                message = "Playback connection remained active after the destination left composition.",
-                timeoutMillis = 5_000L,
-            ) {
+            compose.waitUntil(timeoutMillis = 5_000L) {
                 server.activeSlowStreamCount() == 0
             }
             assertEquals(0, server.activeSlowStreamCount())
@@ -92,18 +86,6 @@ class PlaybackLifecycleReleaseTest {
         }
     }
 
-    private fun waitUntil(
-        message: String,
-        timeoutMillis: Long,
-        condition: () -> Boolean,
-    ) {
-        val deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis)
-        while (System.nanoTime() < deadline) {
-            if (condition()) return
-            Thread.sleep(25L)
-        }
-        assertTrue(message, condition())
-    }
 }
 
 private class FixedAccountStore(
