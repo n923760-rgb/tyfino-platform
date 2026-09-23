@@ -12,6 +12,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.content.edit
 import dev.tyfino.foundation.MainActivity
 import dev.tyfino.foundation.R
 
@@ -23,7 +24,7 @@ internal class NewContentNotifier(context: Context) {
     fun isEnabled(): Boolean = preferences.getBoolean("enabled", false)
 
     fun setEnabled(enabled: Boolean) {
-        preferences.edit().putBoolean("enabled", enabled).apply()
+        preferences.edit { putBoolean("enabled", enabled) }
         if (enabled) schedule() else app.getSystemService(JobScheduler::class.java).cancel(JOB_ID)
     }
 
