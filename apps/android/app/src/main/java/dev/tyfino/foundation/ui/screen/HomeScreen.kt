@@ -51,7 +51,6 @@ import dev.tyfino.foundation.notifications.NewContentNotifier
 import dev.tyfino.foundation.app.AppDestination
 import dev.tyfino.foundation.playback.CatalogHistoryListResult
 import dev.tyfino.foundation.playback.CatalogHistoryRepository
-import dev.tyfino.foundation.playback.ContinueWatchingItem
 import dev.tyfino.foundation.playback.EpisodeResumeListResult
 import dev.tyfino.foundation.playback.EpisodeResumeRepository
 import dev.tyfino.foundation.playback.EpisodeHistoryListResult
@@ -89,7 +88,6 @@ private data class HomeHistory(
     val latestEpisodes: List<PublishedEpisode> = emptyList(),
     val live: List<CatalogItem> = emptyList(),
     val movies: List<CatalogItem> = emptyList(),
-    val movieResume: List<ContinueWatchingItem> = emptyList(),
     val seriesResume: List<SeriesContinueWatchingItem> = emptyList(),
     val seriesHistory: List<SeriesHistoryItem> = emptyList(),
 )
@@ -153,7 +151,6 @@ internal fun HomeScreen(
                         latestEpisodes = latestEpisodes,
                         live = live.take(8),
                         movies = (movies + movieResume.map { it.catalogItem }).distinctBy { it.providerId }.take(8),
-                        movieResume = movieResume.take(8),
                         seriesResume = series.take(8),
                         seriesHistory = seriesHistory.distinctBy { it.episode.providerSeriesId }.take(8),
                     )
@@ -263,23 +260,23 @@ internal fun HomeScreen(
             }
             if (newContentNotifier != null) item(span = { GridItemSpan(maxLineSpan) }, contentType = "alerts") {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                FocusVisibleButton(
-                    label = stringResource(if (alertsEnabled) R.string.new_content_disable else R.string.new_content_enable),
-                    onClick = {
-                        if (alertsEnabled) {
-                            newContentNotifier.setEnabled(false)
-                            alertsEnabled = false
-                        } else if (Build.VERSION.SDK_INT >= 33 && !newContentNotifier.canNotify()) {
-                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        } else {
-                            newContentNotifier.setEnabled(true)
-                            alertsEnabled = true
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().testTag("home-content-alerts"),
-                )
-                Text(stringResource(R.string.new_content_scope), style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    FocusVisibleButton(
+                        label = stringResource(if (alertsEnabled) R.string.new_content_disable else R.string.new_content_enable),
+                        onClick = {
+                            if (alertsEnabled) {
+                                newContentNotifier.setEnabled(false)
+                                alertsEnabled = false
+                            } else if (Build.VERSION.SDK_INT >= 33 && !newContentNotifier.canNotify()) {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                newContentNotifier.setEnabled(true)
+                                alertsEnabled = true
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("home-content-alerts"),
+                    )
+                    Text(stringResource(R.string.new_content_scope), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "account") {
