@@ -7,9 +7,11 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.tyfino.foundation.xtream.XtreamFailure
 import dev.tyfino.foundation.xtream.XtreamUiState
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,13 +64,14 @@ class XtreamLoginAccessibilityTest {
 
     @Test
     fun exposesCleartextWarningAsAssertiveLiveRegion() {
+        var cancelled = false
         compose.setContent {
             MaterialTheme {
                 XtreamLoginScreen(
                     state = XtreamUiState.ConfirmCleartext("http://provider.example"),
                     onSignIn = {},
                     onConfirmCleartext = {},
-                    onCancelCleartext = {},
+                    onCancelCleartext = { cancelled = true },
                 )
             }
         }
@@ -79,5 +82,11 @@ class XtreamLoginAccessibilityTest {
                 LiveRegionMode.Assertive,
             ),
         )
+        compose.onNodeWithTag("xtream-host").assertExists()
+        compose.onNodeWithTag("xtream-username").assertExists()
+        compose.onNodeWithTag("xtream-password").assertExists()
+        compose.onNodeWithTag("xtream-confirm-http").assertExists()
+        compose.onNodeWithTag("xtream-host").performTextInput("http://new.example")
+        compose.runOnIdle { assertTrue(cancelled) }
     }
 }

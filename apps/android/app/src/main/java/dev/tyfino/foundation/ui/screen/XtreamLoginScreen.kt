@@ -107,36 +107,7 @@ internal fun XtreamLoginScreen(
                             )
                         }
                     }
-                    is XtreamUiState.ConfirmCleartext -> {
-                        Text(
-                            text = stringResource(R.string.xtream_http_warning_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier
-                                .semantics { liveRegion = LiveRegionMode.Assertive }
-                                .testTag("xtream-http-warning"),
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.xtream_http_warning,
-                                state.providerOrigin,
-                            ),
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                        FocusVisibleButton(
-                            label = stringResource(R.string.xtream_http_continue),
-                            onClick = onConfirmCleartext,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("xtream-confirm-http"),
-                        )
-                        FocusVisibleButton(
-                            label = stringResource(R.string.back),
-                            onClick = onCancelCleartext,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    is XtreamUiState.SignedOut -> {
+                    is XtreamUiState.ConfirmCleartext, is XtreamUiState.SignedOut -> {
                         val inputStyle = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                             textDirection = TextDirection.Ltr,
@@ -144,7 +115,10 @@ internal fun XtreamLoginScreen(
                         run {
                             OutlinedTextField(
                                 value = host,
-                                onValueChange = { host = it },
+                                onValueChange = {
+                                    host = it
+                                    if (state is XtreamUiState.ConfirmCleartext) onCancelCleartext()
+                                },
                                 label = { Text(stringResource(R.string.xtream_host), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 placeholder = { Text(stringResource(R.string.xtream_host_hint), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 textStyle = inputStyle,
@@ -156,7 +130,10 @@ internal fun XtreamLoginScreen(
                             )
                             OutlinedTextField(
                                 value = username,
-                                onValueChange = { username = it },
+                                onValueChange = {
+                                    username = it
+                                    if (state is XtreamUiState.ConfirmCleartext) onCancelCleartext()
+                                },
                                 label = { Text(stringResource(R.string.xtream_username), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 textStyle = inputStyle,
                                 singleLine = true,
@@ -166,7 +143,10 @@ internal fun XtreamLoginScreen(
                             )
                             OutlinedTextField(
                                 value = password,
-                                onValueChange = { password = it },
+                                onValueChange = {
+                                    password = it
+                                    if (state is XtreamUiState.ConfirmCleartext) onCancelCleartext()
+                                },
                                 label = { Text(stringResource(R.string.xtream_password), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 textStyle = inputStyle,
                                 singleLine = true,
@@ -177,7 +157,7 @@ internal fun XtreamLoginScreen(
                                     .testTag("xtream-password"),
                             )
                         }
-                        state.error?.let { error ->
+                        (state as? XtreamUiState.SignedOut)?.error?.let { error ->
                             Text(
                                 text = stringResource(error.messageResource()),
                                 color = MaterialTheme.colorScheme.error,
@@ -187,12 +167,36 @@ internal fun XtreamLoginScreen(
                                     .testTag("xtream-error"),
                             )
                         }
+                        if (state is XtreamUiState.ConfirmCleartext) {
+                            Text(
+                                text = stringResource(R.string.xtream_http_warning_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier
+                                    .semantics { liveRegion = LiveRegionMode.Assertive }
+                                    .testTag("xtream-http-warning"),
+                            )
+                            Text(
+                                text = stringResource(R.string.xtream_http_warning, state.providerOrigin),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                         FocusVisibleButton(
-                            label = stringResource(R.string.xtream_sign_in),
-                            onClick = { onSignIn(XtreamInput(host, username, password)) },
+                            label = stringResource(
+                                if (state is XtreamUiState.ConfirmCleartext) R.string.xtream_http_continue
+                                else R.string.xtream_sign_in,
+                            ),
+                            onClick = {
+                                if (state is XtreamUiState.ConfirmCleartext) onConfirmCleartext()
+                                else onSignIn(XtreamInput(host, username, password))
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .testTag("xtream-sign-in"),
+                                .testTag(
+                                    if (state is XtreamUiState.ConfirmCleartext) "xtream-confirm-http"
+                                    else "xtream-sign-in",
+                                ),
                         )
                         onBack?.let { back ->
                             FocusVisibleButton(
