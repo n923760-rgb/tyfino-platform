@@ -67,7 +67,7 @@ class CatalogIdentityIndexMigrationTest {
                 records = listOf(
                     CatalogItem("series-old", "series-category", "Older series", 0, null, null, null, null, 1780000000L),
                     CatalogItem("series-new", "series-category", "Newer series", 1, null, null, null, null, 1790000000L),
-                    CatalogItem("series-undated", "series-category", "Undated series", 2),
+                    CatalogItem("series-undated", "series-category", "Undated series", 2, null, null, null, null),
                 ),
             ))
             assertEquals(listOf("series-new", "series-old"),
