@@ -1,0 +1,57 @@
+name: Build device test APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: device-test-apk
+  cancel-in-progress: false
+
+jobs:
+  device-test-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/android
+    steps:
+      - name: Checkout exact official source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Require official main and exact source
+        run: |
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Set up Gradle 9.6.0
+        uses: gradle/actions/setup-gradle@v4
+      - name: Build owner device test APK
+        run: >-
+          ./gradlew --no-daemon :app:assembleDebug
+          -PTYFINO_LICENSING_API_BASE_URL=https://api.tyfino.online
+      - name: Record exact test build
+        run: |
+          apk_path="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$apk_path"
+          mkdir -p build/device-test-output
+          cp "$apk_path" build/device-test-output/TYFINO-device-test.apk
+          git rev-parse HEAD > build/device-test-output/source-sha.txt
+          (
+            cd build/device-test-output
+            sha256sum TYFINO-device-test.apk > TYFINO-device-test.apk.sha256
+          )
+      - name: Upload owner test artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tyfino-device-test-${{ github.sha }}-${{ github.run_attempt }}
+          path: apps/android/build/device-test-output
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
