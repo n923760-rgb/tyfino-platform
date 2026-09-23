@@ -15,14 +15,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -30,7 +28,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
@@ -132,12 +130,17 @@ internal fun XtreamLoginScreen(
                     )
                 }
                 is XtreamUiState.SignedOut -> {
-                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    val inputStyle = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textDirection = TextDirection.Ltr,
+                    )
+                    run {
                         OutlinedTextField(
                             value = host,
                             onValueChange = { host = it },
-                            label = { Text(stringResource(R.string.xtream_host)) },
-                            placeholder = { Text(stringResource(R.string.xtream_host_hint)) },
+                            label = { Text(stringResource(R.string.xtream_host), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            placeholder = { Text(stringResource(R.string.xtream_host_hint), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            textStyle = inputStyle,
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                             modifier = Modifier
@@ -147,7 +150,8 @@ internal fun XtreamLoginScreen(
                         OutlinedTextField(
                             value = username,
                             onValueChange = { username = it },
-                            label = { Text(stringResource(R.string.xtream_username)) },
+                            label = { Text(stringResource(R.string.xtream_username), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            textStyle = inputStyle,
                             singleLine = true,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -156,7 +160,8 @@ internal fun XtreamLoginScreen(
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
-                            label = { Text(stringResource(R.string.xtream_password)) },
+                            label = { Text(stringResource(R.string.xtream_password), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            textStyle = inputStyle,
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

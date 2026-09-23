@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
@@ -30,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -770,6 +772,17 @@ private fun AppNavHost(
                 onOpenDestination = onOpenDestination,
                 onOpenAccountSwitcher = onOpenAccountSwitcher,
                 onOpenSettings = onOpenSettings,
+                accountStore = accountStore,
+                catalogRepository = catalogRepository,
+                historyRepository = historyRepository,
+                movieResumeRepository = movieResumeRepository,
+                episodeResumeRepository = episodeResumeRepository,
+                episodeHistoryRepository = episodeHistoryRepository,
+                onPlayLive = { onPlay(CatalogSection.Live, it) },
+                onResumeMovie = { onPlay(CatalogSection.Movies, it) },
+                onOpenMovie = onOpenMovie,
+                onResumeSeries = onResumeEpisode,
+                onPlaySeriesHistory = onPlayHistoryEpisode,
             )
         }
         composable(AppDestination.Live.route) {
@@ -889,7 +902,7 @@ private fun AppBottomBar(
                 modifier = Modifier.testTag("destination-${destination.route}"),
                 selected = selectedRoute == destination.route,
                 onClick = { onDestinationSelected(destination) },
-                icon = { Icon(painterResource(destination.iconRes), contentDescription = null) },
+                icon = { Icon(painterResource(destination.iconRes), contentDescription = null, modifier = Modifier.size(20.dp)) },
                 label = { Text(label) },
             )
         }
@@ -911,7 +924,7 @@ private fun AppNavigationRail(
                 modifier = Modifier.testTag("destination-${destination.route}"),
                 selected = selectedRoute == destination.route,
                 onClick = { onDestinationSelected(destination) },
-                icon = { Icon(painterResource(destination.iconRes), contentDescription = null) },
+                icon = { Icon(painterResource(destination.iconRes), contentDescription = null, modifier = Modifier.size(20.dp)) },
                 label = { Text(label) },
             )
         }
