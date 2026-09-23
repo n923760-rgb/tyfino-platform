@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources><plurals name="new_content_count"><item quantity="one">%d new item</item><item quantity="other">%d new items</item></plurals></resources>

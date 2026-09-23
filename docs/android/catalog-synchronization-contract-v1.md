@@ -18,6 +18,8 @@ The goals are:
 
 ## 2. Product boundary
 
+Later owner request (2026-09-23): opt-in new-content alerts may check a bounded set of previously opened movie categories and series on unmetered connectivity. This extends the original "no background polling" V1 boundary only for user-enabled alerts. It does not authorize a full-provider scan, licensing-backend catalog transfer, or alerting on an initial cache baseline.
+
 ### 2.1 In scope
 
 - Three catalog sections: Live TV, Movies, and Series.

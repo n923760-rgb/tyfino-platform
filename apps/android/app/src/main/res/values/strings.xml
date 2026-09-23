@@ -13,6 +13,16 @@
     <string name="home_series_description">Explore series, seasons, and episodes</string>
     <string name="home_account_title">Your account</string>
     <string name="home_recent_live">Recently watched channels</string>
+    <string name="home_latest_movies">Newly added movies</string>
+    <string name="home_latest_episodes">Latest available episodes</string>
+    <string name="home_latest_movies_empty">Movies with provider add dates will appear after you open their categories.</string>
+    <string name="home_latest_episodes_empty">Episodes with air dates will appear after you open a series.</string>
+    <string name="new_content_channel">New content</string>
+    <string name="new_movies_alert">New movies available</string>
+    <string name="new_episodes_alert">New episodes available</string>
+    <string name="new_content_enable">Enable new content alerts</string>
+    <string name="new_content_disable">Disable new content alerts</string>
+    <string name="new_content_scope">Checks up to two previously opened movie categories and series on Wi-Fi about every 12 hours; delivery depends on your device and provider.</string>
     <string name="home_continue_movies">Continue watching movies</string>
     <string name="home_continue_series">Continue watching series</string>
     <string name="home_recent_movies">Recently watched movies</string>

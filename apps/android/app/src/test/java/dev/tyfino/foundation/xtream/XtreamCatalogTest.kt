@@ -69,6 +69,18 @@ class XtreamCatalogTest {
     }
 
     @Test
+    fun movieAddDateRequiresPlausibleProviderTimestamp() {
+        val result = parser().parseItems(StringReader("""[
+            {"stream_id":1,"name":"Dated","added":"1790000000"},
+            {"stream_id":2,"name":"Invalid","added":"123"},
+            {"stream_id":3,"name":"Missing"}
+        ]"""), CatalogSection.Movies, "category", CatalogArtworkPolicy(account())) as CatalogResult.Success
+        assertEquals(1790000000L, result.records[0].addedAtEpochSeconds)
+        assertNull(result.records[1].addedAtEpochSeconds)
+        assertNull(result.records[2].addedAtEpochSeconds)
+    }
+
+    @Test
     fun parserRejectsInvalidTopLevelAndHardEntryLimitsWithoutPartialSuccess() {
         assertFailure(CatalogFailure.MalformedResponse, parser().parseCategories(StringReader("{}")))
         assertFailure(CatalogFailure.MalformedResponse, parser().parseCategories(StringReader("[")))

@@ -105,6 +105,7 @@ internal class XtreamCatalogParser(
         var rating: String? = null
         var releaseYear: String? = null
         var containerExtension: String? = null
+        var addedAtEpochSeconds: Long? = null
         json.beginObject()
         while (json.hasNext()) {
             when (json.nextName()) {
@@ -118,6 +119,11 @@ internal class XtreamCatalogParser(
                 }
                 "container_extension" -> {
                     containerExtension = boundedText(readScalar(json), SHORT_TEXT_LIMIT)
+                }
+                "added" -> {
+                    addedAtEpochSeconds = readScalar(json)?.toLongOrNull()?.takeIf {
+                        it in 946684800L..4102444800L
+                    }
                 }
                 else -> json.skipValue()
             }
@@ -134,6 +140,7 @@ internal class XtreamCatalogParser(
             rating = rating?.takeIf(String::isNotBlank),
             releaseYear = releaseYear?.takeIf(String::isNotBlank),
             containerExtension = containerExtension?.takeIf(String::isNotBlank),
+            addedAtEpochSeconds = addedAtEpochSeconds,
         )
     }
 

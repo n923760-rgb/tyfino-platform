@@ -41,6 +41,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.tyfino.foundation.BuildConfig
+import dev.tyfino.foundation.notifications.NewContentNotifier
 import dev.tyfino.foundation.licensing.AndroidLicenseClock
 import dev.tyfino.foundation.licensing.HttpLicensingApi
 import dev.tyfino.foundation.licensing.LicensingController
@@ -118,6 +119,7 @@ internal fun TyfinoApp() {
         )
     }
     val xtreamStore = remember { SecureXtreamAccountStore(context) }
+    val newContentNotifier = remember { NewContentNotifier(context) }
     val xtreamRepository = remember {
         XtreamRepository(
             store = xtreamStore,
@@ -132,6 +134,7 @@ internal fun TyfinoApp() {
             accountStore = xtreamStore,
             api = HttpXtreamCatalogApi(context),
             store = SQLiteCatalogStore(context),
+            onNewMovies = newContentNotifier::movies,
         )
     }
     val epgRepository = remember { LiveEpgRepository(xtreamStore, HttpLiveEpgApi(context), SQLiteLiveEpgStore(context)) }
@@ -147,6 +150,7 @@ internal fun TyfinoApp() {
             accountStore = xtreamStore,
             api = HttpXtreamSeriesApi(context),
             store = seriesStore,
+            onNewEpisodes = newContentNotifier::episodes,
         )
     }
     val movieDetailsRepository = remember {
@@ -286,6 +290,8 @@ private fun XtreamGate(
                 movieResumeRepository = movieResumeRepository,
                 episodeResumeRepository = episodeResumeRepository,
                 episodeHistoryRepository = episodeHistoryRepository,
+                seriesStore = seriesStore,
+                newContentNotifier = newContentNotifier,
                 previousLiveChannelController = previousLiveChannelController,
                 accountStore = accountStore,
                 accountRepository = repository,

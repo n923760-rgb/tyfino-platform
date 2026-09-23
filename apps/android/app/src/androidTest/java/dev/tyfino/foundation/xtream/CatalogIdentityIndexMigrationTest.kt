@@ -51,9 +51,16 @@ class CatalogIdentityIndexMigrationTest {
                 "account-a", CatalogSection.Movies, setOf("movie-1"),
             ).map { it.providerId })
             assertTrue(store.loadItemsByProviderIds("account-b", CatalogSection.Movies, setOf("movie-1")).isEmpty())
+            assertTrue(store.latestCachedMovies("account-a", 8).isEmpty())
+            store.replaceItems("account-a", CatalogSection.Movies, "category", CatalogSnapshot(
+                generation = 2, refreshedAtEpochMillis = 2000,
+                records = listOf(CatalogItem("movie-2", "category", "New movie", 0, null, null, null, "mp4", 1790000000L)),
+            ))
+            assertEquals(listOf("movie-2"), store.latestCachedMovies("account-a", 8).map { it.providerId })
+            assertTrue(store.latestCachedMovies("account-b", 8).isEmpty())
 
             SQLiteDatabase.openDatabase(path.path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
-                assertEquals(2, database.version)
+                assertEquals(3, database.version)
                 val sql = "EXPLAIN QUERY PLAN SELECT * FROM catalog_items WHERE " +
                     "account_id = ? AND section = ? AND provider_id IN (?)"
                 database.rawQuery(sql, arrayOf("account-a", "Movies", "movie-1")).use { cursor ->

@@ -1,5 +1,9 @@
 package dev.tyfino.foundation.ui.screen
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.focusGroup
@@ -41,6 +45,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.tyfino.foundation.R
+import dev.tyfino.foundation.notifications.NewContentNotifier
 import dev.tyfino.foundation.app.AppDestination
 import dev.tyfino.foundation.playback.CatalogHistoryListResult
 import dev.tyfino.foundation.playback.CatalogHistoryRepository
@@ -58,6 +63,8 @@ import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.CatalogRepository
 import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.XtreamAccountStore
+import dev.tyfino.foundation.xtream.SeriesStore
+import dev.tyfino.foundation.xtream.PublishedEpisode
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import kotlinx.coroutines.Dispatchers
@@ -76,6 +83,8 @@ private val shortcuts = listOf(
 )
 
 private data class HomeHistory(
+    val latestMovies: List<CatalogItem> = emptyList(),
+    val latestEpisodes: List<PublishedEpisode> = emptyList(),
     val live: List<CatalogItem> = emptyList(),
     val movies: List<CatalogItem> = emptyList(),
     val movieResume: List<ContinueWatchingItem> = emptyList(),
@@ -94,6 +103,8 @@ internal fun HomeScreen(
     movieResumeRepository: MovieResumeRepository? = null,
     episodeResumeRepository: EpisodeResumeRepository? = null,
     episodeHistoryRepository: EpisodeHistoryRepository? = null,
+    seriesStore: SeriesStore? = null,
+    newContentNotifier: NewContentNotifier? = null,
     onPlayLive: (CatalogItem) -> Unit = {},
     onResumeMovie: (CatalogItem) -> Unit = {},
     onOpenMovie: (CatalogItem) -> Unit = {},
@@ -104,13 +115,18 @@ internal fun HomeScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     var history by remember { mutableStateOf(HomeHistory()) }
-    DisposableEffect(lifecycleOwner, accountStore, catalogRepository, historyRepository, movieResumeRepository, episodeResumeRepository, episodeHistoryRepository) {
+    var alertsEnabled by remember(newContentNotifier) { mutableStateOf(newContentNotifier?.isEnabled() == true) }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        newContentNotifier?.setEnabled(granted)
+        alertsEnabled = granted
+    }
+    DisposableEffect(lifecycleOwner, accountStore, catalogRepository, historyRepository, movieResumeRepository, episodeResumeRepository, episodeHistoryRepository, seriesStore) {
         var generation = 0
         fun refresh() {
             val request = ++generation
             history = HomeHistory()
             if (accountStore == null || catalogRepository == null || historyRepository == null ||
-                movieResumeRepository == null || episodeResumeRepository == null || episodeHistoryRepository == null
+                movieResumeRepository == null || episodeResumeRepository == null || episodeHistoryRepository == null || seriesStore == null
             ) return
             scope.launch {
                 val owner = withContext(Dispatchers.IO) { accountStore.load()?.let { it.accountId to it.generation } }
@@ -124,9 +140,21 @@ internal fun HomeScreen(
                 )
                 val series = (episodeResumeRepository.continueWatching() as? EpisodeResumeListResult.Ready)?.items.orEmpty()
                 val seriesHistory = (episodeHistoryRepository.recent() as? EpisodeHistoryListResult.Ready)?.items.orEmpty()
+                val latestMovies = catalogRepository.latestCachedMovies()
+                val latestEpisodes = withContext(Dispatchers.IO) {
+                    runCatching { seriesStore.latestDatedEpisodes(owner.first, owner.second, 8) }.getOrDefault(emptyList())
+                }
                 val currentOwner = withContext(Dispatchers.IO) { accountStore.load()?.let { it.accountId to it.generation } }
                 if (request == generation && owner == currentOwner) {
-                    history = HomeHistory(live.take(8), movies.take(8), movieResume.take(8), series.take(8), seriesHistory.take(8))
+                    history = HomeHistory(
+                        latestMovies = latestMovies,
+                        latestEpisodes = latestEpisodes,
+                        live = live.take(8),
+                        movies = (movies + movieResume.map { it.catalogItem }).distinctBy { it.providerId }.take(8),
+                        movieResume = movieResume.take(8),
+                        seriesResume = series.take(8),
+                        seriesHistory = seriesHistory.distinctBy { it.episode.providerSeriesId }.take(8),
+                    )
                 }
             }
         }
@@ -158,6 +186,68 @@ internal fun HomeScreen(
                     )
                 }
             }
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-movies") {
+                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie, "home-latest-movies")
+            }
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-episodes") {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-latest-episodes")) {
+                    Text(stringResource(R.string.home_latest_episodes), style = MaterialTheme.typography.titleMedium)
+                    if (history.latestEpisodes.isEmpty()) {
+                        Text(stringResource(R.string.home_latest_episodes_empty), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+                        rowItems(history.latestEpisodes, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
+                            CatalogTile(
+                                label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
+                                selected = false,
+                                onClick = { onPlaySeriesHistory(SeriesHistoryItem(item.episode, item.seriesTitle,
+                                    item.seriesGeneration, item.accountGeneration, 0L, item.seriesCoverUrl)) },
+                                modifier = Modifier.width(120.dp), showArtwork = true,
+                                artworkUrl = item.seriesCoverUrl, artworkAspectRatio = 2f / 3f,
+                            )
+                        }
+                    }
+                }
+            }
+            if (history.live.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-live") {
+                    HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive, "home-recent-live", 16f / 9f)
+                }
+            }
+            if (history.seriesHistory.isNotEmpty() || history.seriesResume.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-series") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-recent-series")) {
+                        Text(stringResource(R.string.home_recent_series), style = MaterialTheme.typography.titleMedium)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+                            rowItems(history.seriesHistory, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
+                                CatalogTile(
+                                    label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
+                                    selected = false,
+                                    onClick = { onPlaySeriesHistory(item) },
+                                    modifier = Modifier.width(120.dp),
+                                    showArtwork = true,
+                                    artworkUrl = item.seriesArtworkUrl,
+                                    artworkAspectRatio = 2f / 3f,
+                                )
+                            }
+                            rowItems(history.seriesResume.filter { resume -> history.seriesHistory.none {
+                                it.episode.providerSeriesId == resume.episode.providerSeriesId
+                            } }, key = { "resume:${it.episode.providerSeriesId}" }) { item ->
+                                CatalogTile(
+                                    label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
+                                    selected = false, onClick = { onResumeSeries(item) }, modifier = Modifier.width(120.dp),
+                                    showArtwork = true, artworkUrl = item.seriesArtworkUrl, artworkAspectRatio = 2f / 3f,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            if (history.movies.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-movies") {
+                    HomeRecentStrip(stringResource(R.string.home_recent_movies), history.movies, onResumeMovie, "home-recent-movies")
+                }
+            }
             items(shortcuts, key = { it.destination.route }, contentType = { "shortcut" }) { shortcut ->
                 HomeShortcutCard(
                     title = stringResource(shortcut.destination.labelRes),
@@ -169,62 +259,25 @@ internal fun HomeScreen(
                         .testTag("home-${shortcut.destination.route}"),
                 )
             }
-            if (history.live.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-live") {
-                    HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive, "home-recent-live", 16f / 9f)
-                }
-            }
-            if (history.movieResume.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "resume-movies") {
-                    HomeRecentStrip(
-                        stringResource(R.string.home_continue_movies),
-                        history.movieResume.map { it.catalogItem }, onResumeMovie, "home-continue-movies",
-                    )
-                }
-            }
-            if (history.seriesResume.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "resume-series") {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-continue-series")) {
-                        Text(stringResource(R.string.home_continue_series), style = MaterialTheme.typography.titleMedium)
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
-                            rowItems(history.seriesResume, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
-                                CatalogTile(
-                                    label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
-                                    selected = false,
-                                    onClick = { onResumeSeries(item) },
-                                    modifier = Modifier.width(144.dp),
-                                    showArtwork = true,
-                                    artworkUrl = item.seriesArtworkUrl,
-                                    artworkAspectRatio = 2f / 3f,
-                                )
-                            }
+            if (newContentNotifier != null) item(span = { GridItemSpan(maxLineSpan) }, contentType = "alerts") {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                FocusVisibleButton(
+                    label = stringResource(if (alertsEnabled) R.string.new_content_disable else R.string.new_content_enable),
+                    onClick = {
+                        if (alertsEnabled) {
+                            newContentNotifier.setEnabled(false)
+                            alertsEnabled = false
+                        } else if (Build.VERSION.SDK_INT >= 33 && !newContentNotifier.canNotify()) {
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            newContentNotifier.setEnabled(true)
+                            alertsEnabled = true
                         }
-                    }
-                }
-            }
-            if (history.movies.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-movies") {
-                    HomeRecentStrip(stringResource(R.string.home_recent_movies), history.movies, onOpenMovie, "home-recent-movies")
-                }
-            }
-            if (history.seriesHistory.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-series") {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-recent-series")) {
-                        Text(stringResource(R.string.home_recent_series), style = MaterialTheme.typography.titleMedium)
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
-                            rowItems(history.seriesHistory, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
-                                CatalogTile(
-                                    label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
-                                    selected = false,
-                                    onClick = { onPlaySeriesHistory(item) },
-                                    modifier = Modifier.width(144.dp),
-                                    showArtwork = true,
-                                    artworkUrl = item.seriesArtworkUrl,
-                                    artworkAspectRatio = 2f / 3f,
-                                )
-                            }
-                        }
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth().testTag("home-content-alerts"),
+                )
+                Text(stringResource(R.string.new_content_scope), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "account") {
@@ -256,13 +309,17 @@ private fun HomeRecentStrip(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag(tag)) {
         Text(title, style = MaterialTheme.typography.titleMedium)
+        if (records.isEmpty()) {
+            Text(stringResource(R.string.home_latest_movies_empty), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
             rowItems(records, key = { it.providerId }) { item ->
                 CatalogTile(
                     label = item.name,
                     selected = false,
                     onClick = { onClick(item) },
-                    modifier = Modifier.width(144.dp),
+                    modifier = Modifier.width(120.dp),
                     showArtwork = true,
                     artworkUrl = item.artworkUrl,
                     artworkAspectRatio = artworkAspectRatio,

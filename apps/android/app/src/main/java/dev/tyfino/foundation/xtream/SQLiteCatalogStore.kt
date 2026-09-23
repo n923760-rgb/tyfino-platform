@@ -56,6 +56,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                 RATING,
                 RELEASE_YEAR,
                 CONTAINER_EXTENSION,
+                ADDED_AT,
             ),
             "$ACCOUNT_ID = ? AND $SECTION = ? AND $CATEGORY_ID = ? AND $GENERATION = ?",
             arrayOf(accountId, section.name, categoryId, metadata.generation.toString()),
@@ -75,6 +76,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                             rating = cursor.nullableText(RATING),
                             releaseYear = cursor.nullableText(RELEASE_YEAR),
                             containerExtension = cursor.nullableText(CONTAINER_EXTENSION),
+                            addedAtEpochSeconds = cursor.nullableLong(ADDED_AT),
                         ),
                     )
                 }
@@ -93,7 +95,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
         require(limit in 1..51)
         // instr treats %, _, and backslashes literally; no wildcard expansion or remote search.
         val sql = """SELECT i.$CATEGORY_ID, i.$PROVIDER_ID, i.$DISPLAY_NAME,
-            i.$PROVIDER_ORDER, i.$ARTWORK_URL, i.$RATING, i.$RELEASE_YEAR, i.$CONTAINER_EXTENSION
+            i.$PROVIDER_ORDER, i.$ARTWORK_URL, i.$RATING, i.$RELEASE_YEAR, i.$CONTAINER_EXTENSION, i.$ADDED_AT
             FROM $ITEM_TABLE i
             JOIN $SNAPSHOT_TABLE s ON s.$ACCOUNT_ID = i.$ACCOUNT_ID
                 AND s.$SECTION = i.$SECTION AND s.$CATEGORY_ID = i.$CATEGORY_ID
@@ -119,6 +121,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                             rating = cursor.nullableText(RATING),
                             releaseYear = cursor.nullableText(RELEASE_YEAR),
                             containerExtension = cursor.nullableText(CONTAINER_EXTENSION),
+                            addedAtEpochSeconds = cursor.nullableLong(ADDED_AT),
                         ),
                     )
                 }
@@ -145,6 +148,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                 RATING,
                 RELEASE_YEAR,
                 CONTAINER_EXTENSION,
+                ADDED_AT,
             ),
             "$ACCOUNT_ID = ? AND $SECTION = ? AND $PROVIDER_ID IN ($placeholders) AND " +
                 "EXISTS (SELECT 1 FROM $CATEGORY_TABLE WHERE " +
@@ -168,11 +172,51 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                             rating = cursor.nullableText(RATING),
                             releaseYear = cursor.nullableText(RELEASE_YEAR),
                             containerExtension = cursor.nullableText(CONTAINER_EXTENSION),
+                            addedAtEpochSeconds = cursor.nullableLong(ADDED_AT),
                         ),
                     )
                 }
             }.distinctBy(CatalogItem::providerId)
         }
+    }
+
+    override fun latestCachedMovies(accountId: String, limit: Int): List<CatalogItem> = synchronized(helper) {
+        require(limit in 1..20)
+        // The active snapshot and category joins hide superseded or orphaned rows.
+        val sql = """SELECT i.$CATEGORY_ID, i.$PROVIDER_ID, i.$DISPLAY_NAME,
+            i.$PROVIDER_ORDER, i.$ARTWORK_URL, i.$RATING, i.$RELEASE_YEAR,
+            i.$CONTAINER_EXTENSION, i.$ADDED_AT
+            FROM $ITEM_TABLE i
+            JOIN $SNAPSHOT_TABLE s ON s.$ACCOUNT_ID = i.$ACCOUNT_ID
+                AND s.$SECTION = i.$SECTION AND s.$CATEGORY_ID = i.$CATEGORY_ID
+                AND s.$GENERATION = i.$GENERATION
+            JOIN $CATEGORY_TABLE c ON c.$ACCOUNT_ID = i.$ACCOUNT_ID
+                AND c.$SECTION = i.$SECTION AND c.$PROVIDER_ID = i.$CATEGORY_ID
+            WHERE i.$ACCOUNT_ID = ? AND i.$SECTION = ? AND i.$ADDED_AT IS NOT NULL
+            ORDER BY i.$ADDED_AT DESC, i.$PROVIDER_ID ASC LIMIT ?""".trimIndent()
+        helper.readableDatabase.rawQuery(sql, arrayOf(accountId, CatalogSection.Movies.name, limit.toString())).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) add(CatalogItem(
+                    providerId = cursor.text(PROVIDER_ID), categoryId = cursor.text(CATEGORY_ID),
+                    name = cursor.text(DISPLAY_NAME), providerOrder = cursor.getInt(cursor.getColumnIndexOrThrow(PROVIDER_ORDER)),
+                    artworkUrl = cursor.nullableText(ARTWORK_URL), rating = cursor.nullableText(RATING),
+                    releaseYear = cursor.nullableText(RELEASE_YEAR), containerExtension = cursor.nullableText(CONTAINER_EXTENSION),
+                    addedAtEpochSeconds = cursor.nullableLong(ADDED_AT),
+                ))
+            }.distinctBy(CatalogItem::providerId)
+        }
+    }
+
+    override fun monitoredMovieCategories(accountId: String, limit: Int): List<String> = synchronized(helper) {
+        require(limit in 1..4)
+        helper.readableDatabase.rawQuery(
+            """SELECT s.$CATEGORY_ID FROM $SNAPSHOT_TABLE s
+                JOIN $CATEGORY_TABLE c ON c.$ACCOUNT_ID = s.$ACCOUNT_ID
+                    AND c.$SECTION = s.$SECTION AND c.$PROVIDER_ID = s.$CATEGORY_ID
+                WHERE s.$ACCOUNT_ID = ? AND s.$SECTION = ? AND s.$CATEGORY_ID != ''
+                ORDER BY s.$REFRESHED_AT DESC LIMIT ?""".trimIndent(),
+            arrayOf(accountId, CatalogSection.Movies.name, limit.toString()),
+        ).use { cursor -> buildList { while (cursor.moveToNext()) add(cursor.text(CATEGORY_ID)) } }
     }
 
     override fun replaceCategories(
@@ -232,6 +276,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                         put(RATING, record.rating)
                         put(RELEASE_YEAR, record.releaseYear)
                         put(CONTAINER_EXTENSION, record.containerExtension)
+                        put(ADDED_AT, record.addedAtEpochSeconds)
                         put(GENERATION, snapshot.generation)
                     },
                 )
@@ -297,6 +342,10 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
         val index = getColumnIndexOrThrow(column)
         return if (isNull(index)) null else getString(index)
     }
+    private fun Cursor.nullableLong(column: String): Long? {
+        val index = getColumnIndexOrThrow(column)
+        return if (isNull(index)) null else getLong(index)
+    }
 
     private inline fun <T> SQLiteDatabase.inTransaction(block: SQLiteDatabase.() -> T): T {
         beginTransaction()
@@ -349,6 +398,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                     $RATING TEXT,
                     $RELEASE_YEAR TEXT,
                     $CONTAINER_EXTENSION TEXT,
+                    $ADDED_AT INTEGER,
                     $GENERATION INTEGER NOT NULL,
                     PRIMARY KEY ($ACCOUNT_ID, $SECTION, $CATEGORY_ID, $PROVIDER_ID)
                 )""".trimIndent(),
@@ -358,15 +408,15 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                     "($ACCOUNT_ID, $SECTION, $CATEGORY_ID, $GENERATION, $PROVIDER_ORDER)",
             )
             createIdentityIndex(database)
+            database.execSQL("CREATE INDEX catalog_item_added ON $ITEM_TABLE ($ACCOUNT_ID, $SECTION, $ADDED_AT DESC)")
         }
 
         override fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
             check(oldVersion < newVersion)
-            if (oldVersion == 1 && newVersion == 2) {
-                createIdentityIndex(database)
-            } else {
-                error("Unsupported catalog database migration: $oldVersion to $newVersion")
-            }
+            if (oldVersion < 1 || newVersion != DATABASE_VERSION) error("Unsupported catalog database migration: $oldVersion to $newVersion")
+            if (oldVersion == 1) createIdentityIndex(database)
+            database.execSQL("ALTER TABLE $ITEM_TABLE ADD COLUMN $ADDED_AT INTEGER")
+            database.execSQL("CREATE INDEX catalog_item_added ON $ITEM_TABLE ($ACCOUNT_ID, $SECTION, $ADDED_AT DESC)")
         }
 
         private fun createIdentityIndex(database: SQLiteDatabase) {
@@ -380,7 +430,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
 
     private companion object {
         const val DATABASE_NAME = "tyfino_catalog_v1.db"
-        const val DATABASE_VERSION = 2
+        const val DATABASE_VERSION = 3
         const val SNAPSHOT_TABLE = "catalog_snapshots"
         const val CATEGORY_TABLE = "catalog_categories"
         const val ITEM_TABLE = "catalog_items"
@@ -394,6 +444,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
         const val RATING = "rating"
         const val RELEASE_YEAR = "release_year"
         const val CONTAINER_EXTENSION = "container_extension"
+        const val ADDED_AT = "added_at"
         const val GENERATION = "generation"
         const val REFRESHED_AT = "refreshed_at"
         const val CATEGORIES_KEY = ""

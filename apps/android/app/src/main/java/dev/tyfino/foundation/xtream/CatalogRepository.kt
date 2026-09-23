@@ -22,6 +22,9 @@ internal interface CatalogStore {
         section: CatalogSection,
         providerItemIds: Set<String>,
     ): List<CatalogItem> = emptyList()
+    /** Only dated Movies in previously visited categories; never triggers a provider scan. */
+    fun latestCachedMovies(accountId: String, limit: Int): List<CatalogItem> = emptyList()
+    fun monitoredMovieCategories(accountId: String, limit: Int): List<String> = emptyList()
     fun replaceCategories(
         accountId: String,
         section: CatalogSection,
@@ -78,6 +81,7 @@ internal class CatalogRepository(
     private val api: XtreamCatalogApi,
     private val store: CatalogStore,
     private val clock: CatalogClock = AndroidCatalogClock,
+    private val onNewMovies: (Int) -> Unit = {},
 ) {
     private val mutex = Mutex()
     private val latestOperations = mutableMapOf<CatalogKey, Long>()
@@ -131,6 +135,18 @@ internal class CatalogRepository(
                 current?.accountId != account.accountId ||
                 current.generation != account.generation
             ) emptyList() else records
+        }
+    }
+
+    suspend fun latestCachedMovies(limit: Int = 8): List<CatalogItem> = withContext(Dispatchers.IO) {
+        if (limit !in 1..20) return@withContext emptyList()
+        mutex.withLock {
+            val account = accountStore.load() ?: return@withLock emptyList()
+            val records = runCatching { store.latestCachedMovies(account.accountId, limit) }
+                .getOrElse { return@withLock emptyList() }
+            val current = accountStore.load()
+            if (current?.accountId == account.accountId && current.generation == account.generation) records
+            else emptyList()
         }
     }
 
@@ -215,6 +231,7 @@ internal class CatalogRepository(
         publish(cache?.let { contentState(it, refreshing = true) } ?: CatalogState.Loading)
 
         val result = fetch(prepared.account)
+        var newlyAddedMovies = 0
         val state = withContext(Dispatchers.IO) {
             mutex.withLock {
                 if (!owns(prepared)) return@withLock null
@@ -231,6 +248,11 @@ internal class CatalogRepository(
                         } catch (_: RuntimeException) {
                             return@withLock failureState(prepared.cache, CatalogFailure.LocalStorage)
                         }
+                        if (key.section == CatalogSection.Movies && cache != null) {
+                            val previous = cache.records.filterIsInstance<CatalogItem>().mapTo(hashSetOf()) { it.providerId }
+                            newlyAddedMovies = result.records.filterIsInstance<CatalogItem>()
+                                .count { it.providerId !in previous && it.addedAtEpochSeconds != null }
+                        }
                         monotonicRefreshes[prepared.key] = MonotonicRefresh(
                             generation = next.generation,
                             elapsedMillis = clock.elapsedTimeMillis(),
@@ -242,6 +264,9 @@ internal class CatalogRepository(
             }
         }
         state?.let(publish)
+        if (newlyAddedMovies > 0 && state is CatalogState.Content<*> &&
+            accountStore.load()?.let { it.accountId == prepared.account.accountId && it.generation == prepared.account.generation } == true
+        ) onNewMovies(newlyAddedMovies)
     }
 
     private fun <T> contentState(

@@ -2,6 +2,7 @@ package dev.tyfino.foundation
 
 import android.app.Application
 import android.content.Context
+import dev.tyfino.foundation.notifications.NewContentNotifier
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
@@ -19,6 +20,10 @@ import okio.Path.Companion.toOkioPath
 import okio.buffer
 
 class TyfinoApplication : Application(), SingletonImageLoader.Factory {
+    override fun onCreate() {
+        super.onCreate()
+        NewContentNotifier(this).restoreSchedule()
+    }
     override fun newImageLoader(context: Context): ImageLoader = ImageLoader.Builder(context)
         .memoryCache {
             MemoryCache.Builder()
