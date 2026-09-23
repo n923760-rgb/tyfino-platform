@@ -20,6 +20,8 @@ Release builds use the approved production licensing origin `https://api.tyfino.
 
 Without that property, a Debug build's UI remains usable but licensing network actions fail safely as unavailable.
 
+For owner-run physical-device qualification, the manual [Build device test APK](../../.github/workflows/device-test-apk.yml) workflow builds a Debug APK from exact official `main` with the approved production licensing origin explicitly configured. It uses temporary debug signing, includes source SHA and checksum evidence, expires after seven days, and does not authorize customer distribution. Use the [manual test record](../../docs/android/manual-test-record-template.md) per build and physical device.
+
 ## Implemented Xtream authentication slice
 
 - Explicit Host, Username, and Password entry after TYFINO licensing succeeds.
