@@ -3,6 +3,10 @@
 package dev.tyfino.foundation.ui.screen
 
 import android.graphics.Color
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.pm.ActivityInfo
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -60,6 +64,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.AspectRatioFrameLayout
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.BoundedRedirectDataSource
 import dev.tyfino.foundation.playback.EpisodePlaybackSelection
@@ -93,6 +98,12 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
 
 @Composable
 internal fun PlaybackScreen(
@@ -308,6 +319,9 @@ private fun PlayerSurface(
     liveEpgRepository: LiveEpgRepository? = null,
 ) {
     val context = LocalContext.current.applicationContext
+    val activity = LocalContext.current.findActivity()
+    val originalOrientation = remember(activity) { activity?.requestedOrientation }
+    var landscapeRequested by remember(activity) { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val displayLocale = LocalConfiguration.current.locales[0]
     val unknownAudio = stringResource(R.string.playback_unknown_audio)
@@ -328,6 +342,19 @@ private fun PlayerSurface(
     var startPositionMillis by remember(reference) { mutableStateOf(resumePositionMillis) }
     var returnedFromBackground by remember(reference) { mutableStateOf(false) }
     var exitRequested by remember(reference) { mutableStateOf(false) }
+
+    fun restoreOrientation() {
+        if (landscapeRequested) {
+            originalOrientation?.let { activity?.requestedOrientation = it }
+            landscapeRequested = false
+        }
+    }
+
+    DisposableEffect(activity) {
+        onDispose {
+            if (landscapeRequested) originalOrientation?.let { activity?.requestedOrientation = it }
+        }
+    }
 
     fun snapshot(current: ExoPlayer?): PlaybackProgressSnapshot? {
         if ((selection.section != CatalogSection.Movies && episodeSelection == null) || current == null) {
@@ -548,6 +575,8 @@ private fun PlayerSurface(
             epgVisible = false
         } else if (activeMenu != null) {
             activeMenu = null
+        } else if (landscapeRequested) {
+            restoreOrientation()
         } else {
             requestExit()
         }
@@ -564,6 +593,7 @@ private fun PlayerSurface(
                 PlayerView(viewContext).apply {
                     setBackgroundColor(Color.BLACK)
                     useController = true
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                     controllerAutoShow = true
                     setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
                 }
@@ -579,6 +609,25 @@ private fun PlayerSurface(
                 .padding(WindowInsets.safeDrawing.asPaddingValues())
                 .padding(12.dp),
         )
+        if (activity != null) {
+            FocusVisibleButton(
+                label = stringResource(
+                    if (landscapeRequested) R.string.playback_restore_orientation else R.string.playback_landscape,
+                ),
+                onClick = {
+                    if (landscapeRequested) restoreOrientation()
+                    else {
+                        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                        landscapeRequested = true
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(WindowInsets.safeDrawing.asPaddingValues())
+                    .padding(12.dp)
+                    .testTag("playback-landscape"),
+            )
+        }
         if (player != null && !playbackFailed) {
             Column(
                 modifier = Modifier

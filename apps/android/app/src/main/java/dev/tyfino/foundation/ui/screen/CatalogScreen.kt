@@ -437,7 +437,7 @@ private fun ContinueWatchingStrip(
                     } ?: stringResource(R.string.continue_watching_resume),
                     selected = false,
                     onClick = { onPlay(record.catalogItem) },
-                    modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
+                    modifier = Modifier.widthIn(min = 136.dp, max = 180.dp),
                     showArtwork = true,
                     artworkUrl = record.catalogItem.artworkUrl,
                     artworkAspectRatio = POSTER_ASPECT_RATIO,
@@ -468,7 +468,7 @@ private fun SeriesContinueWatchingStrip(
                         ?: stringResource(R.string.continue_watching_resume),
                     selected = false,
                     onClick = { onPlay(item) },
-                    modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
+                    modifier = Modifier.widthIn(min = 136.dp, max = 180.dp),
                     showArtwork = true,
                     artworkUrl = item.seriesArtworkUrl,
                     artworkAspectRatio = POSTER_ASPECT_RATIO,
@@ -501,7 +501,7 @@ internal fun SeriesHistoryStrip(
                     supporting = stringResource(R.string.series_history_play),
                     selected = false,
                     onClick = { onPlay(item) },
-                    modifier = Modifier.widthIn(min = 180.dp, max = 300.dp),
+                    modifier = Modifier.widthIn(min = 136.dp, max = 180.dp),
                     showArtwork = true,
                     artworkUrl = item.seriesArtworkUrl,
                     artworkAspectRatio = POSTER_ASPECT_RATIO,
@@ -595,10 +595,10 @@ private fun ItemGrid(
     onToggleFavorite: ((CatalogItem) -> Unit)? = null,
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 168.dp),
+        columns = GridCells.Adaptive(minSize = 116.dp),
         modifier = Modifier.fillMaxSize().focusGroup().testTag("catalog-items"),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(records, key = { it.providerId }) { item ->
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -672,8 +672,8 @@ internal fun CatalogTile(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(if (showArtwork) 10.dp else 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(if (showArtwork) 6.dp else 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             if (showArtwork) {
                 Box(
@@ -686,7 +686,7 @@ internal fun CatalogTile(
                 ) {
                     Text(
                         text = label.trim().take(1).ifEmpty { "•" },
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (artworkUrl != null) {

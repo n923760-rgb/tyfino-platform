@@ -12,6 +12,13 @@
     <string name="home_movies_description">Find a movie and pick up where you left off</string>
     <string name="home_series_description">Explore series, seasons, and episodes</string>
     <string name="home_account_title">Your account</string>
+    <string name="home_recent_live">Recently watched channels</string>
+    <string name="home_continue_movies">Continue watching movies</string>
+    <string name="home_continue_series">Continue watching series</string>
+    <string name="home_recent_movies">Recently watched movies</string>
+    <string name="home_recent_series">Recently watched series</string>
+    <string name="playback_landscape">Watch in landscape</string>
+    <string name="playback_restore_orientation">Return to normal view</string>
     <string name="open_settings">Open settings</string>
     <string name="settings_title">Settings</string>
     <string name="settings_description">Manage the IPTV accounts saved on this device.</string>

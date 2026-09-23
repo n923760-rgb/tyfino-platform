@@ -12,6 +12,13 @@
     <string name="home_movies_description">اختر فيلمًا وأكمل من حيث توقفت</string>
     <string name="home_series_description">استكشف المسلسلات والمواسم والحلقات</string>
     <string name="home_account_title">حسابك</string>
+    <string name="home_recent_live">آخر القنوات مشاهدة</string>
+    <string name="home_continue_movies">أكمل الأفلام</string>
+    <string name="home_continue_series">أكمل المسلسلات</string>
+    <string name="home_recent_movies">آخر الأفلام مشاهدة</string>
+    <string name="home_recent_series">آخر المسلسلات مشاهدة</string>
+    <string name="playback_landscape">المشاهدة بالعرض</string>
+    <string name="playback_restore_orientation">العودة للعرض المعتاد</string>
     <string name="open_settings">فتح الإعدادات</string>
     <string name="settings_title">الإعدادات</string>
     <string name="settings_description">إدارة حسابات IPTV المحفوظة على هذا الجهاز.</string>

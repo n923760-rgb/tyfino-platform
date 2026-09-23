@@ -17,11 +17,15 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items as rowItems
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,10 +37,32 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.app.AppDestination
+import dev.tyfino.foundation.playback.CatalogHistoryListResult
+import dev.tyfino.foundation.playback.CatalogHistoryRepository
+import dev.tyfino.foundation.playback.ContinueWatchingItem
+import dev.tyfino.foundation.playback.EpisodeResumeListResult
+import dev.tyfino.foundation.playback.EpisodeResumeRepository
+import dev.tyfino.foundation.playback.EpisodeHistoryListResult
+import dev.tyfino.foundation.playback.EpisodeHistoryRepository
+import dev.tyfino.foundation.playback.MovieResumeListResult
+import dev.tyfino.foundation.playback.MovieResumePresentation
+import dev.tyfino.foundation.playback.MovieResumeRepository
+import dev.tyfino.foundation.playback.SeriesContinueWatchingItem
+import dev.tyfino.foundation.playback.SeriesHistoryItem
+import dev.tyfino.foundation.xtream.CatalogItem
+import dev.tyfino.foundation.xtream.CatalogRepository
+import dev.tyfino.foundation.xtream.CatalogSection
+import dev.tyfino.foundation.xtream.XtreamAccountStore
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private data class HomeShortcut(
     val destination: AppDestination,
@@ -49,24 +75,77 @@ private val shortcuts = listOf(
     HomeShortcut(AppDestination.Series, R.string.home_series_description),
 )
 
+private data class HomeHistory(
+    val live: List<CatalogItem> = emptyList(),
+    val movies: List<CatalogItem> = emptyList(),
+    val movieResume: List<ContinueWatchingItem> = emptyList(),
+    val seriesResume: List<SeriesContinueWatchingItem> = emptyList(),
+    val seriesHistory: List<SeriesHistoryItem> = emptyList(),
+)
+
 @Composable
 internal fun HomeScreen(
     onOpenDestination: (AppDestination) -> Unit,
     onOpenAccountSwitcher: () -> Unit,
     onOpenSettings: () -> Unit,
+    accountStore: XtreamAccountStore? = null,
+    catalogRepository: CatalogRepository? = null,
+    historyRepository: CatalogHistoryRepository? = null,
+    movieResumeRepository: MovieResumeRepository? = null,
+    episodeResumeRepository: EpisodeResumeRepository? = null,
+    episodeHistoryRepository: EpisodeHistoryRepository? = null,
+    onPlayLive: (CatalogItem) -> Unit = {},
+    onResumeMovie: (CatalogItem) -> Unit = {},
+    onOpenMovie: (CatalogItem) -> Unit = {},
+    onResumeSeries: (SeriesContinueWatchingItem) -> Unit = {},
+    onPlaySeriesHistory: (SeriesHistoryItem) -> Unit = {},
 ) {
     val initialFocus = rememberInitialFocusRequester()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
+    var history by remember { mutableStateOf(HomeHistory()) }
+    DisposableEffect(lifecycleOwner, accountStore, catalogRepository, historyRepository, movieResumeRepository, episodeResumeRepository, episodeHistoryRepository) {
+        var generation = 0
+        fun refresh() {
+            val request = ++generation
+            history = HomeHistory()
+            if (accountStore == null || catalogRepository == null || historyRepository == null ||
+                movieResumeRepository == null || episodeResumeRepository == null || episodeHistoryRepository == null
+            ) return
+            scope.launch {
+                val owner = withContext(Dispatchers.IO) { accountStore.load()?.let { it.accountId to it.generation } }
+                    ?: return@launch
+                val live = (historyRepository.recent(CatalogSection.Live) as? CatalogHistoryListResult.Ready)?.items.orEmpty()
+                val movies = (historyRepository.recent(CatalogSection.Movies) as? CatalogHistoryListResult.Ready)?.items.orEmpty()
+                val resumes = (movieResumeRepository.continueWatching() as? MovieResumeListResult.Ready)?.records.orEmpty()
+                val movieResume = MovieResumePresentation.assemble(
+                    resumes,
+                    catalogRepository.cachedItems(CatalogSection.Movies, resumes.mapTo(linkedSetOf()) { it.providerItemId }),
+                )
+                val series = (episodeResumeRepository.continueWatching() as? EpisodeResumeListResult.Ready)?.items.orEmpty()
+                val seriesHistory = (episodeHistoryRepository.recent() as? EpisodeHistoryListResult.Ready)?.items.orEmpty()
+                val currentOwner = withContext(Dispatchers.IO) { accountStore.load()?.let { it.accountId to it.generation } }
+                if (request == generation && owner == currentOwner) {
+                    history = HomeHistory(live.take(8), movies.take(8), movieResume.take(8), series.take(8), seriesHistory.take(8))
+                }
+            }
+        }
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) refresh() }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) refresh()
+        onDispose { generation++; lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 240.dp),
+            columns = GridCells.Adaptive(minSize = 200.dp),
             modifier = Modifier
                 .width(minOf(maxWidth, 900.dp))
                 .fillMaxHeight()
                 .focusGroup()
                 .testTag("home-screen"),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "heading") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -90,6 +169,64 @@ internal fun HomeScreen(
                         .testTag("home-${shortcut.destination.route}"),
                 )
             }
+            if (history.live.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-live") {
+                    HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive, "home-recent-live", 16f / 9f)
+                }
+            }
+            if (history.movieResume.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }, contentType = "resume-movies") {
+                    HomeRecentStrip(
+                        stringResource(R.string.home_continue_movies),
+                        history.movieResume.map { it.catalogItem }, onResumeMovie, "home-continue-movies",
+                    )
+                }
+            }
+            if (history.seriesResume.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }, contentType = "resume-series") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-continue-series")) {
+                        Text(stringResource(R.string.home_continue_series), style = MaterialTheme.typography.titleMedium)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+                            rowItems(history.seriesResume, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
+                                CatalogTile(
+                                    label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
+                                    selected = false,
+                                    onClick = { onResumeSeries(item) },
+                                    modifier = Modifier.width(144.dp),
+                                    showArtwork = true,
+                                    artworkUrl = item.seriesArtworkUrl,
+                                    artworkAspectRatio = 2f / 3f,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            if (history.movies.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-movies") {
+                    HomeRecentStrip(stringResource(R.string.home_recent_movies), history.movies, onOpenMovie, "home-recent-movies")
+                }
+            }
+            if (history.seriesHistory.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-series") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-recent-series")) {
+                        Text(stringResource(R.string.home_recent_series), style = MaterialTheme.typography.titleMedium)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+                            rowItems(history.seriesHistory, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
+                                CatalogTile(
+                                    label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
+                                    selected = false,
+                                    onClick = { onPlaySeriesHistory(item) },
+                                    modifier = Modifier.width(144.dp),
+                                    showArtwork = true,
+                                    artworkUrl = item.seriesArtworkUrl,
+                                    artworkAspectRatio = 2f / 3f,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "account") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.home_account_title), style = MaterialTheme.typography.titleMedium)
@@ -110,6 +247,32 @@ internal fun HomeScreen(
 }
 
 @Composable
+private fun HomeRecentStrip(
+    title: String,
+    records: List<CatalogItem>,
+    onClick: (CatalogItem) -> Unit,
+    tag: String,
+    artworkAspectRatio: Float = 2f / 3f,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag(tag)) {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+            rowItems(records, key = { it.providerId }) { item ->
+                CatalogTile(
+                    label = item.name,
+                    selected = false,
+                    onClick = { onClick(item) },
+                    modifier = Modifier.width(144.dp),
+                    showArtwork = true,
+                    artworkUrl = item.artworkUrl,
+                    artworkAspectRatio = artworkAspectRatio,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun HomeShortcutCard(
     title: String,
     description: String,
@@ -120,7 +283,7 @@ private fun HomeShortcutCard(
     Card(
         onClick = onClick,
         modifier = modifier
-            .heightIn(min = 152.dp)
+            .heightIn(min = 88.dp)
             .onFocusChanged { focused = it.isFocused },
         border = BorderStroke(
             if (focused) 3.dp else 1.dp,
@@ -129,8 +292,8 @@ private fun HomeShortcutCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
             Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
