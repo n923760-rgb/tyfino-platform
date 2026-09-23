@@ -243,9 +243,9 @@ internal fun CatalogScreen(
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.weight(1f),
             )
-            CatalogFilterButton(
-                label = stringResource(R.string.catalog_refresh),
-                selected = false,
+            FocusIconButton(
+                icon = R.drawable.ic_refresh,
+                description = stringResource(R.string.catalog_refresh),
                 onClick = {
                     scope.launch {
                         repository.categories(section, forceRefresh = true) { categories = it }
@@ -269,27 +269,39 @@ internal fun CatalogScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth().testTag("catalog-search"),
         )
-        if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) {
-            CatalogFilterButton(
-                label = stringResource(if (favoritesOnly) R.string.catalog_show_all else R.string.catalog_favorites_only),
-                selected = favoritesOnly,
-                onClick = {
-                    favoritesOnly = !favoritesOnly
-                    if (favoritesOnly) historyOnly = false
-                },
-                modifier = Modifier.testTag("catalog-favorites-filter"),
-            )
-        }
-        if (historyRepository != null && (recentItems.isNotEmpty() || historyOnly)) {
-            CatalogFilterButton(
-                label = stringResource(if (historyOnly) R.string.catalog_show_all else R.string.catalog_recent_title),
-                selected = historyOnly,
-                onClick = {
-                    historyOnly = !historyOnly
-                    if (historyOnly) favoritesOnly = false
-                },
-                modifier = Modifier.testTag("catalog-history-filter"),
-            )
+        if ((favoritesRepository != null && favoritesState is FavoritesListResult.Ready) ||
+            (historyRepository != null && (recentItems.isNotEmpty() || historyOnly))) {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth().focusGroup(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) {
+                    item {
+                        CatalogFilterButton(
+                            label = stringResource(if (favoritesOnly) R.string.catalog_show_all else R.string.catalog_favorites_only),
+                            selected = favoritesOnly,
+                            onClick = {
+                                favoritesOnly = !favoritesOnly
+                                if (favoritesOnly) historyOnly = false
+                            },
+                            modifier = Modifier.testTag("catalog-favorites-filter"),
+                        )
+                    }
+                }
+                if (historyRepository != null && (recentItems.isNotEmpty() || historyOnly)) {
+                    item {
+                        CatalogFilterButton(
+                            label = stringResource(if (historyOnly) R.string.catalog_show_all else R.string.catalog_recent_title),
+                            selected = historyOnly,
+                            onClick = {
+                                historyOnly = !historyOnly
+                                if (historyOnly) favoritesOnly = false
+                            },
+                            modifier = Modifier.testTag("catalog-history-filter"),
+                        )
+                    }
+                }
+            }
         }
         if (favoritesState == FavoritesListResult.Failure || favoriteActionError) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -389,11 +401,11 @@ internal fun CatalogScreen(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                CatalogFilterButton(
-                    label = stringResource(R.string.catalog_refresh_items),
-                    selected = false,
+                FocusIconButton(
+                    icon = R.drawable.ic_refresh,
+                    description = stringResource(R.string.catalog_refresh_items),
                     onClick = {
-                        val categoryId = selectedCategoryId ?: return@CatalogFilterButton
+                        val categoryId = selectedCategoryId ?: return@FocusIconButton
                         scope.launch {
                             repository.items(section, categoryId, forceRefresh = true) {
                                 catalogItems = it
