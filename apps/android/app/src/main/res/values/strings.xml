@@ -24,6 +24,7 @@
     <string name="new_content_enable">Enable new content alerts</string>
     <string name="new_content_disable">Disable new content alerts</string>
     <string name="new_content_scope">Checks up to two previously opened movie categories and series on Wi-Fi about every 12 hours; delivery depends on your device and provider.</string>
+    <string name="new_content_count">New items: %1$d</string>
     <string name="home_continue_movies">Continue watching movies</string>
     <string name="home_continue_series">Continue watching series</string>
     <string name="home_recent_movies">Recently watched movies</string>

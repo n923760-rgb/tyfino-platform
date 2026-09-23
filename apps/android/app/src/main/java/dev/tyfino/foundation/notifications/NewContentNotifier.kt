@@ -62,7 +62,7 @@ internal class NewContentNotifier(context: Context) {
         manager.notify(id, builder
             .setSmallIcon(R.drawable.ic_app_tyfino)
             .setContentTitle(app.getString(title))
-            .setContentText(app.resources.getQuantityString(R.plurals.new_content_count, count, count))
+            .setContentText(app.getString(R.string.new_content_count, count))
             .setContentIntent(intent)
             .setAutoCancel(true)
             .setVisibility(Notification.VISIBILITY_SECRET)
