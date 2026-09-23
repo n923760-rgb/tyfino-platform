@@ -208,6 +208,42 @@ internal class SQLiteSeriesStore(context: Context) : SeriesStore {
         }
     }
 
+    override fun latestDatedEpisodes(accountId: String, accountGeneration: Long, limit: Int): List<PublishedEpisode> = synchronized(helper) {
+        require(limit in 1..20)
+        // Only series already opened on this account are cached. No whole-provider episode scan.
+        val sql = """SELECT e.$SERIES_ID, e.$EPISODE_ID, e.$SEASON_NUMBER,
+            e.$EPISODE_NUMBER, e.$DISPLAY_NAME, e.$CONTAINER_EXTENSION, e.$PROVIDER_ORDER,
+            e.$PLOT, e.$DURATION, e.$RELEASE_DATE, e.$RATING,
+            s.$DISPLAY_NAME AS series_name, s.$COVER_URL, s.$GENERATION
+            FROM $EPISODE_TABLE e JOIN $SNAPSHOT_TABLE s
+                ON s.$ACCOUNT_ID = e.$ACCOUNT_ID AND s.$SERIES_ID = e.$SERIES_ID
+                    AND s.$GENERATION = e.$GENERATION
+            WHERE e.$ACCOUNT_ID = ? AND e.$RELEASE_DATE GLOB '????-??-??*'
+                AND substr(e.$RELEASE_DATE, 1, 10) <= date('now')
+            ORDER BY e.$RELEASE_DATE DESC, e.$SERIES_ID ASC, e.$EPISODE_ID ASC LIMIT ?""".trimIndent()
+        helper.readableDatabase.rawQuery(sql, arrayOf(accountId, limit.toString())).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) add(PublishedEpisode(
+                    episode = SeriesEpisode(accountId, cursor.text(SERIES_ID), cursor.text(EPISODE_ID),
+                        cursor.int(SEASON_NUMBER), cursor.nullableInt(EPISODE_NUMBER), cursor.nullableText(DISPLAY_NAME),
+                        cursor.nullableText(CONTAINER_EXTENSION), cursor.int(PROVIDER_ORDER), cursor.nullableText(PLOT),
+                        cursor.nullableText(DURATION), cursor.nullableText(RELEASE_DATE), cursor.nullableText(RATING)),
+                    seriesTitle = cursor.nullableText("series_name").orEmpty(),
+                    seriesCoverUrl = cursor.nullableText(COVER_URL),
+                    seriesGeneration = cursor.long(GENERATION), accountGeneration = accountGeneration,
+                ))
+            }
+        }
+    }
+
+    override fun monitoredSeriesIds(accountId: String, limit: Int): List<String> = synchronized(helper) {
+        require(limit in 1..4)
+        helper.readableDatabase.query(SNAPSHOT_TABLE, arrayOf(SERIES_ID), "$ACCOUNT_ID = ?",
+            arrayOf(accountId), null, null, "$REFRESHED_AT DESC", limit.toString()).use { cursor ->
+            buildList { while (cursor.moveToNext()) add(cursor.text(SERIES_ID)) }
+        }
+    }
+
     private fun Cursor.text(column: String): String = getString(getColumnIndexOrThrow(column))
     private fun Cursor.nullableText(column: String): String? {
         val index = getColumnIndexOrThrow(column)

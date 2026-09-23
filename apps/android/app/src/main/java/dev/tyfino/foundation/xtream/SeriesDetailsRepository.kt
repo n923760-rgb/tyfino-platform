@@ -16,7 +16,17 @@ internal interface SeriesStore {
     fun replace(accountId: String, seriesId: String, snapshot: SeriesSnapshot)
     fun clearAccount(accountId: String)
     fun clearOtherAccounts(accountId: String)
+    fun latestDatedEpisodes(accountId: String, accountGeneration: Long, limit: Int): List<PublishedEpisode> = emptyList()
+    fun monitoredSeriesIds(accountId: String, limit: Int): List<String> = emptyList()
 }
+
+internal data class PublishedEpisode(
+    val episode: SeriesEpisode,
+    val seriesTitle: String,
+    val seriesCoverUrl: String?,
+    val seriesGeneration: Long,
+    val accountGeneration: Long,
+)
 
 internal data class SeriesDestination internal constructor(
     val accountId: String,
@@ -54,6 +64,7 @@ internal class SeriesDetailsRepository(
     private val api: XtreamSeriesApi,
     private val store: SeriesStore,
     private val clock: CatalogClock = AndroidCatalogClock,
+    private val onNewEpisodes: (Int) -> Unit = {},
 ) {
     private val mutex = Mutex()
     private val latestOperations = mutableMapOf<SeriesKey, Long>()
@@ -138,6 +149,7 @@ internal class SeriesDetailsRepository(
         }
 
         val result = api.details(prepared.account, prepared.destination.seriesId)
+        var newEpisodeCount = 0
         val state = withContext(Dispatchers.IO) {
             mutex.withLock {
                 if (!owns(prepared)) return@withLock null
@@ -162,6 +174,10 @@ internal class SeriesDetailsRepository(
                         } catch (_: RuntimeException) {
                             return@withLock failureState(cache, SeriesFailure.LocalStorage)
                         }
+                        if (cache != null) {
+                            val previous = cache.details.episodes.mapTo(hashSetOf()) { it.providerEpisodeId }
+                            newEpisodeCount = candidate.episodes.count { it.providerEpisodeId !in previous }
+                        }
                         monotonicRefreshes[prepared.key] = MonotonicRefresh(
                             generation = next.generation,
                             elapsedMillis = clock.elapsedTimeMillis(),
@@ -173,6 +189,9 @@ internal class SeriesDetailsRepository(
         }
         if (state != null) {
             publishIfOwned(prepared.destination, prepared.key, prepared.operationId, state, publish)
+            if (newEpisodeCount > 0 && state is SeriesState.Content &&
+                accountStore.load()?.let { it.accountId == prepared.account.accountId && it.generation == prepared.account.generation } == true
+            ) onNewEpisodes(newEpisodeCount)
         }
     }
 

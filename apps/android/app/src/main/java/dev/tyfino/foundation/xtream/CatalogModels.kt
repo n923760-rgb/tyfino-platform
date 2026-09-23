@@ -52,6 +52,7 @@ internal data class CatalogItem(
     val rating: String?,
     val releaseYear: String?,
     val containerExtension: String?,
+    val addedAtEpochSeconds: Long? = null,
 )
 
 internal enum class CatalogFailure {

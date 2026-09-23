@@ -156,6 +156,31 @@ class CatalogRepositoryTest {
         assertTrue(result.limited)
     }
 
+    @Test
+    fun newMovieAlertRequiresPriorSnapshotAndNewDatedIdentity() = runBlocking {
+        val accountStore = FakeAccountStore(account("account-a", 4))
+        val store = FakeCatalogStore()
+        val old = CatalogItem("old", "category", "Old", 0, null, null, null, "mp4", 1700000000)
+        val dated = CatalogItem("new", "category", "New", 1, null, null, null, "mp4", 1790000000)
+        val undated = CatalogItem("no-date", "category", "Undated", 2, null, null, null, "mp4")
+        var items = listOf(old)
+        val api = object : XtreamCatalogApi {
+            override suspend fun categories(account: SavedXtreamAccount, section: CatalogSection) =
+                CatalogResult.Success(emptyList<CatalogCategory>(), 0)
+            override suspend fun items(account: SavedXtreamAccount, section: CatalogSection, categoryId: String) =
+                CatalogResult.Success(items, 0)
+        }
+        val alerts = mutableListOf<Int>()
+        val repository = CatalogRepository(accountStore, api, store, FakeClock(10_000, 5_000), alerts::add)
+        repository.items(CatalogSection.Movies, "category", forceRefresh = true) { }
+        assertTrue(alerts.isEmpty())
+        items = listOf(old, dated, undated)
+        repository.items(CatalogSection.Movies, "category", forceRefresh = true) { }
+        assertEquals(listOf(1), alerts)
+        repository.items(CatalogSection.Movies, "category", forceRefresh = true) { }
+        assertEquals(listOf(1), alerts)
+    }
+
     private fun repository(
         accountStore: FakeAccountStore,
         api: XtreamCatalogApi,

@@ -41,6 +41,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.tyfino.foundation.BuildConfig
+import dev.tyfino.foundation.notifications.NewContentNotifier
 import dev.tyfino.foundation.licensing.AndroidLicenseClock
 import dev.tyfino.foundation.licensing.HttpLicensingApi
 import dev.tyfino.foundation.licensing.LicensingController
@@ -90,6 +91,7 @@ import dev.tyfino.foundation.xtream.SQLiteMovieDetailsStore
 import dev.tyfino.foundation.xtream.SQLiteSeriesStore
 import dev.tyfino.foundation.xtream.MovieDetailsRepository
 import dev.tyfino.foundation.xtream.SeriesDetailsRepository
+import dev.tyfino.foundation.xtream.SeriesStore
 import dev.tyfino.foundation.xtream.SeriesEpisode
 import dev.tyfino.foundation.xtream.SecureXtreamAccountStore
 import dev.tyfino.foundation.xtream.XtreamAccountSummary
@@ -118,6 +120,7 @@ internal fun TyfinoApp() {
         )
     }
     val xtreamStore = remember { SecureXtreamAccountStore(context) }
+    val newContentNotifier = remember { NewContentNotifier(context) }
     val xtreamRepository = remember {
         XtreamRepository(
             store = xtreamStore,
@@ -132,6 +135,7 @@ internal fun TyfinoApp() {
             accountStore = xtreamStore,
             api = HttpXtreamCatalogApi(context),
             store = SQLiteCatalogStore(context),
+            onNewMovies = newContentNotifier::movies,
         )
     }
     val epgRepository = remember { LiveEpgRepository(xtreamStore, HttpLiveEpgApi(context), SQLiteLiveEpgStore(context)) }
@@ -147,6 +151,7 @@ internal fun TyfinoApp() {
             accountStore = xtreamStore,
             api = HttpXtreamSeriesApi(context),
             store = seriesStore,
+            onNewEpisodes = newContentNotifier::episodes,
         )
     }
     val movieDetailsRepository = remember {
@@ -208,6 +213,8 @@ internal fun TyfinoApp() {
             episodeResumeRepository = episodeResumeRepository,
             episodeHistoryRepository = episodeHistoryRepository,
             previousLiveChannelController = previousLiveChannelController,
+            seriesStore = seriesStore,
+            newContentNotifier = newContentNotifier,
             accountStore = xtreamStore,
             accountDataCleaner = accountDataCleaner,
         )
@@ -237,6 +244,8 @@ private fun XtreamGate(
     episodeResumeRepository: EpisodeResumeRepository,
     episodeHistoryRepository: EpisodeHistoryRepository,
     previousLiveChannelController: PreviousLiveChannelController,
+    seriesStore: SeriesStore,
+    newContentNotifier: NewContentNotifier,
     accountStore: XtreamAccountStore,
     accountDataCleaner: XtreamAccountDataCleaner,
 ) {
@@ -286,6 +295,8 @@ private fun XtreamGate(
                 movieResumeRepository = movieResumeRepository,
                 episodeResumeRepository = episodeResumeRepository,
                 episodeHistoryRepository = episodeHistoryRepository,
+                seriesStore = seriesStore,
+                newContentNotifier = newContentNotifier,
                 previousLiveChannelController = previousLiveChannelController,
                 accountStore = accountStore,
                 accountRepository = repository,
@@ -428,6 +439,8 @@ private fun LicensedAppShell(
     episodeResumeRepository: EpisodeResumeRepository,
     episodeHistoryRepository: EpisodeHistoryRepository,
     previousLiveChannelController: PreviousLiveChannelController,
+    seriesStore: SeriesStore,
+    newContentNotifier: NewContentNotifier,
     accountStore: XtreamAccountStore,
     accountRepository: XtreamRepository,
     accountDataCleaner: XtreamAccountDataCleaner,
@@ -579,6 +592,8 @@ private fun LicensedAppShell(
             episodeResumeRepository = episodeResumeRepository,
             episodeHistoryRepository = episodeHistoryRepository,
             previousLiveChannelController = previousLiveChannelController,
+            seriesStore = seriesStore,
+            newContentNotifier = newContentNotifier,
             accountStore = accountStore,
             seriesSelection = seriesSelection,
             movieSelection = movieSelection,
@@ -744,6 +759,8 @@ private fun AppNavHost(
     episodeResumeRepository: EpisodeResumeRepository,
     episodeHistoryRepository: EpisodeHistoryRepository,
     previousLiveChannelController: PreviousLiveChannelController,
+    seriesStore: SeriesStore,
+    newContentNotifier: NewContentNotifier,
     accountStore: XtreamAccountStore,
     seriesSelection: SeriesSelection?,
     movieSelection: MovieSelection?,
@@ -778,6 +795,8 @@ private fun AppNavHost(
                 movieResumeRepository = movieResumeRepository,
                 episodeResumeRepository = episodeResumeRepository,
                 episodeHistoryRepository = episodeHistoryRepository,
+                seriesStore = seriesStore,
+                newContentNotifier = newContentNotifier,
                 onPlayLive = { onPlay(CatalogSection.Live, it) },
                 onResumeMovie = { onPlay(CatalogSection.Movies, it) },
                 onOpenMovie = onOpenMovie,
