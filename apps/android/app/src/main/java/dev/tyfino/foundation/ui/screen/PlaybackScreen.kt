@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -84,6 +85,7 @@ import dev.tyfino.foundation.playback.PlaybackTrackLabel
 import dev.tyfino.foundation.playback.SecretPlaybackReference
 import dev.tyfino.foundation.playback.XtreamPlaybackReferenceBuilder
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.FocusIconButton
 import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.LiveEpgDestination
 import dev.tyfino.foundation.xtream.LiveEpgFailure
@@ -601,63 +603,68 @@ private fun PlayerSurface(
             update = { view -> view.player = player },
             modifier = Modifier.fillMaxSize(),
         )
-        FocusVisibleButton(
-            label = stringResource(R.string.playback_back),
-            onClick = ::requestExit,
+        Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(WindowInsets.safeDrawing.asPaddingValues())
-                .padding(12.dp),
-        )
-        if (activity != null) {
-            FocusVisibleButton(
-                label = stringResource(
-                    if (landscapeRequested) R.string.playback_restore_orientation else R.string.playback_landscape,
-                ),
-                onClick = {
-                    if (landscapeRequested) restoreOrientation()
-                    else {
-                        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                        landscapeRequested = true
-                    }
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(WindowInsets.safeDrawing.asPaddingValues())
-                    .padding(12.dp)
-                    .testTag("playback-landscape"),
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FocusIconButton(
+                icon = R.drawable.ic_player_back,
+                description = stringResource(R.string.playback_back),
+                onClick = ::requestExit,
             )
+            if (activity != null) {
+                FocusIconButton(
+                    icon = if (landscapeRequested) R.drawable.ic_player_collapse else R.drawable.ic_player_expand,
+                    description = stringResource(
+                        if (landscapeRequested) R.string.playback_restore_orientation else R.string.playback_landscape,
+                    ),
+                    onClick = {
+                        if (landscapeRequested) restoreOrientation()
+                        else {
+                            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                            landscapeRequested = true
+                        }
+                    },
+                    modifier = Modifier.testTag("playback-landscape"),
+                )
+            }
         }
         if (player != null && !playbackFailed) {
-            Column(
+            Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(WindowInsets.safeDrawing.asPaddingValues())
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(top = 68.dp, end = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (previousLiveAvailable) {
-                    FocusVisibleButton(
-                        label = stringResource(R.string.playback_previous_live),
+                    FocusIconButton(
+                        icon = R.drawable.ic_player_previous,
+                        description = stringResource(R.string.playback_previous_live),
                         onClick = onPreviousLive,
                         modifier = Modifier.testTag("playback-previous-live"),
                     )
                 }
                 if (selection.section == CatalogSection.Live && liveEpgRepository != null) {
-                    FocusVisibleButton(
-                        label = stringResource(R.string.epg_title),
+                    FocusIconButton(
+                        icon = R.drawable.ic_player_guide,
+                        description = stringResource(R.string.epg_title),
                         onClick = { activeMenu = null; epgVisible = true },
                         modifier = Modifier.testTag("playback-epg"),
                     )
                 }
-                FocusVisibleButton(
-                    label = stringResource(R.string.playback_audio),
+                FocusIconButton(
+                    icon = R.drawable.ic_player_audio,
+                    description = stringResource(R.string.playback_audio),
                     onClick = { activeMenu = TrackMenu.Audio },
                     modifier = Modifier.testTag("playback-audio"),
                 )
-                FocusVisibleButton(
-                    label = stringResource(R.string.playback_subtitles),
+                FocusIconButton(
+                    icon = R.drawable.ic_player_subtitles,
+                    description = stringResource(R.string.playback_subtitles),
                     onClick = { activeMenu = TrackMenu.Subtitles },
                     modifier = Modifier.testTag("playback-subtitles"),
                 )

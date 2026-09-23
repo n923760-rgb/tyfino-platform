@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +22,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +51,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.tyfino.foundation.R
@@ -64,6 +68,7 @@ import dev.tyfino.foundation.playback.MovieResumeListResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
 import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.FocusIconButton
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.xtream.CatalogCategory
 import dev.tyfino.foundation.xtream.CatalogFailure
@@ -222,9 +227,9 @@ internal fun CatalogScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 20.dp)
+            .padding(horizontal = 16.dp, vertical = 16.dp)
             .testTag("catalog-${section.name.lowercase()}"),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -236,8 +241,9 @@ internal fun CatalogScreen(
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.weight(1f),
             )
-            FocusVisibleButton(
+            CatalogFilterButton(
                 label = stringResource(R.string.catalog_refresh),
+                selected = false,
                 onClick = {
                     scope.launch {
                         repository.categories(section, forceRefresh = true) { categories = it }
@@ -376,13 +382,16 @@ internal fun CatalogScreen(
             ) {
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                FocusVisibleButton(
+                CatalogFilterButton(
                     label = stringResource(R.string.catalog_refresh_items),
+                    selected = false,
                     onClick = {
-                        val categoryId = selectedCategoryId ?: return@FocusVisibleButton
+                        val categoryId = selectedCategoryId ?: return@CatalogFilterButton
                         scope.launch {
                             repository.items(section, categoryId, forceRefresh = true) {
                                 catalogItems = it
@@ -548,8 +557,9 @@ private fun Categories(
                 label = category.name,
                 selected = category.providerId == selectedCategoryId,
                 onClick = { onSelect(category) },
-                modifier = Modifier.widthIn(min = 140.dp, max = 260.dp),
+                modifier = Modifier.widthIn(min = 120.dp, max = 172.dp),
                 exposeSelectionState = true,
+                compact = true,
             )
         }
     }
@@ -601,7 +611,7 @@ private fun ItemGrid(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(records, key = { it.providerId }) { item ->
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Box {
                 CatalogTile(
                     label = item.name,
                     supporting = listOfNotNull(item.releaseYear, item.rating).joinToString(" • "),
@@ -621,7 +631,7 @@ private fun ItemGrid(
                         ),
                         selected = isFavorite,
                         onClick = { onToggleFavorite(item) },
-                        modifier = Modifier.fillMaxWidth().testTag("catalog-favorite-toggle"),
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).testTag("catalog-favorite-toggle"),
                     )
                 }
             }
@@ -641,13 +651,14 @@ internal fun CatalogTile(
     showArtwork: Boolean = false,
     artworkUrl: String? = null,
     artworkAspectRatio: Float = LANDSCAPE_ARTWORK_ASPECT_RATIO,
+    compact: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
     Card(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier
-            .heightIn(min = 88.dp)
+            .heightIn(min = if (compact) 52.dp else 88.dp)
             .onFocusChanged { focused = it.isFocused }
             .semantics {
                 contentDescription = listOf(label, supporting)
@@ -672,7 +683,7 @@ internal fun CatalogTile(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(if (showArtwork) 6.dp else 12.dp),
+            modifier = Modifier.padding(if (showArtwork) 6.dp else if (compact) 10.dp else 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             if (showArtwork) {
@@ -701,7 +712,12 @@ internal fun CatalogTile(
                     }
                 }
             }
-            Text(text = label, style = MaterialTheme.typography.titleMedium, maxLines = 2)
+            Text(
+                text = label,
+                style = if (compact || showArtwork) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
             if (supporting.isNotEmpty()) {
                 Text(
                     text = supporting,
@@ -720,11 +736,20 @@ internal fun CatalogFilterButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    FocusVisibleButton(
-        label = label,
+    var focused by remember { mutableStateOf(false) }
+    OutlinedButton(
         onClick = onClick,
-        modifier = modifier.semantics { this.selected = selected },
-    )
+        modifier = modifier.onFocusChanged { focused = it.isFocused }.semantics { this.selected = selected },
+        border = BorderStroke(
+            if (focused) 2.dp else 1.dp,
+            if (focused || selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+        ),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+    ) { Text(label, style = MaterialTheme.typography.bodyMedium, maxLines = 1) }
 }
 
 @Composable
@@ -734,10 +759,12 @@ internal fun CatalogFavoriteButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    FocusVisibleButton(
-        label = label,
+    FocusIconButton(
+        icon = if (selected) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_outline,
+        description = label,
         onClick = onClick,
         modifier = modifier.semantics { this.selected = selected },
+        selected = selected,
     )
 }
 

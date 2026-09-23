@@ -106,8 +106,12 @@ class CatalogTileAccessibilityTest {
             }
         }
 
-        compose.onNodeWithTag("favorite-item").assertIsSelected()
-        compose.onNodeWithTag("regular-item").assertIsNotSelected()
+        compose.onNodeWithTag("favorite-item")
+            .assertIsSelected()
+            .assertContentDescriptionEquals("Remove Featured from favorites")
+        compose.onNodeWithTag("regular-item")
+            .assertIsNotSelected()
+            .assertContentDescriptionEquals("Add New item to favorites")
     }
 
     @Test
