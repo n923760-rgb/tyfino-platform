@@ -2,6 +2,12 @@ package dev.tyfino.foundation.notifications
 
 import android.app.job.JobParameters
 import android.app.job.JobService
+import dev.tyfino.foundation.BuildConfig
+import dev.tyfino.foundation.licensing.AndroidLicenseClock
+import dev.tyfino.foundation.licensing.HttpLicensingApi
+import dev.tyfino.foundation.licensing.LicenseOutcome
+import dev.tyfino.foundation.licensing.LicensingRepository
+import dev.tyfino.foundation.licensing.SecureLicensingStore
 import dev.tyfino.foundation.xtream.CatalogRepository
 import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.HttpXtreamCatalogApi
@@ -27,6 +33,10 @@ class NewContentCheckJob : JobService() {
             try {
                 val notifier = NewContentNotifier(applicationContext)
                 if (!notifier.isEnabled() || !notifier.canNotify()) return@launch
+                val license = LicensingRepository(SecureLicensingStore(applicationContext),
+                    HttpLicensingApi(BuildConfig.LICENSING_API_BASE_URL),
+                    AndroidLicenseClock(applicationContext), BuildConfig.VERSION_NAME)
+                if (license.localOutcome() !is LicenseOutcome.Active) return@launch
                 val accounts = SecureXtreamAccountStore(applicationContext)
                 val owner = accounts.load() ?: return@launch
                 val catalogStore = SQLiteCatalogStore(applicationContext)
