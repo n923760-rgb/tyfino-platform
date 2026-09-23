@@ -7,6 +7,7 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -52,6 +53,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.tyfino.foundation.R
@@ -604,39 +606,46 @@ private fun ItemGrid(
     favoriteIds: Set<String> = emptySet(),
     onToggleFavorite: ((CatalogItem) -> Unit)? = null,
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 116.dp),
-        modifier = Modifier.fillMaxSize().focusGroup().testTag("catalog-items"),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(records, key = { it.providerId }) { item ->
-            Box {
-                CatalogTile(
-                    label = item.name,
-                    supporting = listOfNotNull(item.releaseYear, item.rating).joinToString(" • "),
-                    selected = false,
-                    onClick = { onPlay(item) },
-                    modifier = Modifier.fillMaxWidth(),
-                    showArtwork = true,
-                    artworkUrl = item.artworkUrl,
-                    artworkAspectRatio = section.artworkAspectRatio(),
-                )
-                if (onToggleFavorite != null) {
-                    val isFavorite = item.providerId in favoriteIds
-                    CatalogFavoriteButton(
-                        label = stringResource(
-                            if (isFavorite) R.string.catalog_favorite_remove else R.string.catalog_favorite_add,
-                            item.name,
-                        ),
-                        selected = isFavorite,
-                        onClick = { onToggleFavorite(item) },
-                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).testTag("catalog-favorite-toggle"),
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(catalogGridColumns(maxWidth, section)),
+            modifier = Modifier.fillMaxSize().focusGroup().testTag("catalog-items"),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(records, key = { it.providerId }) { item ->
+                Box {
+                    CatalogTile(
+                        label = item.name,
+                        supporting = listOfNotNull(item.releaseYear, item.rating).joinToString(" • "),
+                        selected = false,
+                        onClick = { onPlay(item) },
+                        modifier = Modifier.fillMaxWidth(),
+                        showArtwork = true,
+                        artworkUrl = item.artworkUrl,
+                        artworkAspectRatio = section.artworkAspectRatio(),
                     )
+                    if (onToggleFavorite != null) {
+                        val isFavorite = item.providerId in favoriteIds
+                        CatalogFavoriteButton(
+                            label = stringResource(
+                                if (isFavorite) R.string.catalog_favorite_remove else R.string.catalog_favorite_add,
+                                item.name,
+                            ),
+                            selected = isFavorite,
+                            onClick = { onToggleFavorite(item) },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).testTag("catalog-favorite-toggle"),
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+internal fun catalogGridColumns(width: Dp, section: CatalogSection): Int {
+    val minWidth = if (section == CatalogSection.Live) 160.dp else 104.dp
+    return ((width + 8.dp) / (minWidth + 8.dp)).toInt().coerceIn(1, 6)
 }
 
 @Composable
@@ -715,6 +724,7 @@ internal fun CatalogTile(
             Text(
                 text = label,
                 style = if (compact || showArtwork) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium,
+                modifier = if (showArtwork) Modifier.heightIn(min = 38.dp) else Modifier,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -723,6 +733,8 @@ internal fun CatalogTile(
                     text = supporting,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
