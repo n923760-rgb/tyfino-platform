@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -187,7 +189,8 @@ internal fun HomeScreen(
                 }
             }
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-movies") {
-                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie, "home-latest-movies")
+                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie,
+                    "home-latest-movies", onBrowse = { onOpenDestination(AppDestination.Movies) }, initialFocus = initialFocus)
             }
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-episodes") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-latest-episodes")) {
@@ -255,7 +258,6 @@ internal fun HomeScreen(
                     onClick = { onOpenDestination(shortcut.destination) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .then(if (shortcut.destination == AppDestination.Live) Modifier.focusRequester(initialFocus) else Modifier)
                         .testTag("home-${shortcut.destination.route}"),
                 )
             }
@@ -306,9 +308,17 @@ private fun HomeRecentStrip(
     onClick: (CatalogItem) -> Unit,
     tag: String,
     artworkAspectRatio: Float = 2f / 3f,
+    onBrowse: (() -> Unit)? = null,
+    initialFocus: FocusRequester? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag(tag)) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            if (onBrowse != null) CatalogFilterButton(
+                label = stringResource(R.string.home_browse_movies), selected = false, onClick = onBrowse,
+                modifier = if (initialFocus != null) Modifier.focusRequester(initialFocus) else Modifier,
+            )
+        }
         if (records.isEmpty()) {
             Text(stringResource(R.string.home_latest_movies_empty), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)

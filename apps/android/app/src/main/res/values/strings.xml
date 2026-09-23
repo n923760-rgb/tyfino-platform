@@ -14,6 +14,7 @@
     <string name="home_account_title">Your account</string>
     <string name="home_recent_live">Recently watched channels</string>
     <string name="home_latest_movies">Newly added movies</string>
+    <string name="home_browse_movies">Browse</string>
     <string name="home_latest_episodes">Latest available episodes</string>
     <string name="home_latest_movies_empty">Movies with provider add dates will appear after you open their categories.</string>
     <string name="home_latest_episodes_empty">Episodes with air dates will appear after you open a series.</string>

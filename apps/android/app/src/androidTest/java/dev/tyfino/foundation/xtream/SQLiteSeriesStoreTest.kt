@@ -12,6 +12,36 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class SQLiteSeriesStoreTest {
     @Test
+    fun latestEpisodesAreDatedScopedToCurrentAccountAndPublishedGeneration() {
+        val store = SQLiteSeriesStore(InstrumentationRegistry.getInstrumentation().targetContext)
+        val owner = UUID.randomUUID().toString()
+        val other = UUID.randomUUID().toString()
+        val seriesId = UUID.randomUUID().toString()
+        try {
+            val base = snapshot(owner, seriesId, 1)
+            store.replace(owner, seriesId, base.copy(details = base.details.copy(episodes = listOf(
+                base.details.episodes.single().copy(releaseDate = "2020-01-01"),
+            ))))
+            val newer = base.copy(generation = 2, details = base.details.copy(episodes = listOf(
+                base.details.episodes.single().copy(providerEpisodeId = "latest", releaseDate = "2024-02-02"),
+            )))
+            store.replace(owner, seriesId, newer)
+            store.replace(other, seriesId, snapshot(other, seriesId, 1).copy(details =
+                snapshot(other, seriesId, 1).details.copy(episodes = listOf(
+                    snapshot(other, seriesId, 1).details.episodes.single().copy(releaseDate = "2025-01-01"),
+                )),
+            ))
+            val latest = store.latestDatedEpisodes(owner, 7, 8)
+            assertEquals(listOf("latest"), latest.map { it.episode.providerEpisodeId })
+            assertEquals(2, latest.single().seriesGeneration)
+            assertEquals(7, latest.single().accountGeneration)
+        } finally {
+            store.clearAccount(owner)
+            store.clearAccount(other)
+        }
+    }
+
+    @Test
     fun failedReplacementRollsBackAndAccountCleanupPreservesOtherAccounts() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val store = SQLiteSeriesStore(context)
