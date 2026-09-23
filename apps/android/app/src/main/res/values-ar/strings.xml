@@ -6,9 +6,12 @@
     <string name="destination_movies">الأفلام</string>
     <string name="destination_series">المسلسلات</string>
     <string name="destination_settings">الإعدادات</string>
-    <string name="home_title">مرحبًا بك في TYFINO</string>
-    <string name="home_description">مشغل IPTV خفيف وسريع للهواتف والأجهزة اللوحية والقابلة للطي وAndroid TV وGoogle TV.</string>
-    <string name="home_catalog_hint">اختر البث المباشر أو الأفلام أو المسلسلات من قائمة التنقل.</string>
+    <string name="home_title">ماذا تريد أن تشاهد؟</string>
+    <string name="home_description">اختر قسمًا لتصفح اشتراك IPTV الخاص بك.</string>
+    <string name="home_live_description">تصفح القنوات والبرامج المباشرة</string>
+    <string name="home_movies_description">اختر فيلمًا وأكمل من حيث توقفت</string>
+    <string name="home_series_description">استكشف المسلسلات والمواسم والحلقات</string>
+    <string name="home_account_title">حسابك</string>
     <string name="open_settings">فتح الإعدادات</string>
     <string name="settings_title">الإعدادات</string>
     <string name="settings_description">إدارة حسابات IPTV المحفوظة على هذا الجهاز.</string>

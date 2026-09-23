@@ -6,9 +6,12 @@
     <string name="destination_movies">Movies</string>
     <string name="destination_series">Series</string>
     <string name="destination_settings">Settings</string>
-    <string name="home_title">Welcome to TYFINO</string>
-    <string name="home_description">Your lightweight IPTV player for phones, tablets, foldables, Android TV, and Google TV.</string>
-    <string name="home_catalog_hint">Choose Live TV, Movies, or Series from the navigation menu.</string>
+    <string name="home_title">What would you like to watch?</string>
+    <string name="home_description">Choose a section to explore your IPTV subscription.</string>
+    <string name="home_live_description">Browse channels and live programs</string>
+    <string name="home_movies_description">Find a movie and pick up where you left off</string>
+    <string name="home_series_description">Explore series, seasons, and episodes</string>
+    <string name="home_account_title">Your account</string>
     <string name="open_settings">Open settings</string>
     <string name="settings_title">Settings</string>
     <string name="settings_description">Manage the IPTV accounts saved on this device.</string>

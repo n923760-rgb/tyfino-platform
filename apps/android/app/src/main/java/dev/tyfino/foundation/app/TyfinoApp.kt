@@ -11,6 +11,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
@@ -27,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -587,6 +589,7 @@ private fun LicensedAppShell(
             onResumeEpisode = resumeEpisode,
             onPlayHistoryEpisode = playHistoryEpisode,
             onPreviousLive = playPreviousLive,
+            onOpenDestination = navigateTo,
             onOpenSettings = { navigateTo(AppDestination.Settings) },
             onOpenAccountSwitcher = {
                 accountSurfaceEpoch++
@@ -751,6 +754,7 @@ private fun AppNavHost(
     onResumeEpisode: (SeriesContinueWatchingItem) -> Unit,
     onPlayHistoryEpisode: (SeriesHistoryItem) -> Unit,
     onPreviousLive: (PlaybackSelection) -> Unit,
+    onOpenDestination: (AppDestination) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenAccountSwitcher: () -> Unit,
     onPlaybackClosed: () -> Unit,
@@ -763,6 +767,7 @@ private fun AppNavHost(
     ) {
         composable(AppDestination.Home.route) {
             HomeScreen(
+                onOpenDestination = onOpenDestination,
                 onOpenAccountSwitcher = onOpenAccountSwitcher,
                 onOpenSettings = onOpenSettings,
             )
@@ -884,7 +889,7 @@ private fun AppBottomBar(
                 modifier = Modifier.testTag("destination-${destination.route}"),
                 selected = selectedRoute == destination.route,
                 onClick = { onDestinationSelected(destination) },
-                icon = { Text(label.take(1)) },
+                icon = { Icon(painterResource(destination.iconRes), contentDescription = null) },
                 label = { Text(label) },
             )
         }
@@ -906,7 +911,7 @@ private fun AppNavigationRail(
                 modifier = Modifier.testTag("destination-${destination.route}"),
                 selected = selectedRoute == destination.route,
                 onClick = { onDestinationSelected(destination) },
-                icon = { Text(label.take(1)) },
+                icon = { Icon(painterResource(destination.iconRes), contentDescription = null) },
                 label = { Text(label) },
             )
         }
