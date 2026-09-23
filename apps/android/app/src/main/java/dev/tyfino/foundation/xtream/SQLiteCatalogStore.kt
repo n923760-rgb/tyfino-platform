@@ -357,20 +357,30 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                 "CREATE INDEX catalog_item_order ON $ITEM_TABLE " +
                     "($ACCOUNT_ID, $SECTION, $CATEGORY_ID, $GENERATION, $PROVIDER_ORDER)",
             )
+            createIdentityIndex(database)
         }
 
         override fun onUpgrade(database: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
             check(oldVersion < newVersion)
-            database.execSQL("DROP TABLE IF EXISTS $CATEGORY_TABLE")
-            database.execSQL("DROP TABLE IF EXISTS $ITEM_TABLE")
-            database.execSQL("DROP TABLE IF EXISTS $SNAPSHOT_TABLE")
-            onCreate(database)
+            if (oldVersion == 1 && newVersion == 2) {
+                createIdentityIndex(database)
+            } else {
+                error("Unsupported catalog database migration: $oldVersion to $newVersion")
+            }
+        }
+
+        private fun createIdentityIndex(database: SQLiteDatabase) {
+            // Favorites, resume, and history know item IDs but not their categories.
+            database.execSQL(
+                "CREATE INDEX catalog_item_identity ON $ITEM_TABLE " +
+                    "($ACCOUNT_ID, $SECTION, $PROVIDER_ID)",
+            )
         }
     }
 
     private companion object {
         const val DATABASE_NAME = "tyfino_catalog_v1.db"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
         const val SNAPSHOT_TABLE = "catalog_snapshots"
         const val CATEGORY_TABLE = "catalog_categories"
         const val ITEM_TABLE = "catalog_items"
