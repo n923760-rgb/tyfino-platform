@@ -606,7 +606,6 @@ private fun LicensedAppShell(
             onResumeEpisode = resumeEpisode,
             onPlayHistoryEpisode = playHistoryEpisode,
             onPreviousLive = playPreviousLive,
-            onOpenDestination = navigateTo,
             onOpenSettings = { navigateTo(AppDestination.Settings) },
             onOpenAccountSwitcher = {
                 accountSurfaceEpoch++
@@ -773,7 +772,6 @@ private fun AppNavHost(
     onResumeEpisode: (SeriesContinueWatchingItem) -> Unit,
     onPlayHistoryEpisode: (SeriesHistoryItem) -> Unit,
     onPreviousLive: (PlaybackSelection) -> Unit,
-    onOpenDestination: (AppDestination) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenAccountSwitcher: () -> Unit,
     onPlaybackClosed: () -> Unit,
@@ -786,7 +784,6 @@ private fun AppNavHost(
     ) {
         composable(AppDestination.Home.route) {
             HomeScreen(
-                onOpenDestination = onOpenDestination,
                 onOpenAccountSwitcher = onOpenAccountSwitcher,
                 onOpenSettings = onOpenSettings,
                 accountStore = accountStore,
@@ -795,11 +792,11 @@ private fun AppNavHost(
                 movieResumeRepository = movieResumeRepository,
                 episodeResumeRepository = episodeResumeRepository,
                 episodeHistoryRepository = episodeHistoryRepository,
-                seriesStore = seriesStore,
                 newContentNotifier = newContentNotifier,
                 onPlayLive = { onPlay(CatalogSection.Live, it) },
                 onResumeMovie = { onPlay(CatalogSection.Movies, it) },
                 onOpenMovie = onOpenMovie,
+                onOpenSeries = onOpenSeries,
                 onResumeSeries = onResumeEpisode,
                 onPlaySeriesHistory = onPlayHistoryEpisode,
             )

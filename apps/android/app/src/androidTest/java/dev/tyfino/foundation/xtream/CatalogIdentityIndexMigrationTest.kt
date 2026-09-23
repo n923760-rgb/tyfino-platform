@@ -58,6 +58,21 @@ class CatalogIdentityIndexMigrationTest {
             ))
             assertEquals(listOf("movie-2"), store.latestCachedMovies("account-a", 8).map { it.providerId })
             assertTrue(store.latestCachedMovies("account-b", 8).isEmpty())
+            store.replaceCategories("account-a", CatalogSection.Series, CatalogSnapshot(
+                generation = 1, refreshedAtEpochMillis = 2000,
+                records = listOf(CatalogCategory("series-category", "Series", 0)),
+            ))
+            store.replaceItems("account-a", CatalogSection.Series, "series-category", CatalogSnapshot(
+                generation = 1, refreshedAtEpochMillis = 2000,
+                records = listOf(
+                    CatalogItem("series-old", "series-category", "Older series", 0, null, null, null, null, 1780000000L),
+                    CatalogItem("series-new", "series-category", "Newer series", 1, null, null, null, null, 1790000000L),
+                    CatalogItem("series-undated", "series-category", "Undated series", 2, null, null, null, null),
+                ),
+            ))
+            assertEquals(listOf("series-new", "series-old"),
+                store.latestCachedSeries("account-a", 8).map { it.providerId })
+            assertTrue(store.latestCachedSeries("account-b", 8).isEmpty())
 
             SQLiteDatabase.openDatabase(path.path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
                 assertEquals(3, database.version)
