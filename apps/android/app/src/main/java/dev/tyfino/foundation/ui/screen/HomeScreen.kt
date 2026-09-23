@@ -5,7 +5,6 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -15,17 +14,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items as rowItems
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,8 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -48,7 +40,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.notifications.NewContentNotifier
-import dev.tyfino.foundation.app.AppDestination
 import dev.tyfino.foundation.playback.CatalogHistoryListResult
 import dev.tyfino.foundation.playback.CatalogHistoryRepository
 import dev.tyfino.foundation.playback.EpisodeResumeListResult
@@ -64,28 +55,16 @@ import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.CatalogRepository
 import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.XtreamAccountStore
-import dev.tyfino.foundation.xtream.SeriesStore
-import dev.tyfino.foundation.xtream.PublishedEpisode
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.FocusIconButton
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private data class HomeShortcut(
-    val destination: AppDestination,
-    @StringRes val description: Int,
-)
-
-private val shortcuts = listOf(
-    HomeShortcut(AppDestination.Live, R.string.home_live_description),
-    HomeShortcut(AppDestination.Movies, R.string.home_movies_description),
-    HomeShortcut(AppDestination.Series, R.string.home_series_description),
-)
-
 private data class HomeHistory(
     val latestMovies: List<CatalogItem> = emptyList(),
-    val latestEpisodes: List<PublishedEpisode> = emptyList(),
+    val latestSeries: List<CatalogItem> = emptyList(),
     val live: List<CatalogItem> = emptyList(),
     val movies: List<CatalogItem> = emptyList(),
     val seriesResume: List<SeriesContinueWatchingItem> = emptyList(),
@@ -94,7 +73,6 @@ private data class HomeHistory(
 
 @Composable
 internal fun HomeScreen(
-    onOpenDestination: (AppDestination) -> Unit,
     onOpenAccountSwitcher: () -> Unit,
     onOpenSettings: () -> Unit,
     accountStore: XtreamAccountStore? = null,
@@ -103,11 +81,11 @@ internal fun HomeScreen(
     movieResumeRepository: MovieResumeRepository? = null,
     episodeResumeRepository: EpisodeResumeRepository? = null,
     episodeHistoryRepository: EpisodeHistoryRepository? = null,
-    seriesStore: SeriesStore? = null,
     newContentNotifier: NewContentNotifier? = null,
     onPlayLive: (CatalogItem) -> Unit = {},
     onResumeMovie: (CatalogItem) -> Unit = {},
     onOpenMovie: (CatalogItem) -> Unit = {},
+    onOpenSeries: (CatalogItem) -> Unit = {},
     onResumeSeries: (SeriesContinueWatchingItem) -> Unit = {},
     onPlaySeriesHistory: (SeriesHistoryItem) -> Unit = {},
 ) {
@@ -120,13 +98,14 @@ internal fun HomeScreen(
         newContentNotifier?.setEnabled(granted)
         alertsEnabled = granted
     }
-    DisposableEffect(lifecycleOwner, accountStore, catalogRepository, historyRepository, movieResumeRepository, episodeResumeRepository, episodeHistoryRepository, seriesStore) {
+    DisposableEffect(lifecycleOwner, accountStore, catalogRepository, historyRepository, movieResumeRepository, episodeResumeRepository, episodeHistoryRepository) {
         var generation = 0
         fun refresh() {
             val request = ++generation
             history = HomeHistory()
+            alertsEnabled = newContentNotifier?.let { it.isEnabled() && it.canNotify() } == true
             if (accountStore == null || catalogRepository == null || historyRepository == null ||
-                movieResumeRepository == null || episodeResumeRepository == null || episodeHistoryRepository == null || seriesStore == null
+                movieResumeRepository == null || episodeResumeRepository == null || episodeHistoryRepository == null
             ) return
             scope.launch {
                 val owner = withContext(Dispatchers.IO) { accountStore.load()?.let { it.accountId to it.generation } }
@@ -141,14 +120,12 @@ internal fun HomeScreen(
                 val series = (episodeResumeRepository.continueWatching() as? EpisodeResumeListResult.Ready)?.items.orEmpty()
                 val seriesHistory = (episodeHistoryRepository.recent() as? EpisodeHistoryListResult.Ready)?.items.orEmpty()
                 val latestMovies = catalogRepository.latestCachedMovies()
-                val latestEpisodes = withContext(Dispatchers.IO) {
-                    runCatching { seriesStore.latestDatedEpisodes(owner.first, owner.second, 8) }.getOrDefault(emptyList())
-                }
+                val latestSeries = catalogRepository.latestCachedSeries()
                 val currentOwner = withContext(Dispatchers.IO) { accountStore.load()?.let { it.accountId to it.generation } }
                 if (request == generation && owner == currentOwner) {
                     history = HomeHistory(
                         latestMovies = latestMovies,
-                        latestEpisodes = latestEpisodes,
+                        latestSeries = latestSeries,
                         live = live.take(8),
                         movies = (movies + movieResume.map { it.catalogItem }).distinctBy { it.providerId }.take(8),
                         seriesResume = series.take(8),
@@ -170,55 +147,61 @@ internal fun HomeScreen(
                 .fillMaxHeight()
                 .focusGroup()
                 .testTag("home-screen"),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "heading") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("TYFINO", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                    Text(stringResource(R.string.home_title), style = MaterialTheme.typography.headlineLarge)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("TYFINO", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.home_title), style = MaterialTheme.typography.headlineSmall)
+                        }
+                        if (newContentNotifier != null) FocusIconButton(
+                            icon = R.drawable.ic_notifications,
+                            description = stringResource(if (alertsEnabled) R.string.new_content_disable else R.string.new_content_enable),
+                            onClick = {
+                                if (alertsEnabled) {
+                                    newContentNotifier.setEnabled(false)
+                                    alertsEnabled = false
+                                } else if (Build.VERSION.SDK_INT >= 33 && !newContentNotifier.canNotify()) {
+                                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                } else {
+                                    newContentNotifier.setEnabled(true)
+                                    alertsEnabled = true
+                                }
+                            },
+                            modifier = Modifier.focusRequester(initialFocus).testTag("home-content-alerts"),
+                            selected = alertsEnabled,
+                        )
+                    }
                     Text(
                         stringResource(R.string.home_description),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-movies") {
                 HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie,
-                    "home-latest-movies", onBrowse = { onOpenDestination(AppDestination.Movies) }, initialFocus = initialFocus)
+                    "home-latest-movies", R.string.home_latest_movies_empty)
             }
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-episodes") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-latest-episodes")) {
-                    Text(stringResource(R.string.home_latest_episodes), style = MaterialTheme.typography.titleMedium)
-                    if (history.latestEpisodes.isEmpty()) {
-                        Text(stringResource(R.string.home_latest_episodes_empty), style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    } else LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
-                        rowItems(history.latestEpisodes, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
-                            CatalogTile(
-                                label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
-                                selected = false,
-                                onClick = { onPlaySeriesHistory(SeriesHistoryItem(item.episode, item.seriesTitle,
-                                    item.seriesGeneration, item.accountGeneration, 0L, item.seriesCoverUrl)) },
-                                modifier = Modifier.width(120.dp), showArtwork = true,
-                                artworkUrl = item.seriesCoverUrl, artworkAspectRatio = 2f / 3f,
-                            )
-                        }
-                    }
-                }
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-series") {
+                HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries,
+                    "home-latest-series", R.string.home_latest_series_empty)
             }
-            if (history.live.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-live") {
-                    HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive, "home-recent-live", 16f / 9f)
-                }
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-live") {
+                HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive,
+                    "home-recent-live", R.string.home_recent_live_empty, 16f / 9f)
             }
-            if (history.seriesHistory.isNotEmpty() || history.seriesResume.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-series") {
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-series") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-recent-series")) {
                         Text(stringResource(R.string.home_recent_series), style = MaterialTheme.typography.titleMedium)
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+                        if (history.seriesHistory.isEmpty() && history.seriesResume.isEmpty()) {
+                            Text(stringResource(R.string.home_recent_series_empty), style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        } else LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
                             rowItems(history.seriesHistory, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
                                 CatalogTile(
                                     label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
@@ -241,43 +224,10 @@ internal fun HomeScreen(
                             }
                         }
                     }
-                }
             }
-            if (history.movies.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-movies") {
-                    HomeRecentStrip(stringResource(R.string.home_recent_movies), history.movies, onResumeMovie, "home-recent-movies")
-                }
-            }
-            items(shortcuts, key = { it.destination.route }, contentType = { "shortcut" }) { shortcut ->
-                HomeShortcutCard(
-                    title = stringResource(shortcut.destination.labelRes),
-                    description = stringResource(shortcut.description),
-                    onClick = { onOpenDestination(shortcut.destination) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("home-${shortcut.destination.route}"),
-                )
-            }
-            if (newContentNotifier != null) item(span = { GridItemSpan(maxLineSpan) }, contentType = "alerts") {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    FocusVisibleButton(
-                        label = stringResource(if (alertsEnabled) R.string.new_content_disable else R.string.new_content_enable),
-                        onClick = {
-                            if (alertsEnabled) {
-                                newContentNotifier.setEnabled(false)
-                                alertsEnabled = false
-                            } else if (Build.VERSION.SDK_INT >= 33 && !newContentNotifier.canNotify()) {
-                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else {
-                                newContentNotifier.setEnabled(true)
-                                alertsEnabled = true
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().testTag("home-content-alerts"),
-                    )
-                    Text(stringResource(R.string.new_content_scope), style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-movies") {
+                HomeRecentStrip(stringResource(R.string.home_recent_movies), history.movies, onResumeMovie,
+                    "home-recent-movies", R.string.home_recent_movies_empty)
             }
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "account") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -285,7 +235,9 @@ internal fun HomeScreen(
                     FocusVisibleButton(
                         label = stringResource(R.string.xtream_switch_account),
                         onClick = onOpenAccountSwitcher,
-                        modifier = Modifier.fillMaxWidth().testTag("open-account-switcher"),
+                        modifier = Modifier.fillMaxWidth()
+                            .then(if (newContentNotifier == null) Modifier.focusRequester(initialFocus) else Modifier)
+                            .testTag("open-account-switcher"),
                     )
                     FocusVisibleButton(
                         label = stringResource(R.string.open_settings),
@@ -304,23 +256,15 @@ private fun HomeRecentStrip(
     records: List<CatalogItem>,
     onClick: (CatalogItem) -> Unit,
     tag: String,
+    @StringRes emptyMessage: Int,
     artworkAspectRatio: Float = 2f / 3f,
-    onBrowse: (() -> Unit)? = null,
-    initialFocus: FocusRequester? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag(tag)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-            if (onBrowse != null) CatalogFilterButton(
-                label = stringResource(R.string.home_browse_movies), selected = false, onClick = onBrowse,
-                modifier = if (initialFocus != null) Modifier.focusRequester(initialFocus) else Modifier,
-            )
-        }
+        Text(title, style = MaterialTheme.typography.titleMedium)
         if (records.isEmpty()) {
-            Text(stringResource(R.string.home_latest_movies_empty), style = MaterialTheme.typography.bodySmall,
+            Text(stringResource(emptyMessage), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+        } else LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
             rowItems(records, key = { it.providerId }) { item ->
                 CatalogTile(
                     label = item.name,
@@ -332,35 +276,6 @@ private fun HomeRecentStrip(
                     artworkAspectRatio = artworkAspectRatio,
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun HomeShortcutCard(
-    title: String,
-    description: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var focused by remember { mutableStateOf(false) }
-    Card(
-        onClick = onClick,
-        modifier = modifier
-            .heightIn(min = 88.dp)
-            .onFocusChanged { focused = it.isFocused },
-        border = BorderStroke(
-            if (focused) 3.dp else 1.dp,
-            if (focused) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
-        ),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-    ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-            Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

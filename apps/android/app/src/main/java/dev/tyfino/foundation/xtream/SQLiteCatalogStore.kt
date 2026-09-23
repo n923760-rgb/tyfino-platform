@@ -180,7 +180,13 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
         }
     }
 
-    override fun latestCachedMovies(accountId: String, limit: Int): List<CatalogItem> = synchronized(helper) {
+    override fun latestCachedMovies(accountId: String, limit: Int): List<CatalogItem> =
+        latestCachedItems(accountId, CatalogSection.Movies, limit)
+
+    override fun latestCachedSeries(accountId: String, limit: Int): List<CatalogItem> =
+        latestCachedItems(accountId, CatalogSection.Series, limit)
+
+    private fun latestCachedItems(accountId: String, section: CatalogSection, limit: Int): List<CatalogItem> = synchronized(helper) {
         require(limit in 1..20)
         // The active snapshot and category joins hide superseded or orphaned rows.
         val sql = """SELECT i.$CATEGORY_ID, i.$PROVIDER_ID, i.$DISPLAY_NAME,
@@ -194,7 +200,7 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                 AND c.$SECTION = i.$SECTION AND c.$PROVIDER_ID = i.$CATEGORY_ID
             WHERE i.$ACCOUNT_ID = ? AND i.$SECTION = ? AND i.$ADDED_AT IS NOT NULL
             ORDER BY i.$ADDED_AT DESC, i.$PROVIDER_ID ASC LIMIT ?""".trimIndent()
-        helper.readableDatabase.rawQuery(sql, arrayOf(accountId, CatalogSection.Movies.name, limit.toString())).use { cursor ->
+        helper.readableDatabase.rawQuery(sql, arrayOf(accountId, section.name, limit.toString())).use { cursor ->
             buildList {
                 while (cursor.moveToNext()) add(CatalogItem(
                     providerId = cursor.text(PROVIDER_ID), categoryId = cursor.text(CATEGORY_ID),

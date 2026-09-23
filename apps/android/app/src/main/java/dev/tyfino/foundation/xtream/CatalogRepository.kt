@@ -22,8 +22,9 @@ internal interface CatalogStore {
         section: CatalogSection,
         providerItemIds: Set<String>,
     ): List<CatalogItem> = emptyList()
-    /** Only dated Movies in previously visited categories; never triggers a provider scan. */
+    /** Only dated items in previously visited categories; never triggers a provider scan. */
     fun latestCachedMovies(accountId: String, limit: Int): List<CatalogItem> = emptyList()
+    fun latestCachedSeries(accountId: String, limit: Int): List<CatalogItem> = emptyList()
     fun monitoredMovieCategories(accountId: String, limit: Int): List<String> = emptyList()
     fun replaceCategories(
         accountId: String,
@@ -143,6 +144,18 @@ internal class CatalogRepository(
         mutex.withLock {
             val account = accountStore.load() ?: return@withLock emptyList()
             val records = runCatching { store.latestCachedMovies(account.accountId, limit) }
+                .getOrElse { return@withLock emptyList() }
+            val current = accountStore.load()
+            if (current?.accountId == account.accountId && current.generation == account.generation) records
+            else emptyList()
+        }
+    }
+
+    suspend fun latestCachedSeries(limit: Int = 8): List<CatalogItem> = withContext(Dispatchers.IO) {
+        if (limit !in 1..20) return@withContext emptyList()
+        mutex.withLock {
+            val account = accountStore.load() ?: return@withLock emptyList()
+            val records = runCatching { store.latestCachedSeries(account.accountId, limit) }
                 .getOrElse { return@withLock emptyList() }
             val current = accountStore.load()
             if (current?.accountId == account.accountId && current.generation == account.generation) records

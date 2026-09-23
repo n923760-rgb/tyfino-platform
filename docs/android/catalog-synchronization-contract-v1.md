@@ -20,6 +20,8 @@ The goals are:
 
 Later owner request (2026-09-23): opt-in new-content alerts may check a bounded set of previously opened movie categories and series on unmetered connectivity. This extends the original "no background polling" V1 boundary only for user-enabled alerts. It does not authorize a full-provider scan, licensing-backend catalog transfer, or alerting on an initial cache baseline.
 
+Later home-layout request (2026-09-23): show separately the latest added Movies and Series from dated items in active, previously opened category snapshots, followed by recent Live, Series, and Movies history. An undated or uncached item cannot be ranked as newly added. Opening Home does not fetch unvisited categories or scan the provider catalog.
+
 ### 2.1 In scope
 
 - Three catalog sections: Live TV, Movies, and Series.
