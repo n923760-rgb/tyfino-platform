@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -362,61 +364,71 @@ internal fun CatalogScreen(
             SeriesHistoryStrip(seriesHistory, onPlayHistoryEpisode)
         }
 
-        CategoryStrip(
-            state = categories,
-            selectedCategoryId = selectedCategoryId,
-            onSelect = { category ->
-                selectedCategoryId = category.providerId
-                selectedCategoryName = category.name
-            },
-            onRetry = {
-                scope.launch { repository.categories(section, forceRefresh = true) { categories = it } }
-            },
-        )
-
-        selectedCategoryName?.let { name ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                FocusIconButton(
-                    icon = R.drawable.ic_refresh,
-                    description = stringResource(R.string.catalog_refresh_items),
-                    onClick = {
-                        val categoryId = selectedCategoryId ?: return@FocusIconButton
-                        scope.launch {
-                            repository.items(section, categoryId, forceRefresh = true) {
-                                catalogItems = it
-                            }
-                        }
+        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            val sidebar = maxWidth >= CATEGORY_SIDEBAR_MIN_WIDTH
+            Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (sidebar) CategoryStrip(
+                    state = categories,
+                    selectedCategoryId = selectedCategoryId,
+                    onSelect = { category ->
+                        selectedCategoryId = category.providerId
+                        selectedCategoryName = category.name
                     },
+                    onRetry = { scope.launch { repository.categories(section, forceRefresh = true) { categories = it } } },
+                    modifier = Modifier.width(200.dp).fillMaxHeight(),
+                    vertical = true,
                 )
+                Column(modifier = Modifier.weight(1f)) {
+                    if (!sidebar) CategoryStrip(
+                        state = categories,
+                        selectedCategoryId = selectedCategoryId,
+                        onSelect = { category ->
+                            selectedCategoryId = category.providerId
+                            selectedCategoryName = category.name
+                        },
+                        onRetry = { scope.launch { repository.categories(section, forceRefresh = true) { categories = it } } },
+                    )
+                    selectedCategoryName?.let { name ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = name,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            FocusIconButton(
+                                icon = R.drawable.ic_refresh,
+                                description = stringResource(R.string.catalog_refresh_items),
+                                onClick = {
+                                    val categoryId = selectedCategoryId ?: return@FocusIconButton
+                                    scope.launch {
+                                        repository.items(section, categoryId, forceRefresh = true) { catalogItems = it }
+                                    }
+                                },
+                            )
+                        }
+                    }
+                    ItemContent(
+                        state = catalogItems,
+                        section = section,
+                        hasSelection = selectedCategoryId != null,
+                        onPlay = onPlay,
+                        onRetry = {
+                            val categoryId = selectedCategoryId ?: return@ItemContent
+                            scope.launch { repository.items(section, categoryId, forceRefresh = true) { catalogItems = it } }
+                        },
+                        modifier = Modifier.weight(1f),
+                        favoriteIds = favoriteIds,
+                        onToggleFavorite = if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
+                    )
+                }
             }
         }
-
-        ItemContent(
-            state = catalogItems,
-            section = section,
-            hasSelection = selectedCategoryId != null,
-            onPlay = onPlay,
-            onRetry = {
-                val categoryId = selectedCategoryId ?: return@ItemContent
-                scope.launch {
-                    repository.items(section, categoryId, forceRefresh = true) { catalogItems = it }
-                }
-            },
-            modifier = Modifier.weight(1f),
-            favoriteIds = favoriteIds,
-            onToggleFavorite = if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
-        )
         }
     }
 }
@@ -565,18 +577,24 @@ private fun CategoryStrip(
     selectedCategoryId: String?,
     onSelect: (CatalogCategory) -> Unit,
     onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+    vertical: Boolean = false,
 ) {
-    when (state) {
-        CatalogState.Empty, CatalogState.Loading -> CatalogLoadingState()
-        is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
-        is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_categories)
-        is CatalogState.Content -> {
-            if (state.isRefreshing) CatalogRefreshingNotice()
-            Categories(state.records, selectedCategoryId, onSelect)
-        }
-        is CatalogState.StaleContent -> {
-            CatalogStaleNotice(state.failure)
-            Categories(state.records, selectedCategoryId, onSelect)
+    Column(modifier = modifier) {
+        when (state) {
+            CatalogState.Empty, CatalogState.Loading -> CatalogLoadingState()
+            is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
+            is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_categories)
+            is CatalogState.Content -> {
+                if (state.isRefreshing) CatalogRefreshingNotice()
+                Categories(state.records, selectedCategoryId, onSelect,
+                    if (vertical) Modifier.weight(1f) else Modifier.fillMaxWidth(), vertical)
+            }
+            is CatalogState.StaleContent -> {
+                CatalogStaleNotice(state.failure)
+                Categories(state.records, selectedCategoryId, onSelect,
+                    if (vertical) Modifier.weight(1f) else Modifier.fillMaxWidth(), vertical)
+            }
         }
     }
 }
@@ -586,23 +604,45 @@ private fun Categories(
     categories: List<CatalogCategory>,
     selectedCategoryId: String?,
     onSelect: (CatalogCategory) -> Unit,
+    modifier: Modifier,
+    vertical: Boolean,
 ) {
-    LazyRow(
-        modifier = Modifier.fillMaxWidth().focusGroup().testTag("catalog-categories"),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        items(categories, key = { it.providerId }) { category ->
-            CatalogTile(
-                label = category.name,
-                selected = category.providerId == selectedCategoryId,
-                onClick = { onSelect(category) },
-                modifier = Modifier.widthIn(min = 120.dp, max = 172.dp),
-                exposeSelectionState = true,
-                compact = true,
-            )
+    if (vertical) {
+        LazyColumn(
+            modifier = modifier.fillMaxWidth().focusGroup().testTag("catalog-categories"),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(categories, key = { it.providerId }) { category ->
+                CatalogTile(
+                    label = category.name,
+                    selected = category.providerId == selectedCategoryId,
+                    onClick = { onSelect(category) },
+                    modifier = Modifier.fillMaxWidth(),
+                    exposeSelectionState = true,
+                    compact = true,
+                )
+            }
+        }
+    } else {
+        LazyRow(
+            modifier = modifier.focusGroup().testTag("catalog-categories"),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            items(categories, key = { it.providerId }) { category ->
+                CatalogTile(
+                    label = category.name,
+                    selected = category.providerId == selectedCategoryId,
+                    onClick = { onSelect(category) },
+                    modifier = Modifier.widthIn(min = 120.dp, max = 172.dp),
+                    exposeSelectionState = true,
+                    compact = true,
+                )
+            }
         }
     }
 }
+
+private val CATEGORY_SIDEBAR_MIN_WIDTH = 800.dp
 
 @Composable
 private fun ItemContent(

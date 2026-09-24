@@ -124,6 +124,8 @@ The shared card uses 12dp corners, a two-character label on a stable tonal gradi
 
 The shared Live, Movies, Series, search, favorites, and history item grids show three cards in narrow content panes, then four from 480dp, five from 600dp, and six from 900dp of available grid width. The number follows the content pane after navigation and padding, so it also adapts when a foldable or multi-window view changes size.
 
+When the full catalog content pane is at least 800dp wide, its category picker becomes a 200dp vertical list next to the selected item's grid. Narrower panes retain horizontal categories above the grid. The three section filters and local search remain above both layouts; grid columns continue to follow the remaining pane width.
+
 Artwork networking has bounded concurrency and timeouts, rejects redirects, limits a response to 8 MiB even when Content-Length is absent, and uses a 20% memory-cache ceiling (10% on low-RAM devices or devices with less than 128 MiB memory class) plus a 64 MiB disk-cache ceiling. Artwork is decorative: the card label and supporting metadata remain the accessibility description. Physical low-memory TV, provider/CDN, RTL, and D-pad qualification remains BLOCKED.
 
 ## Movie details scope
