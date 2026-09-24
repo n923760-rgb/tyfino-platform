@@ -703,7 +703,12 @@ private fun SeriesHistoryGrid(records: List<SeriesHistoryItem>, onPlay: (SeriesH
 }
 
 internal fun catalogGridColumns(width: Dp): Int {
-    return if (width >= 480.dp) 4 else 2
+    return when {
+        width >= 900.dp -> 6
+        width >= 600.dp -> 5
+        width >= 480.dp -> 4
+        else -> 3
+    }
 }
 
 @Composable
