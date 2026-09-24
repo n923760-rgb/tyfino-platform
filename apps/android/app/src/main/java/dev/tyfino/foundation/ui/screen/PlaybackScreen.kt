@@ -491,6 +491,7 @@ private fun PlayerSurface(
                 context = context,
                 reference = reference,
                 cleartextConsent = cleartextConsent,
+                section = selection.section,
                 initialPositionMillis = startPositionMillis,
                 autoPlay = !returnedFromBackground,
                 onReady = { current, position, autoPlay ->
@@ -818,6 +819,7 @@ private fun createPlayer(
     context: android.content.Context,
     reference: SecretPlaybackReference,
     cleartextConsent: Boolean,
+    section: CatalogSection,
     initialPositionMillis: Long,
     autoPlay: Boolean,
     onReady: (ExoPlayer, Long, Boolean) -> Unit,
@@ -826,7 +828,7 @@ private fun createPlayer(
     onFailure: () -> Unit,
     onTracksChanged: (ExoPlayer, Tracks) -> Unit,
 ): ExoPlayer {
-    return PlayerFactory.create(context, cleartextConsent)
+    return PlayerFactory.create(context, cleartextConsent, section)
         .apply {
             addListener(
                 object : Player.Listener {
