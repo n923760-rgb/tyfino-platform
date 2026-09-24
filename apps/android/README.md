@@ -108,6 +108,8 @@ Live channels, Movies, and Series episodes are recorded only after the foregroun
 
 The foreground player uses a shorter 15–30 second, 16 MiB target buffer for Live streams or low-RAM devices and a 30–60 second buffer for Movie and Series playback on other devices. These are tuning defaults; real provider streams and lower-memory devices still need physical playback qualification.
 
+Only Live playback retries a lost connection, timeout, or expired live window: up to three attempts after 1, 2, and 4 seconds, then the existing manual Retry/Back error state. Each delayed attempt rechecks the active account, foreground lifecycle, player identity, and destination exit state; leaving the player cancels pending retry work. Access, format, and decoder failures do not automatically retry.
+
 ## Live EPG scope
 
 The player opens the selected Live channel's program guide only when requested. A direct per-channel provider request updates an account-owned, bounded cache; playback does not wait for guide data. The dialog shows current/next programs and a lazy schedule with localized loading, empty, stale, and error states. Closing it or changing channels invalidates older results, and account removal clears the EPG cache. Physical TV D-pad, RTL, accessibility, media, and performance qualification remains BLOCKED until recorded under the device-qualification contract.
