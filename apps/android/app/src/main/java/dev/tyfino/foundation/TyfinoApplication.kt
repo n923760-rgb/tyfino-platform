@@ -1,6 +1,7 @@
 package dev.tyfino.foundation
 
 import android.app.Application
+import android.app.ActivityManager
 import android.content.Context
 import dev.tyfino.foundation.notifications.NewContentNotifier
 import coil3.ImageLoader
@@ -27,7 +28,7 @@ class TyfinoApplication : Application(), SingletonImageLoader.Factory {
     override fun newImageLoader(context: Context): ImageLoader = ImageLoader.Builder(context)
         .memoryCache {
             MemoryCache.Builder()
-                .maxSizePercent(context, ARTWORK_MEMORY_PERCENT)
+                .maxSizePercent(context, artworkMemoryPercent(context))
                 .build()
         }
         .diskCache {
@@ -57,8 +58,16 @@ class TyfinoApplication : Application(), SingletonImageLoader.Factory {
             .build()
     }
 
+    private fun artworkMemoryPercent(context: Context): Double {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+        return if (activityManager?.isLowRamDevice == true ||
+            (activityManager?.memoryClass ?: Int.MAX_VALUE) < 128
+        ) ARTWORK_LOW_MEMORY_PERCENT else ARTWORK_MEMORY_PERCENT
+    }
+
     private companion object {
-        const val ARTWORK_MEMORY_PERCENT = 0.08
+        const val ARTWORK_MEMORY_PERCENT = 0.20
+        const val ARTWORK_LOW_MEMORY_PERCENT = 0.10
         const val ARTWORK_DISK_BYTES = 64L * 1024L * 1024L
         const val ARTWORK_MAX_REQUESTS = 8
         const val ARTWORK_MAX_REQUESTS_PER_HOST = 4
