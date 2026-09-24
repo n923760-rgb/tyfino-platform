@@ -28,6 +28,7 @@ android {
 
     defaultConfig {
         applicationId = "com.tyfino.player"
+        resourceConfigurations += listOf("ar", "en")
         minSdk = 24
         targetSdk = 37
         versionCode = 1

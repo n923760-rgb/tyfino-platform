@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -21,10 +22,12 @@
         android:banner="@drawable/tv_banner_tyfino"
         android:icon="@drawable/ic_app_tyfino"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locale_config"
         android:roundIcon="@drawable/ic_app_tyfino"
         android:supportsRtl="true"
         android:theme="@style/Theme.Tyfino"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        tools:targetApi="33">
         <service android:name=".notifications.NewContentCheckJob"
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:exported="true" />
