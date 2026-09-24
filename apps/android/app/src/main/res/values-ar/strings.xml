@@ -12,6 +12,9 @@
     <string name="home_title">ماذا تريد أن تشاهد؟</string>
     <string name="home_description">اكتشف الجديد وأكمل ما شاهدته.</string>
     <string name="home_empty_sections">افتح قسم القنوات أو الأفلام أو المسلسلات لتظهر لك المحتويات هنا.</string>
+    <string name="home_featured_continue">متابعة المشاهدة</string>
+    <string name="home_featured_new">أضيف حديثًا</string>
+    <string name="home_featured_details">عرض التفاصيل</string>
     <string name="home_account_title">حسابك</string>
     <string name="home_recent_live">آخر القنوات مشاهدة</string>
     <string name="home_latest_movies">آخر الأفلام المضافة</string>
