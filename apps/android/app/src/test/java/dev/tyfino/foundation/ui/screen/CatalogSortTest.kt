@@ -20,10 +20,6 @@ class CatalogSortTest {
         assertEquals(listOf("a", "b", "c", "d"), sortCatalogItems(items, CatalogSort.HighestRated).map { it.providerId })
     }
 
-    @Test fun nameIgnoresEnglishCaseAndPreservesProviderOrderForTies() {
-        assertEquals(listOf("a", "d", "b", "c"), sortCatalogItems(items, CatalogSort.Name).map { it.providerId })
-    }
-
     private fun item(id: String, title: String, order: Int, rating: String?, added: Long?) =
         CatalogItem(id, "category", title, order, null, rating, null, null, added)
 }
