@@ -118,7 +118,11 @@ internal fun CatalogScreen(
     var favoriteActionError by remember(section) { mutableStateOf(false) }
     var historyState by remember(section) { mutableStateOf<CatalogHistoryListResult?>(null) }
     val recentItems = (historyState as? CatalogHistoryListResult.Ready)?.items.orEmpty()
-    val recentIds = recentItems.mapTo(hashSetOf()) { it.providerId }
+    val recentIds = if (section == CatalogSection.Series) {
+        seriesHistory.mapTo(hashSetOf()) { it.episode.providerSeriesId }
+    } else {
+        recentItems.mapTo(hashSetOf()) { it.providerId }
+    }
     val lifecycleOwner = LocalLifecycleOwner.current
     val favoriteItems = (favoritesState as? FavoritesListResult.Ready)?.items.orEmpty()
     val favoriteIds = favoriteItems.mapTo(hashSetOf()) { it.providerId }
@@ -257,6 +261,13 @@ internal fun CatalogScreen(
             )
         }
 
+        CatalogFilterTabs(
+            favoritesOnly = favoritesOnly,
+            historyOnly = historyOnly,
+            onAll = { favoritesOnly = false; historyOnly = false },
+            onFavorites = { favoritesOnly = true; historyOnly = false },
+            onHistory = { historyOnly = true; favoritesOnly = false },
+        )
         OutlinedTextField(
             value = searchText,
             onValueChange = { next ->
@@ -269,40 +280,6 @@ internal fun CatalogScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth().testTag("catalog-search"),
         )
-        if ((favoritesRepository != null && favoritesState is FavoritesListResult.Ready) ||
-            (historyRepository != null && (recentItems.isNotEmpty() || historyOnly))) {
-            LazyRow(
-                modifier = Modifier.fillMaxWidth().focusGroup(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) {
-                    item {
-                        CatalogFilterButton(
-                            label = stringResource(if (favoritesOnly) R.string.catalog_show_all else R.string.catalog_favorites_only),
-                            selected = favoritesOnly,
-                            onClick = {
-                                favoritesOnly = !favoritesOnly
-                                if (favoritesOnly) historyOnly = false
-                            },
-                            modifier = Modifier.testTag("catalog-favorites-filter"),
-                        )
-                    }
-                }
-                if (historyRepository != null && (recentItems.isNotEmpty() || historyOnly)) {
-                    item {
-                        CatalogFilterButton(
-                            label = stringResource(if (historyOnly) R.string.catalog_show_all else R.string.catalog_recent_title),
-                            selected = historyOnly,
-                            onClick = {
-                                historyOnly = !historyOnly
-                                if (historyOnly) favoritesOnly = false
-                            },
-                            modifier = Modifier.testTag("catalog-history-filter"),
-                        )
-                    }
-                }
-            }
-        }
         if (favoritesState == FavoritesListResult.Failure || favoriteActionError) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.catalog_favorite_error), color = MaterialTheme.colorScheme.error, modifier = Modifier.weight(1f))
@@ -355,7 +332,10 @@ internal fun CatalogScreen(
             }
         } else if (historyOnly) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                if (recentItems.isEmpty()) EmptyState(R.string.catalog_history_empty)
+                if (section == CatalogSection.Series) {
+                    if (seriesHistory.isEmpty()) EmptyState(R.string.catalog_history_empty)
+                    else SeriesHistoryGrid(seriesHistory, onPlayHistoryEpisode)
+                } else if (recentItems.isEmpty()) EmptyState(R.string.catalog_history_empty)
                 else ItemGrid(recentItems, section, onPlay, favoriteIds,
                     if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null)
             }
@@ -431,6 +411,45 @@ internal fun CatalogScreen(
             favoriteIds = favoriteIds,
             onToggleFavorite = if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
         )
+        }
+    }
+}
+
+@Composable
+internal fun CatalogFilterTabs(
+    favoritesOnly: Boolean,
+    historyOnly: Boolean,
+    onAll: () -> Unit,
+    onFavorites: () -> Unit,
+    onHistory: () -> Unit,
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().focusGroup().testTag("catalog-filters"),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item {
+            CatalogFilterButton(
+                label = stringResource(R.string.catalog_show_all),
+                selected = !favoritesOnly && !historyOnly,
+                onClick = onAll,
+                modifier = Modifier.testTag("catalog-all-filter"),
+            )
+        }
+        item {
+            CatalogFilterButton(
+                label = stringResource(R.string.catalog_favorites_only),
+                selected = favoritesOnly,
+                onClick = onFavorites,
+                modifier = Modifier.testTag("catalog-favorites-filter"),
+            )
+        }
+        item {
+            CatalogFilterButton(
+                label = stringResource(R.string.catalog_recent_title),
+                selected = historyOnly,
+                onClick = onHistory,
+                modifier = Modifier.testTag("catalog-history-filter"),
+            )
         }
     }
 }
@@ -620,7 +639,7 @@ private fun ItemGrid(
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(catalogGridColumns(maxWidth, section)),
+            columns = GridCells.Fixed(catalogGridColumns(maxWidth)),
             modifier = Modifier.fillMaxSize().focusGroup().testTag("catalog-items"),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -655,9 +674,36 @@ private fun ItemGrid(
     }
 }
 
-internal fun catalogGridColumns(width: Dp, section: CatalogSection): Int {
-    val minWidth = if (section == CatalogSection.Live) 160.dp else 104.dp
-    return ((width + 8.dp) / (minWidth + 8.dp)).toInt().coerceIn(1, 6)
+@Composable
+private fun SeriesHistoryGrid(records: List<SeriesHistoryItem>, onPlay: (SeriesHistoryItem) -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(catalogGridColumns(maxWidth)),
+            modifier = Modifier.fillMaxSize().focusGroup().testTag("catalog-items"),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(records, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
+                val episodeLabel = item.episode.title?.takeIf(String::isNotBlank)
+                    ?: item.episode.episodeNumber?.let { stringResource(R.string.series_episode_number, it) }
+                    ?: stringResource(R.string.series_episode_order, item.episode.providerOrder + 1)
+                CatalogTile(
+                    label = listOf(item.seriesTitle, episodeLabel).filter(String::isNotBlank).joinToString(" • "),
+                    supporting = stringResource(R.string.series_history_play),
+                    selected = false,
+                    onClick = { onPlay(item) },
+                    modifier = Modifier.fillMaxWidth(),
+                    showArtwork = true,
+                    artworkUrl = item.seriesArtworkUrl,
+                    artworkAspectRatio = POSTER_ASPECT_RATIO,
+                )
+            }
+        }
+    }
+}
+
+internal fun catalogGridColumns(width: Dp): Int {
+    return if (width >= 480.dp) 4 else 2
 }
 
 @Composable
@@ -740,9 +786,9 @@ internal fun CatalogTile(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (supporting.isNotEmpty()) {
+            if (supporting.isNotEmpty() || showArtwork) {
                 Text(
-                    text = supporting,
+                    text = supporting.ifEmpty { " " },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

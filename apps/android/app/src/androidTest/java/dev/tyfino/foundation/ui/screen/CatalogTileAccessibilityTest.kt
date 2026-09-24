@@ -1,6 +1,9 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -10,6 +13,7 @@ import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -85,6 +89,28 @@ class CatalogTileAccessibilityTest {
 
         compose.onNodeWithTag("selected-filter").assertIsSelected()
         compose.onNodeWithTag("unselected-filter").assertIsNotSelected()
+    }
+
+    @Test
+    fun allThreeCatalogTabsStayVisibleAndSelectionIsExclusive() {
+        var favorites by mutableStateOf(false)
+        var history by mutableStateOf(false)
+        compose.setContent {
+            MaterialTheme {
+                CatalogFilterTabs(
+                    favoritesOnly = favorites,
+                    historyOnly = history,
+                    onAll = { favorites = false; history = false },
+                    onFavorites = { favorites = true; history = false },
+                    onHistory = { history = true; favorites = false },
+                )
+            }
+        }
+        compose.onNodeWithTag("catalog-all-filter").assertIsSelected()
+        compose.onNodeWithTag("catalog-favorites-filter").assertIsNotSelected().performClick().assertIsSelected()
+        compose.onNodeWithTag("catalog-history-filter").assertIsNotSelected().performClick().assertIsSelected()
+        compose.onNodeWithTag("catalog-favorites-filter").assertIsNotSelected()
+        compose.onNodeWithTag("catalog-all-filter").performClick().assertIsSelected()
     }
 
     @Test
