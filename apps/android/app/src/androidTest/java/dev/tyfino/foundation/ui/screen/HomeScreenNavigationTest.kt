@@ -17,7 +17,7 @@ import org.junit.runner.RunWith
 class HomeScreenNavigationTest {
     @get:Rule val composeRule = createComposeRule()
 
-    @Test fun homeShowsFiveContentRowsAndAccountActionsWithoutDuplicateNavigation() {
+    @Test fun emptyHomeHidesShelvesAndKeepsAccountActionsReachable() {
         var openedAccountSwitcher = false
         var openedSettings = false
         composeRule.setContent {
@@ -31,9 +31,10 @@ class HomeScreenNavigationTest {
 
         for (tag in listOf("home-latest-movies", "home-latest-series", "home-recent-live",
             "home-recent-series", "home-recent-movies")) {
-            composeRule.onNodeWithTag("home-screen").performScrollToNode(hasTestTag(tag))
-            composeRule.onNodeWithTag(tag).assertExists()
+            composeRule.onNodeWithTag(tag).assertDoesNotExist()
         }
+        composeRule.onNodeWithTag("home-screen").performScrollToNode(hasTestTag("home-empty-content"))
+        composeRule.onNodeWithTag("home-empty-content").assertExists()
         for (route in listOf("live", "movies", "series")) {
             composeRule.onNodeWithTag("home-$route").assertDoesNotExist()
         }
