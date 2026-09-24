@@ -94,6 +94,7 @@ import dev.tyfino.foundation.xtream.XtreamAccountStore
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -470,7 +471,11 @@ private fun PlayerSurface(
     ) {
         var releasing = false
         var recordedStart = false
+        var liveRetryAttempts = 0
+        var retryJob: Job? = null
         fun releasePlayer() {
+            retryJob?.cancel()
+            retryJob = null
             val current = player
             val progress = snapshot(current)
             progress?.let { startPositionMillis = it.positionMillis }
@@ -520,7 +525,32 @@ private fun PlayerSurface(
                         scope.launch { catalogHistoryRepository.recordStarted(selection) }
                     }
                 },
-                onFailure = { playbackFailed = true },
+                onFailure = { current, error ->
+                    val retryDelay = if (selection.section == CatalogSection.Live) {
+                        liveRetryDelayMillis(error.errorCode, liveRetryAttempts)
+                    } else null
+                    if (retryDelay == null) {
+                        playbackFailed = true
+                    } else {
+                        liveRetryAttempts++
+                        retryJob?.cancel()
+                        retryJob = scope.launch {
+                            delay(retryDelay)
+                            if (player !== current || exitRequested ||
+                                !lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+                            ) return@launch
+                            val account = accountStore.load()
+                            if (account?.accountId != selection.accountId ||
+                                account.generation != selection.accountGeneration
+                            ) {
+                                playbackFailed = true
+                                return@launch
+                            }
+                            current.seekToDefaultPosition()
+                            current.prepare()
+                        }
+                    }
+                },
                 onTracksChanged = { current, tracks -> refreshTracks(current, tracks) },
             )
         }
@@ -825,7 +855,7 @@ private fun createPlayer(
     onReady: (ExoPlayer, Long, Boolean) -> Unit,
     onPause: (ExoPlayer) -> Unit,
     onPlaying: () -> Unit,
-    onFailure: () -> Unit,
+    onFailure: (ExoPlayer, PlaybackException) -> Unit,
     onTracksChanged: (ExoPlayer, Tracks) -> Unit,
 ): ExoPlayer {
     return PlayerFactory.create(context, cleartextConsent, section)
@@ -835,7 +865,7 @@ private fun createPlayer(
                     private var readyDispatched = false
 
                     override fun onPlayerError(error: PlaybackException) {
-                        onFailure()
+                        onFailure(this@apply, error)
                     }
 
                     override fun onTracksChanged(tracks: Tracks) {
