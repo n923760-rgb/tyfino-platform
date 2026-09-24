@@ -5,7 +5,9 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,6 +15,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -21,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items as rowItems
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,10 +35,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -66,9 +80,38 @@ private data class HomeHistory(
     val latestSeries: List<CatalogItem> = emptyList(),
     val live: List<CatalogItem> = emptyList(),
     val movies: List<CatalogItem> = emptyList(),
+    val resumeMovies: List<CatalogItem> = emptyList(),
     val seriesResume: List<SeriesContinueWatchingItem> = emptyList(),
     val seriesHistory: List<SeriesHistoryItem> = emptyList(),
 )
+
+private sealed interface HomeFeatured {
+    val title: String
+    val artworkUrl: String?
+
+    data class ResumeMovie(val item: CatalogItem) : HomeFeatured {
+        override val title = item.name
+        override val artworkUrl = item.artworkUrl
+    }
+    data class ResumeSeries(val item: SeriesContinueWatchingItem) : HomeFeatured {
+        override val title = item.seriesTitle
+        override val artworkUrl = item.seriesArtworkUrl
+    }
+    data class NewMovie(val item: CatalogItem) : HomeFeatured {
+        override val title = item.name
+        override val artworkUrl = item.artworkUrl
+    }
+    data class NewSeries(val item: CatalogItem) : HomeFeatured {
+        override val title = item.name
+        override val artworkUrl = item.artworkUrl
+    }
+}
+
+private fun HomeHistory.featured(): HomeFeatured? =
+    resumeMovies.firstOrNull()?.let { HomeFeatured.ResumeMovie(it) }
+        ?: seriesResume.firstOrNull()?.let { HomeFeatured.ResumeSeries(it) }
+        ?: latestMovies.firstOrNull()?.let { HomeFeatured.NewMovie(it) }
+        ?: latestSeries.firstOrNull()?.let { HomeFeatured.NewSeries(it) }
 
 @Composable
 internal fun HomeScreen(
@@ -135,6 +178,7 @@ internal fun HomeScreen(
                         latestSeries = latestSeries,
                         live = live.take(8),
                         movies = (movies + movieResume.map { it.catalogItem }).distinctBy { it.providerId }.take(8),
+                        resumeMovies = movieResume.map { it.catalogItem }.take(8),
                         seriesResume = series.take(8),
                         seriesHistory = seriesHistory.distinctBy { it.episode.providerSeriesId }.take(8),
                     )
@@ -147,6 +191,7 @@ internal fun HomeScreen(
         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) refresh()
         onDispose { generation++; lifecycleOwner.lifecycle.removeObserver(observer) }
     }
+    val featured = history.featured()
     BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 200.dp),
@@ -180,7 +225,9 @@ internal fun HomeScreen(
                                     alertsEnabled = true
                                 }
                             },
-                            modifier = Modifier.focusRequester(initialFocus).testTag("home-content-alerts"),
+                            modifier = Modifier
+                                .then(if (featured == null) Modifier.focusRequester(initialFocus) else Modifier)
+                                .testTag("home-content-alerts"),
                             selected = alertsEnabled,
                         )
                     }
@@ -190,6 +237,20 @@ internal fun HomeScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+            if (featured != null) item(span = { GridItemSpan(maxLineSpan) }, contentType = "featured") {
+                HomeHero(
+                    featured = featured,
+                    onClick = {
+                        when (featured) {
+                            is HomeFeatured.ResumeMovie -> onResumeMovie(featured.item)
+                            is HomeFeatured.ResumeSeries -> onResumeSeries(featured.item)
+                            is HomeFeatured.NewMovie -> onOpenMovie(featured.item)
+                            is HomeFeatured.NewSeries -> onOpenSeries(featured.item)
+                        }
+                    },
+                    modifier = Modifier.focusRequester(initialFocus),
+                )
             }
             if (historyLoaded && history.latestMovies.isEmpty() && history.latestSeries.isEmpty() &&
                 history.live.isEmpty() && history.movies.isEmpty() &&
@@ -247,7 +308,7 @@ internal fun HomeScreen(
                         label = stringResource(R.string.xtream_switch_account),
                         onClick = onOpenAccountSwitcher,
                         modifier = Modifier.fillMaxWidth()
-                            .then(if (newContentNotifier == null) Modifier.focusRequester(initialFocus) else Modifier)
+                            .then(if (newContentNotifier == null && featured == null) Modifier.focusRequester(initialFocus) else Modifier)
                             .testTag("open-account-switcher"),
                     )
                     FocusVisibleButton(
@@ -256,6 +317,51 @@ internal fun HomeScreen(
                         modifier = Modifier.fillMaxWidth().testTag("home-open-settings"),
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val request = remember(context, featured.artworkUrl) {
+        featured.artworkUrl?.let { ImageRequest.Builder(context).data(it).crossfade(150).build() }
+    }
+    BoxWithConstraints(Modifier.fillMaxWidth().testTag("home-featured")) {
+        Box(
+            modifier = Modifier.fillMaxWidth()
+                .heightIn(min = if (maxWidth < 600.dp) 220.dp else 300.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+        ) {
+            if (request != null) AsyncImage(
+                model = request,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+                Color.Black.copy(alpha = 0.32f), Color.Black.copy(alpha = 0.94f),
+            ))))
+            Column(
+                modifier = Modifier.align(Alignment.BottomStart).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    stringResource(if (featured is HomeFeatured.ResumeMovie || featured is HomeFeatured.ResumeSeries)
+                        R.string.home_featured_continue else R.string.home_featured_new),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = Color.White,
+                )
+                Text(featured.title, style = MaterialTheme.typography.headlineSmall, color = Color.White,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                FocusVisibleButton(
+                    label = stringResource(if (featured is HomeFeatured.ResumeMovie || featured is HomeFeatured.ResumeSeries)
+                        R.string.continue_watching_resume else R.string.home_featured_details),
+                    onClick = onClick,
+                    modifier = modifier.testTag("home-featured-action"),
+                )
             }
         }
     }
