@@ -7,6 +7,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.ActivityInfo
+import android.net.ConnectivityManager
+import android.net.Network
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -473,9 +475,11 @@ private fun PlayerSurface(
         var recordedStart = false
         var liveRetryAttempts = 0
         var retryJob: Job? = null
+        var recoverableLiveError = false
         fun releasePlayer() {
             retryJob?.cancel()
             retryJob = null
+            recoverableLiveError = false
             val current = player
             val progress = snapshot(current)
             progress?.let { startPositionMillis = it.positionMillis }
@@ -492,6 +496,7 @@ private fun PlayerSurface(
             if (player != null) return
             releasing = false
             playbackFailed = false
+            recoverableLiveError = false
             player = createPlayer(
                 context = context,
                 reference = reference,
@@ -530,8 +535,10 @@ private fun PlayerSurface(
                         liveRetryDelayMillis(error.errorCode, liveRetryAttempts)
                     } else null
                     if (retryDelay == null) {
+                        recoverableLiveError = false
                         playbackFailed = true
                     } else {
+                        recoverableLiveError = true
                         liveRetryAttempts++
                         retryJob?.cancel()
                         retryJob = scope.launch {
@@ -543,9 +550,11 @@ private fun PlayerSurface(
                             if (account?.accountId != selection.accountId ||
                                 account.generation != selection.accountGeneration
                             ) {
+                                recoverableLiveError = false
                                 playbackFailed = true
                                 return@launch
                             }
+                            recoverableLiveError = false
                             current.seekToDefaultPosition()
                             current.prepare()
                         }
@@ -553,6 +562,45 @@ private fun PlayerSurface(
                 },
                 onTracksChanged = { current, tracks -> refreshTracks(current, tracks) },
             )
+        }
+
+        // A restored default network advances a pending bounded retry; it never creates
+        // an extra retry after the three attempts have been exhausted.
+        val connectivity = if (selection.section == CatalogSection.Live) {
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+        } else null
+        val networkCallback = if (connectivity != null) object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                scope.launch {
+                    val current = player ?: return@launch
+                    if (!recoverableLiveError || retryJob?.isActive != true || releasing || exitRequested ||
+                        !lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+                    ) return@launch
+                    val account = accountStore.load()
+                    if (account?.accountId != selection.accountId ||
+                        account.generation != selection.accountGeneration
+                    ) {
+                        retryJob?.cancel()
+                        recoverableLiveError = false
+                        playbackFailed = true
+                        return@launch
+                    }
+                    retryJob?.cancel()
+                    retryJob = null
+                    recoverableLiveError = false
+                    current.seekToDefaultPosition()
+                    current.prepare()
+                }
+            }
+        } else null
+        var networkCallbackRegistered = false
+        if (connectivity != null && networkCallback != null) {
+            try {
+                connectivity.registerDefaultNetworkCallback(networkCallback)
+                networkCallbackRegistered = true
+            } catch (_: SecurityException) {
+                // The timed retries and manual retry remain available.
+            }
         }
 
         val observer = LifecycleEventObserver { _, event ->
@@ -571,6 +619,9 @@ private fun PlayerSurface(
             startPlayer()
         }
         onDispose {
+            if (networkCallbackRegistered && networkCallback != null) {
+                connectivity?.unregisterNetworkCallback(networkCallback)
+            }
             lifecycleOwner.lifecycle.removeObserver(observer)
             releasePlayer()
         }
