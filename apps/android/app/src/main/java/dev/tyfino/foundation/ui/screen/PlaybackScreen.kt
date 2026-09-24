@@ -63,11 +63,9 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.AspectRatioFrameLayout
 import dev.tyfino.foundation.R
-import dev.tyfino.foundation.playback.BoundedRedirectDataSource
 import dev.tyfino.foundation.playback.EpisodePlaybackSelection
 import dev.tyfino.foundation.playback.EpisodeResumeLoadResult
 import dev.tyfino.foundation.playback.EpisodeResumeRepository
@@ -828,11 +826,7 @@ private fun createPlayer(
     onFailure: () -> Unit,
     onTracksChanged: (ExoPlayer, Tracks) -> Unit,
 ): ExoPlayer {
-    val mediaSourceFactory = DefaultMediaSourceFactory(context)
-        .setDataSourceFactory(BoundedRedirectDataSource.Factory(cleartextConsent))
-    return ExoPlayer.Builder(context)
-        .setMediaSourceFactory(mediaSourceFactory)
-        .build()
+    return PlayerFactory.create(context, cleartextConsent)
         .apply {
             addListener(
                 object : Player.Listener {
