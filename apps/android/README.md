@@ -108,7 +108,7 @@ Live channels, Movies, and Series episodes are recorded only after the foregroun
 
 The foreground player uses a shorter 15–30 second, 16 MiB target buffer for Live streams or low-RAM devices and a 30–60 second buffer for Movie and Series playback on other devices. These are tuning defaults; real provider streams and lower-memory devices still need physical playback qualification.
 
-Only Live playback retries a lost connection, timeout, or expired live window: up to three attempts after 1, 2, and 4 seconds, then the existing manual Retry/Back error state. Each delayed attempt rechecks the active account, foreground lifecycle, player identity, and destination exit state; leaving the player cancels pending retry work. Access, format, and decoder failures do not automatically retry.
+Only Live playback retries a lost connection, timeout, or expired live window: up to three attempts after 1, 2, and 4 seconds, then the existing manual Retry/Back error state. When the default network returns during a pending delay, playback resumes that attempt immediately without adding an attempt. Each attempt rechecks the active account, foreground lifecycle, player identity, and destination exit state; leaving the player cancels pending retry work and unregisters the network callback. Access, format, and decoder failures do not automatically retry.
 
 ## Live EPG scope
 
