@@ -106,6 +106,8 @@ Live, Movies, and Series items can be added to an account-scoped local favorites
 
 Live channels, Movies, and Series episodes are recorded only after the foreground player reaches actual playback. Separate account-scoped stores retain at most 100 recent identities and store no titles, artwork, playback URLs, or credentials. Live/Movie history rejoins current downloaded catalog metadata; episode history rejoins the current published Series generation and is shown independently from resume-based Continue Watching. Missing or stale items stay hidden.
 
+Home displays only shelves with current items in the active account's opened catalog and recent history. Once its account-scoped summary finishes loading, an empty Home shows one invitation to open a section instead of five empty shelves. Account switching and Settings remain available.
+
 The foreground player uses a shorter 15–30 second, 16 MiB target buffer for Live streams or low-RAM devices and a 30–60 second buffer for Movie and Series playback on other devices. These are tuning defaults; real provider streams and lower-memory devices still need physical playback qualification.
 
 Only Live playback retries a lost connection, timeout, or expired live window: up to three attempts after 1, 2, and 4 seconds, then the existing manual Retry/Back error state. When the default network returns during a pending delay, playback resumes that attempt immediately without adding an attempt. Each attempt rechecks the active account, foreground lifecycle, player identity, and destination exit state; leaving the player cancels pending retry work and unregisters the network callback. Access, format, and decoder failures do not automatically retry.

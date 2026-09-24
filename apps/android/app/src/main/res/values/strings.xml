@@ -8,6 +8,7 @@
     <string name="destination_settings">Settings</string>
     <string name="home_title">What would you like to watch?</string>
     <string name="home_description">Discover new titles and return to what you watched.</string>
+    <string name="home_empty_sections">Open a Live, Movies, or Series category to start discovering content here.</string>
     <string name="home_account_title">Your account</string>
     <string name="home_recent_live">Recently watched channels</string>
     <string name="home_latest_movies">Newly added movies</string>

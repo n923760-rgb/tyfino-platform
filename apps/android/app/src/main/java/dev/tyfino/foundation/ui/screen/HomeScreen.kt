@@ -4,7 +4,6 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -93,6 +92,7 @@ internal fun HomeScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     var history by remember { mutableStateOf(HomeHistory()) }
+    var historyLoaded by remember { mutableStateOf(false) }
     var alertsEnabled by remember(newContentNotifier) { mutableStateOf(newContentNotifier?.isEnabled() == true) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         newContentNotifier?.setEnabled(granted)
@@ -103,13 +103,20 @@ internal fun HomeScreen(
         fun refresh() {
             val request = ++generation
             history = HomeHistory()
+            historyLoaded = false
             alertsEnabled = newContentNotifier?.let { it.isEnabled() && it.canNotify() } == true
             if (accountStore == null || catalogRepository == null || historyRepository == null ||
                 movieResumeRepository == null || episodeResumeRepository == null || episodeHistoryRepository == null
-            ) return
+            ) {
+                historyLoaded = true
+                return
+            }
             scope.launch {
                 val owner = withContext(Dispatchers.IO) { accountStore.load()?.let { it.accountId to it.generation } }
-                    ?: return@launch
+                if (owner == null) {
+                    if (request == generation) historyLoaded = true
+                    return@launch
+                }
                 val live = (historyRepository.recent(CatalogSection.Live) as? CatalogHistoryListResult.Ready)?.items.orEmpty()
                 val movies = (historyRepository.recent(CatalogSection.Movies) as? CatalogHistoryListResult.Ready)?.items.orEmpty()
                 val resumes = (movieResumeRepository.continueWatching() as? MovieResumeListResult.Ready)?.records.orEmpty()
@@ -131,6 +138,7 @@ internal fun HomeScreen(
                         seriesResume = series.take(8),
                         seriesHistory = seriesHistory.distinctBy { it.episode.providerSeriesId }.take(8),
                     )
+                    historyLoaded = true
                 }
             }
         }
@@ -183,25 +191,29 @@ internal fun HomeScreen(
                     )
                 }
             }
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-movies") {
-                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie,
-                    "home-latest-movies", R.string.home_latest_movies_empty)
+            if (historyLoaded && history.latestMovies.isEmpty() && history.latestSeries.isEmpty() &&
+                history.live.isEmpty() && history.movies.isEmpty() &&
+                history.seriesHistory.isEmpty() && history.seriesResume.isEmpty()
+            ) item(span = { GridItemSpan(maxLineSpan) }, contentType = "empty-content") {
+                Text(stringResource(R.string.home_empty_sections),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("home-empty-content"))
             }
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-series") {
-                HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries,
-                    "home-latest-series", R.string.home_latest_series_empty)
+            if (history.latestMovies.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-movies") {
+                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie, "home-latest-movies")
             }
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-live") {
+            if (history.latestSeries.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-series") {
+                HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries, "home-latest-series")
+            }
+            if (history.live.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-live") {
                 HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive,
-                    "home-recent-live", R.string.home_recent_live_empty, 16f / 9f)
+                    "home-recent-live", 16f / 9f)
             }
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-series") {
+            if (history.seriesHistory.isNotEmpty() || history.seriesResume.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-series") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-recent-series")) {
                         Text(stringResource(R.string.home_recent_series), style = MaterialTheme.typography.titleMedium)
-                        if (history.seriesHistory.isEmpty() && history.seriesResume.isEmpty()) {
-                            Text(stringResource(R.string.home_recent_series_empty), style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        } else LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
                             rowItems(history.seriesHistory, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
                                 CatalogTile(
                                     label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
@@ -225,9 +237,8 @@ internal fun HomeScreen(
                         }
                     }
             }
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-movies") {
-                HomeRecentStrip(stringResource(R.string.home_recent_movies), history.movies, onResumeMovie,
-                    "home-recent-movies", R.string.home_recent_movies_empty)
+            if (history.movies.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-movies") {
+                HomeRecentStrip(stringResource(R.string.home_recent_movies), history.movies, onResumeMovie, "home-recent-movies")
             }
             item(span = { GridItemSpan(maxLineSpan) }, contentType = "account") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -256,15 +267,11 @@ private fun HomeRecentStrip(
     records: List<CatalogItem>,
     onClick: (CatalogItem) -> Unit,
     tag: String,
-    @StringRes emptyMessage: Int,
     artworkAspectRatio: Float = 2f / 3f,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag(tag)) {
         Text(title, style = MaterialTheme.typography.titleMedium)
-        if (records.isEmpty()) {
-            Text(stringResource(emptyMessage), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
             rowItems(records, key = { it.providerId }) { item ->
                 CatalogTile(
                     label = item.name,
