@@ -92,7 +92,9 @@ import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.CatalogSearchResult
 import dev.tyfino.foundation.xtream.CatalogState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 internal fun CatalogScreen(
@@ -119,6 +121,7 @@ internal fun CatalogScreen(
     var seriesContinueWatching by remember(section) { mutableStateOf(emptyList<SeriesContinueWatchingItem>()) }
     var seriesHistory by remember(section) { mutableStateOf(emptyList<SeriesHistoryItem>()) }
     var searchText by remember(section) { mutableStateOf("") }
+    var sortOrder by remember(section) { mutableStateOf(CatalogSort.Newest) }
     var searchResult by remember(section) { mutableStateOf<CatalogSearchResult?>(null) }
     val searchActive = searchText.trim().codePointCount(0, searchText.trim().length) >= 2
     var favoritesState by remember(section) { mutableStateOf<FavoritesListResult?>(null) }
@@ -289,6 +292,9 @@ internal fun CatalogScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth().testTag("catalog-search"),
         )
+        if (section != CatalogSection.Live && !favoritesOnly && !historyOnly) {
+            CatalogSortTabs(sortOrder, onSelect = { sortOrder = it })
+        }
         if (favoritesState == FavoritesListResult.Failure || favoriteActionError) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.catalog_favorite_error), color = MaterialTheme.colorScheme.error, modifier = Modifier.weight(1f))
@@ -324,7 +330,8 @@ internal fun CatalogScreen(
                             EmptyState(R.string.catalog_search_empty)
                         } else {
                             ItemGrid(visible, section, onPlay, favoriteIds,
-                                if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null)
+                                if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
+                                if (section == CatalogSection.Live || favoritesOnly || historyOnly) null else sortOrder)
                             if (result.limited) {
                                 Text(
                                     stringResource(R.string.catalog_search_limit),
@@ -426,10 +433,33 @@ internal fun CatalogScreen(
                         modifier = Modifier.weight(1f),
                         favoriteIds = favoriteIds,
                         onToggleFavorite = if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
+                        sortOrder = if (section == CatalogSection.Live) null else sortOrder,
                     )
                 }
             }
         }
+        }
+    }
+}
+
+@Composable
+private fun CatalogSortTabs(order: CatalogSort, onSelect: (CatalogSort) -> Unit) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().focusGroup().testTag("catalog-sort"),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(CatalogSort.entries, key = { it.name }) { option ->
+            val label = when (option) {
+                CatalogSort.Newest -> R.string.catalog_sort_newest
+                CatalogSort.HighestRated -> R.string.catalog_sort_rating
+                CatalogSort.Name -> R.string.catalog_sort_name
+            }
+            CatalogFilterButton(
+                label = stringResource(label),
+                selected = option == order,
+                onClick = { onSelect(option) },
+                modifier = Modifier.testTag("catalog-sort-${option.name.lowercase()}"),
+            )
         }
     }
 }
@@ -655,6 +685,7 @@ private fun ItemContent(
     modifier: Modifier,
     favoriteIds: Set<String> = emptySet(),
     onToggleFavorite: ((CatalogItem) -> Unit)? = null,
+    sortOrder: CatalogSort? = null,
 ) {
     Box(modifier = modifier.fillMaxWidth()) {
         when (state) {
@@ -665,11 +696,11 @@ private fun ItemContent(
             is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
             is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_items)
             is CatalogState.Content -> {
-                ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite)
+                ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite, sortOrder)
                 if (state.isRefreshing) CatalogRefreshingNotice(Modifier.align(Alignment.TopCenter))
             }
             is CatalogState.StaleContent -> {
-                ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite)
+                ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite, sortOrder)
                 CatalogStaleNotice(state.failure, Modifier.align(Alignment.TopCenter))
             }
         }
@@ -683,7 +714,21 @@ private fun ItemGrid(
     onPlay: (CatalogItem) -> Unit,
     favoriteIds: Set<String> = emptySet(),
     onToggleFavorite: ((CatalogItem) -> Unit)? = null,
+    sortOrder: CatalogSort? = null,
 ) {
+    var visibleRecords by remember(records, sortOrder) {
+        mutableStateOf<List<CatalogItem>?>(if (sortOrder == null) records else null)
+    }
+    LaunchedEffect(records, sortOrder) {
+        if (sortOrder != null) {
+            visibleRecords = withContext(Dispatchers.Default) { sortCatalogItems(records, sortOrder) }
+        }
+    }
+    val sorted = visibleRecords
+    if (sorted == null) {
+        CatalogLoadingState()
+        return
+    }
     BoxWithConstraints(Modifier.fillMaxSize()) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(catalogGridColumns(maxWidth)),
@@ -691,7 +736,7 @@ private fun ItemGrid(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(records, key = { it.providerId }) { item ->
+            items(sorted, key = { it.providerId }) { item ->
                 Box {
                     CatalogTile(
                         label = item.name,
