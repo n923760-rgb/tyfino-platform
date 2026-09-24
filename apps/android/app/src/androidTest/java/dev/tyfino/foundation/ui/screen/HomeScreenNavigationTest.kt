@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -38,6 +39,8 @@ class HomeScreenNavigationTest {
         for (route in listOf("live", "movies", "series")) {
             composeRule.onNodeWithTag("home-$route").assertDoesNotExist()
         }
+        composeRule.onNodeWithTag("open-account-switcher").assertIsDisplayed()
+        composeRule.onNodeWithTag("home-open-settings").assertIsDisplayed()
         composeRule.onNodeWithTag("home-screen").performScrollToNode(hasTestTag("open-account-switcher"))
         composeRule.onNodeWithTag("open-account-switcher")
             .assertHasClickAction().performClick()
