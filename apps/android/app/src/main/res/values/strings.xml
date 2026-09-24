@@ -32,6 +32,10 @@
     <string name="open_settings">Open settings</string>
     <string name="settings_title">Settings</string>
     <string name="settings_description">Manage the IPTV accounts saved on this device.</string>
+    <string name="settings_user_agent_title">Provider compatibility</string>
+    <string name="settings_user_agent_description">Choose the User-Agent sent to your IPTV provider. A change applies to new requests and the next playback session.</string>
+    <string name="settings_user_agent_tyfino">TYFINO (default)</string>
+    <string name="settings_user_agent_vlc">VLC compatible</string>
     <string name="licensing_title">Unlock TYFINO</string>
     <string name="licensing_description">Start your 7-day free trial or activate the app now. Your IPTV account stays only on this device.</string>
     <string name="start_trial">Start 7-Day Free Trial</string>

@@ -7,6 +7,7 @@ import androidx.media3.common.C
 import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
+import dev.tyfino.foundation.xtream.ProviderUserAgentPreset
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -16,12 +17,14 @@ import java.util.Locale
 
 internal class BoundedRedirectDataSource(
     private val cleartextConsent: Boolean,
+    private val userAgent: String = ProviderUserAgentPreset.Tyfino.header(),
 ) : BaseDataSource(true) {
     internal class Factory(
         private val cleartextConsent: Boolean,
+        private val userAgent: String = ProviderUserAgentPreset.Tyfino.header(),
     ) : DataSource.Factory {
         override fun createDataSource(): DataSource =
-            BoundedRedirectDataSource(cleartextConsent)
+            BoundedRedirectDataSource(cleartextConsent, userAgent)
     }
 
     private var connection: HttpURLConnection? = null
@@ -107,6 +110,7 @@ internal class BoundedRedirectDataSource(
                 connectTimeout = CONNECT_TIMEOUT_MILLIS
                 readTimeout = READ_TIMEOUT_MILLIS
                 requestMethod = requestMethod(dataSpec)
+                setRequestProperty("User-Agent", userAgent)
                 setRequestProperty("Accept-Encoding", "identity")
                 rangeHeader(dataSpec)?.let { setRequestProperty("Range", it) }
                 connect()

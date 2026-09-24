@@ -32,6 +32,10 @@
     <string name="open_settings">فتح الإعدادات</string>
     <string name="settings_title">الإعدادات</string>
     <string name="settings_description">إدارة حسابات IPTV المحفوظة على هذا الجهاز.</string>
+    <string name="settings_user_agent_title">توافق المزوّد</string>
+    <string name="settings_user_agent_description">اختر معرّف التطبيق المرسل إلى مزوّد IPTV. يسري التغيير على الطلبات الجديدة وجلسة التشغيل التالية.</string>
+    <string name="settings_user_agent_tyfino">TYFINO (الافتراضي)</string>
+    <string name="settings_user_agent_vlc">متوافق مع VLC</string>
     <string name="licensing_title">فعّل TYFINO</string>
     <string name="licensing_description">ابدأ تجربتك المجانية لمدة 7 أيام أو فعّل التطبيق مباشرة. يبقى حساب IPTV على جهازك فقط.</string>
     <string name="start_trial">ابدأ التجربة المجانية 7 أيام</string>

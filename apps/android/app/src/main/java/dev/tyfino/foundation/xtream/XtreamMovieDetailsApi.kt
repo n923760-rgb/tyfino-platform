@@ -25,6 +25,7 @@ internal class HttpXtreamMovieDetailsApi(
     private val connectionFactory: (URL) -> HttpURLConnection,
     private val parser: XtreamMovieDetailsParser = XtreamMovieDetailsParser(),
     private val responseLimitBytes: Long = MAX_RESPONSE_BYTES,
+    private val userAgent: () -> String = { ProviderUserAgentPreset.Tyfino.header() },
 ) : XtreamMovieDetailsApi {
     constructor(context: Context) : this(
         networkAvailable = {
@@ -34,6 +35,7 @@ internal class HttpXtreamMovieDetailsApi(
                 ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
         },
         connectionFactory = { it.openConnection() as HttpURLConnection },
+        userAgent = { ProviderUserAgent(context).header() },
     )
 
     override suspend fun details(account: SavedXtreamAccount, movieId: String): MovieDetailsResult =
@@ -58,6 +60,7 @@ internal class HttpXtreamMovieDetailsApi(
                 connection.instanceFollowRedirects = false
                 connection.useCaches = false
                 connection.setRequestProperty("Accept", "application/json")
+                connection.setRequestProperty("User-Agent", userAgent())
                 connection.setRequestProperty("Accept-Encoding", "gzip, identity")
                 when (connection.responseCode) {
                     HttpURLConnection.HTTP_UNAUTHORIZED, HttpURLConnection.HTTP_FORBIDDEN ->

@@ -35,6 +35,7 @@ internal class HttpXtreamCatalogApi(
     private val connectionFactory: (URL) -> HttpURLConnection,
     private val parser: XtreamCatalogParser = XtreamCatalogParser(),
     private val responseLimitBytes: Long = MAX_RESPONSE_BYTES,
+    private val userAgent: () -> String = { ProviderUserAgentPreset.Tyfino.header() },
 ) : XtreamCatalogApi {
     constructor(context: Context) : this(
         networkAvailable = {
@@ -44,6 +45,7 @@ internal class HttpXtreamCatalogApi(
             capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
         },
         connectionFactory = { url -> url.openConnection() as HttpURLConnection },
+        userAgent = { ProviderUserAgent(context).header() },
     )
 
     override suspend fun categories(
@@ -121,6 +123,7 @@ internal class HttpXtreamCatalogApi(
         connection.instanceFollowRedirects = false
         connection.useCaches = false
         connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("User-Agent", userAgent())
         connection.setRequestProperty("Accept-Encoding", "gzip, identity")
     }
 

@@ -94,6 +94,7 @@ internal interface XtreamApi {
 }
 
 internal class HttpXtreamApi(context: Context) : XtreamApi {
+    private val userAgent = ProviderUserAgent(context)
     private val connectivityManager =
         context.getSystemService(ConnectivityManager::class.java)
 
@@ -120,6 +121,7 @@ internal class HttpXtreamApi(context: Context) : XtreamApi {
             connection.instanceFollowRedirects = false
             connection.useCaches = false
             connection.setRequestProperty("Accept", "application/json")
+            connection.setRequestProperty("User-Agent", userAgent.header())
 
             val status = connection.responseCode
             if (status == HttpURLConnection.HTTP_UNAUTHORIZED || status == HttpURLConnection.HTTP_FORBIDDEN) {
