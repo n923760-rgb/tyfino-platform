@@ -5,6 +5,9 @@
     <string name="destination_live">البث المباشر</string>
     <string name="destination_movies">الأفلام</string>
     <string name="destination_series">المسلسلات</string>
+    <string name="catalog_sort_newest">الأحدث إضافة</string>
+    <string name="catalog_sort_rating">الأعلى تقييمًا</string>
+    <string name="catalog_sort_name">الاسم</string>
     <string name="destination_settings">الإعدادات</string>
     <string name="home_title">ماذا تريد أن تشاهد؟</string>
     <string name="home_description">اكتشف الجديد وأكمل ما شاهدته.</string>

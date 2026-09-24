@@ -126,6 +126,8 @@ The shared Live, Movies, Series, search, favorites, and history item grids show 
 
 When the full catalog content pane is at least 800dp wide, its category picker becomes a 200dp vertical list next to the selected item's grid. Narrower panes retain horizontal categories above the grid. The three section filters and local search remain above both layouts; grid columns continue to follow the remaining pane width.
 
+Movies and Series can locally sort an opened category or the bounded cached search results by newest provider add date, numeric rating, or name. Missing dates and invalid ratings appear last; equal values keep provider order. Larger category sorts run away from the UI thread. Recent viewing and Favorites retain their own ordering, and sorting never downloads unopened categories.
+
 Artwork networking has bounded concurrency and timeouts, rejects redirects, limits a response to 8 MiB even when Content-Length is absent, and uses a 20% memory-cache ceiling (10% on low-RAM devices or devices with less than 128 MiB memory class) plus a 64 MiB disk-cache ceiling. Artwork is decorative: the card label and supporting metadata remain the accessibility description. Physical low-memory TV, provider/CDN, RTL, and D-pad qualification remains BLOCKED.
 
 ## Movie details scope
