@@ -116,6 +116,8 @@ The player opens the selected Live channel's program guide only when requested. 
 
 Catalog cards render already-validated artwork references lazily through one application-owned image loader. Live uses a landscape frame; Movies and Series use a poster frame. A local placeholder remains visible for missing, rejected, slow, redirected, oversized, or failed images, and the card stays navigable without waiting for artwork.
 
+The shared card uses 12dp corners, a two-character label on a stable tonal gradient when artwork is unavailable, and a short image crossfade when artwork loads. Coil's `AsyncImage` requests the image at the rendered card constraints; title and supporting text remain bounded to two and one lines, respectively.
+
 The shared Live, Movies, Series, search, favorites, and history item grids show three cards in narrow content panes, then four from 480dp, five from 600dp, and six from 900dp of available grid width. The number follows the content pane after navigation and padding, so it also adapts when a foldable or multi-window view changes size.
 
 Artwork networking has bounded concurrency and timeouts, rejects redirects, limits a response to 8 MiB even when Content-Length is absent, and uses an 8% memory-cache ceiling plus a 64 MiB disk-cache ceiling. Artwork is decorative: the card label and supporting metadata remain the accessibility description. Physical low-memory TV, provider/CDN, RTL, and D-pad qualification remains BLOCKED.

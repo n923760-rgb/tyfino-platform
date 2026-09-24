@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
@@ -39,9 +40,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -56,6 +60,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.ContinueWatchingItem
 import dev.tyfino.foundation.playback.CatalogHistoryListResult
@@ -726,6 +732,25 @@ internal fun CatalogTile(
     compact: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val monogram = remember(label) {
+        val words = label.trim().split(Regex("\\s+")).filter(String::isNotEmpty)
+        if (words.size >= 2) words.take(2).joinToString("") { it.take(1) } else label.trim().take(2).ifEmpty { "•" }
+    }
+    val artworkRequest = remember(context, artworkUrl) {
+        artworkUrl?.let { ImageRequest.Builder(context).data(it).crossfade(true).build() }
+    }
+    val tintIndex = (label.hashCode().ushr(1) % 3)
+    val tint = when (tintIndex) {
+        0 -> MaterialTheme.colorScheme.primaryContainer
+        1 -> MaterialTheme.colorScheme.secondaryContainer
+        else -> MaterialTheme.colorScheme.tertiaryContainer
+    }
+    val onTint = when (tintIndex) {
+        0 -> MaterialTheme.colorScheme.onPrimaryContainer
+        1 -> MaterialTheme.colorScheme.onSecondaryContainer
+        else -> MaterialTheme.colorScheme.onTertiaryContainer
+    }
     Card(
         onClick = onClick,
         enabled = enabled,
@@ -746,6 +771,7 @@ internal fun CatalogTile(
                 else -> MaterialTheme.colorScheme.outlineVariant
             },
         ),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (selected) {
                 MaterialTheme.colorScheme.primaryContainer
@@ -763,18 +789,19 @@ internal fun CatalogTile(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(artworkAspectRatio)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Brush.linearGradient(listOf(tint, MaterialTheme.colorScheme.surfaceVariant)))
                         .testTag("catalog-artwork-placeholder"),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = label.trim().take(1).ifEmpty { "•" },
+                        text = monogram,
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = onTint,
                     )
-                    if (artworkUrl != null) {
+                    if (artworkRequest != null) {
                         AsyncImage(
-                            model = artworkUrl,
+                            model = artworkRequest,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
