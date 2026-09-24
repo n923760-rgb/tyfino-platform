@@ -21,6 +21,7 @@
         android:banner="@drawable/tv_banner_tyfino"
         android:icon="@drawable/ic_app_tyfino"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locale_config"
         android:roundIcon="@drawable/ic_app_tyfino"
         android:supportsRtl="true"
         android:theme="@style/Theme.Tyfino"
