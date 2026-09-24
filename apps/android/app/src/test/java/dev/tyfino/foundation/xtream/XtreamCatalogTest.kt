@@ -140,6 +140,18 @@ class XtreamCatalogTest {
         assertEquals(false, factory.lastConnection?.instanceFollowRedirects)
         assertEquals(8_000, factory.lastConnection?.connectTimeout)
         assertEquals(60_000, factory.lastConnection?.readTimeout)
+        assertEquals(ProviderUserAgentPreset.Tyfino.header(), factory.lastConnection?.getRequestProperty("User-Agent"))
+    }
+
+    @Test
+    fun transportSendsSelectedProviderUserAgent() = runBlocking {
+        val factory = FakeConnectionFactory(200, "[]")
+        HttpXtreamCatalogApi(
+            networkAvailable = { true },
+            connectionFactory = factory::open,
+            userAgent = { ProviderUserAgentPreset.Vlc.header() },
+        ).categories(account(), CatalogSection.Live)
+        assertEquals("VLC/3.0.0", factory.lastConnection?.getRequestProperty("User-Agent"))
     }
 
     @Test

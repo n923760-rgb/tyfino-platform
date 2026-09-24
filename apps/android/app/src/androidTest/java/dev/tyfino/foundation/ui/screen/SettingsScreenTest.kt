@@ -5,9 +5,12 @@ import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.window.Dialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.tyfino.foundation.xtream.ProviderUserAgent
+import dev.tyfino.foundation.xtream.ProviderUserAgentPreset
 import org.junit.Assert.assertEquals
 import org.junit.After
 import org.junit.Before
@@ -62,5 +65,23 @@ class SettingsScreenTest {
 
         compose.waitForIdle()
         compose.onNodeWithTag("open-account-switcher").assertIsFocused()
+    }
+
+    @Test
+    fun userAgentChoicePersistsAcrossSettingsVisits() {
+        val store = ProviderUserAgent(InstrumentationRegistry.getInstrumentation().targetContext)
+        val original = store.selected()
+        try {
+            compose.setContent {
+                MaterialTheme { SettingsScreen(onOpenAccountSwitcher = {}, onManageAccounts = {}) }
+            }
+            compose.onNodeWithTag("settings-user-agent-vlc").performScrollTo().performClick()
+            compose.runOnIdle {
+                assertEquals(ProviderUserAgentPreset.Vlc, store.selected())
+                assertEquals("VLC/3.0.0", store.header())
+            }
+        } finally {
+            store.select(original)
+        }
     }
 }

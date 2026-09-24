@@ -114,6 +114,8 @@ The foreground player uses a shorter 15–30 second, 16 MiB target buffer for Li
 
 Only Live playback retries a lost connection, timeout, or expired live window: up to three attempts after 1, 2, and 4 seconds, then the existing manual Retry/Back error state. When the default network returns during a pending delay, playback resumes that attempt immediately without adding an attempt. Each attempt rechecks the active account, foreground lifecycle, player identity, and destination exit state; leaving the player cancels pending retry work and unregisters the network callback. Access, format, and decoder failures do not automatically retry.
 
+Settings offers two bounded provider User-Agent presets: `TYFINO/<versionName> (Android)` by default, or `VLC/3.0.0` for provider compatibility. The local preference applies to new Xtream authentication, catalog, details, EPG, and background new-content requests; a new playback session snapshots the same value for media requests and approved redirects. It never changes the licensing transport or the account's HTTP consent and redirect limits.
+
 ## Live EPG scope
 
 The player opens the selected Live channel's program guide only when requested. A direct per-channel provider request updates an account-owned, bounded cache; playback does not wait for guide data. The dialog shows current/next programs and a lazy schedule with localized loading, empty, stale, and error states. Closing it or changing channels invalidates older results, and account removal clears the EPG cache. Physical TV D-pad, RTL, accessibility, media, and performance qualification remains BLOCKED until recorded under the device-qualification contract.

@@ -12,6 +12,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import dev.tyfino.foundation.playback.BoundedRedirectDataSource
 import dev.tyfino.foundation.xtream.CatalogSection
+import dev.tyfino.foundation.xtream.ProviderUserAgent
 
 private const val LIVE_MIN_BUFFER_MS = 15_000
 private const val LIVE_MAX_BUFFER_MS = 30_000
@@ -27,7 +28,7 @@ private const val LOW_MEMORY_TARGET_BYTES = 16 * 1024 * 1024
 internal object PlayerFactory {
     fun create(context: Context, cleartextConsent: Boolean, section: CatalogSection): ExoPlayer {
         val mediaSourceFactory = DefaultMediaSourceFactory(context)
-            .setDataSourceFactory(BoundedRedirectDataSource.Factory(cleartextConsent))
+            .setDataSourceFactory(BoundedRedirectDataSource.Factory(cleartextConsent, ProviderUserAgent(context).header()))
         val lowMemory = (context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager)?.isLowRamDevice == true
         val boundedBuffer = section == CatalogSection.Live || lowMemory
         val loadControl = DefaultLoadControl.Builder().apply {

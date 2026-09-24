@@ -26,6 +26,7 @@ internal class HttpLiveEpgApi(
     private val connectionFactory: (URL) -> HttpURLConnection,
     private val parser: LiveEpgParser = LiveEpgParser(),
     private val responseLimitBytes: Long = MAX_RESPONSE_BYTES,
+    private val userAgent: () -> String = { ProviderUserAgentPreset.Tyfino.header() },
 ) : LiveEpgApi {
     constructor(context: Context) : this(
         networkAvailable = {
@@ -35,6 +36,7 @@ internal class HttpLiveEpgApi(
             capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
         },
         connectionFactory = { url -> url.openConnection() as HttpURLConnection },
+        userAgent = { ProviderUserAgent(context).header() },
     )
 
     override suspend fun shortGuide(account: SavedXtreamAccount, channelId: String): LiveEpgResult =
@@ -88,6 +90,7 @@ internal class HttpLiveEpgApi(
         connection.instanceFollowRedirects = false
         connection.useCaches = false
         connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("User-Agent", userAgent())
         connection.setRequestProperty("Accept-Encoding", "gzip, identity")
     }
 

@@ -28,6 +28,7 @@ internal class HttpXtreamSeriesApi(
     private val connectionFactory: (URL) -> HttpURLConnection,
     private val parser: XtreamSeriesParser = XtreamSeriesParser(),
     private val responseLimitBytes: Long = MAX_RESPONSE_BYTES,
+    private val userAgent: () -> String = { ProviderUserAgentPreset.Tyfino.header() },
 ) : XtreamSeriesApi {
     constructor(context: Context) : this(
         networkAvailable = {
@@ -37,6 +38,7 @@ internal class HttpXtreamSeriesApi(
             capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
         },
         connectionFactory = { url -> url.openConnection() as HttpURLConnection },
+        userAgent = { ProviderUserAgent(context).header() },
     )
 
     override suspend fun details(
@@ -102,6 +104,7 @@ internal class HttpXtreamSeriesApi(
         connection.instanceFollowRedirects = false
         connection.useCaches = false
         connection.setRequestProperty("Accept", "application/json")
+        connection.setRequestProperty("User-Agent", userAgent())
         connection.setRequestProperty("Accept-Encoding", "gzip, identity")
     }
 
