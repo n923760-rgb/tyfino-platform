@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.xtream
 
 import android.content.Context
+import androidx.core.content.edit
 import dev.tyfino.foundation.BuildConfig
 
 internal enum class ProviderUserAgentPreset(val storageValue: String) {
@@ -26,7 +27,7 @@ internal class ProviderUserAgent(context: Context) {
         ProviderUserAgentPreset.fromStorage(preferences.getString(KEY_PRESET, null))
 
     fun select(preset: ProviderUserAgentPreset) {
-        preferences.edit().putString(KEY_PRESET, preset.storageValue).apply()
+        preferences.edit { putString(KEY_PRESET, preset.storageValue) }
     }
 
     fun header(): String = selected().header()
