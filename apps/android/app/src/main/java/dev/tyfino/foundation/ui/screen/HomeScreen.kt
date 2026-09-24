@@ -18,9 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items as rowItems
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -193,21 +192,22 @@ internal fun HomeScreen(
     }
     val featured = history.featured()
     BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 200.dp),
+        val expanded = maxWidth >= 840.dp
+        val posterWidth = if (expanded) 180.dp else 128.dp
+        val channelWidth = if (expanded) 236.dp else 176.dp
+        LazyColumn(
             modifier = Modifier
-                .width(minOf(maxWidth, 900.dp))
+                .width(minOf(maxWidth, 1280.dp))
                 .fillMaxHeight()
                 .focusGroup()
                 .testTag("home-screen"),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = if (expanded) 48.dp else 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "heading") {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            item(contentType = "heading") {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text("TYFINO", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                             Text(stringResource(R.string.home_title), style = MaterialTheme.typography.headlineSmall)
                         }
@@ -226,19 +226,27 @@ internal fun HomeScreen(
                                 }
                             },
                             modifier = Modifier
-                                .then(if (featured == null) Modifier.focusRequester(initialFocus) else Modifier)
                                 .testTag("home-content-alerts"),
                             selected = alertsEnabled,
                         )
                     }
-                    Text(
-                        stringResource(R.string.home_description),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().focusGroup()) {
+                        FocusVisibleButton(
+                            label = stringResource(R.string.xtream_switch_account),
+                            onClick = onOpenAccountSwitcher,
+                            modifier = Modifier.weight(1f)
+                                .then(if (featured == null) Modifier.focusRequester(initialFocus) else Modifier)
+                                .testTag("open-account-switcher"),
+                        )
+                        FocusVisibleButton(
+                            label = stringResource(R.string.open_settings),
+                            onClick = onOpenSettings,
+                            modifier = Modifier.weight(1f).testTag("home-open-settings"),
+                        )
+                    }
                 }
             }
-            if (featured != null) item(span = { GridItemSpan(maxLineSpan) }, contentType = "featured") {
+            if (featured != null) item(contentType = "featured") {
                 HomeHero(
                     featured = featured,
                     onClick = {
@@ -255,23 +263,21 @@ internal fun HomeScreen(
             if (historyLoaded && history.latestMovies.isEmpty() && history.latestSeries.isEmpty() &&
                 history.live.isEmpty() && history.movies.isEmpty() &&
                 history.seriesHistory.isEmpty() && history.seriesResume.isEmpty()
-            ) item(span = { GridItemSpan(maxLineSpan) }, contentType = "empty-content") {
+            ) item(contentType = "empty-content") {
                 Text(stringResource(R.string.home_empty_sections),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.testTag("home-empty-content"))
             }
-            if (history.latestMovies.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-movies") {
-                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie, "home-latest-movies")
-            }
-            if (history.latestSeries.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "latest-series") {
-                HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries, "home-latest-series")
-            }
-            if (history.live.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-live") {
+            if (history.live.isNotEmpty()) item(contentType = "recent-live") {
                 HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive,
-                    "home-recent-live", 16f / 9f)
+                    "home-recent-live", channelWidth, 16f / 9f)
             }
-            if (history.seriesHistory.isNotEmpty() || history.seriesResume.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-series") {
+            if (history.movies.isNotEmpty()) item(contentType = "recent-movies") {
+                HomeRecentStrip(stringResource(R.string.home_recent_movies), history.movies, onResumeMovie,
+                    "home-recent-movies", posterWidth)
+            }
+            if (history.seriesHistory.isNotEmpty() || history.seriesResume.isNotEmpty()) item(contentType = "recent-series") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("home-recent-series")) {
                         Text(stringResource(R.string.home_recent_series), style = MaterialTheme.typography.titleMedium)
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
@@ -280,7 +286,7 @@ internal fun HomeScreen(
                                     label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
                                     selected = false,
                                     onClick = { onPlaySeriesHistory(item) },
-                                    modifier = Modifier.width(120.dp),
+                                    modifier = Modifier.width(posterWidth),
                                     showArtwork = true,
                                     artworkUrl = item.seriesArtworkUrl,
                                     artworkAspectRatio = 2f / 3f,
@@ -291,32 +297,20 @@ internal fun HomeScreen(
                             } }, key = { "resume:${it.episode.providerSeriesId}" }) { item ->
                                 CatalogTile(
                                     label = listOfNotNull(item.seriesTitle, item.episode.title).filter(String::isNotBlank).joinToString(" • "),
-                                    selected = false, onClick = { onResumeSeries(item) }, modifier = Modifier.width(120.dp),
+                                    selected = false, onClick = { onResumeSeries(item) }, modifier = Modifier.width(posterWidth),
                                     showArtwork = true, artworkUrl = item.seriesArtworkUrl, artworkAspectRatio = 2f / 3f,
                                 )
                             }
                         }
                     }
             }
-            if (history.movies.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }, contentType = "recent-movies") {
-                HomeRecentStrip(stringResource(R.string.home_recent_movies), history.movies, onResumeMovie, "home-recent-movies")
+            if (history.latestMovies.isNotEmpty()) item(contentType = "latest-movies") {
+                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie,
+                    "home-latest-movies", posterWidth)
             }
-            item(span = { GridItemSpan(maxLineSpan) }, contentType = "account") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.home_account_title), style = MaterialTheme.typography.titleMedium)
-                    FocusVisibleButton(
-                        label = stringResource(R.string.xtream_switch_account),
-                        onClick = onOpenAccountSwitcher,
-                        modifier = Modifier.fillMaxWidth()
-                            .then(if (newContentNotifier == null && featured == null) Modifier.focusRequester(initialFocus) else Modifier)
-                            .testTag("open-account-switcher"),
-                    )
-                    FocusVisibleButton(
-                        label = stringResource(R.string.open_settings),
-                        onClick = onOpenSettings,
-                        modifier = Modifier.fillMaxWidth().testTag("home-open-settings"),
-                    )
-                }
+            if (history.latestSeries.isNotEmpty()) item(contentType = "latest-series") {
+                HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries,
+                    "home-latest-series", posterWidth)
             }
         }
     }
@@ -331,7 +325,7 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
     BoxWithConstraints(Modifier.fillMaxWidth().testTag("home-featured")) {
         Box(
             modifier = Modifier.fillMaxWidth()
-                .heightIn(min = if (maxWidth < 600.dp) 220.dp else 300.dp)
+                .heightIn(min = if (maxWidth < 600.dp) 180.dp else 300.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant),
         ) {
@@ -373,6 +367,7 @@ private fun HomeRecentStrip(
     records: List<CatalogItem>,
     onClick: (CatalogItem) -> Unit,
     tag: String,
+    tileWidth: Dp,
     artworkAspectRatio: Float = 2f / 3f,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag(tag)) {
@@ -383,7 +378,7 @@ private fun HomeRecentStrip(
                     label = item.name,
                     selected = false,
                     onClick = { onClick(item) },
-                    modifier = Modifier.width(120.dp),
+                    modifier = Modifier.width(tileWidth),
                     showArtwork = true,
                     artworkUrl = item.artworkUrl,
                     artworkAspectRatio = artworkAspectRatio,
