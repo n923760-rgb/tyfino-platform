@@ -126,9 +126,11 @@ RISK — old governance files could become a competing authority unless explicit
 Current owner instruction
 → nearest `AGENTS.md`
 → central Master Engineering System
-→ `/ENGINEERING/MASTER_ROADMAP.md`
-→ TYFINO architecture/security/data-ownership docs and scoped contracts
+→ approved TYFINO architecture/security/data-ownership docs and scoped contracts
+→ `/ENGINEERING/MASTER_ROADMAP.md` as canonical state/sequencing
 → project environment/task-result controls.
+
+The roadmap coordinates execution state and ordering; it does not override an applicable approved subsystem contract.
 
 ## P. PROPOSED PROJECT-SOURCES MODEL
 
