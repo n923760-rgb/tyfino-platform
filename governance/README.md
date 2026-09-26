@@ -22,9 +22,11 @@ Do not create another TYFINO roadmap elsewhere.
 1. Current explicit owner instruction.
 2. Root or nearest `AGENTS.md`.
 3. Central Master Engineering System.
-4. `/ENGINEERING/MASTER_ROADMAP.md`.
-5. Approved TYFINO architecture/security/data-ownership documents and scoped subsystem contracts.
+4. Approved TYFINO architecture/security/data-ownership documents and scoped subsystem contracts.
+5. `/ENGINEERING/MASTER_ROADMAP.md` as the canonical engineering state and sequencing record.
 6. Project-specific governance/environment/task-result controls in this directory.
+
+The roadmap does not override an applicable approved subsystem contract.
 
 ## Existing governance records
 
