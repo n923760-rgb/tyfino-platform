@@ -1,66 +1,64 @@
-# TYFINO Governance Adoption Status
+# TYFINO Master Engineering System Adoption Status
 
-Status: QUALIFIED
+Status: FOUNDATION ESTABLISHED — QUALIFICATION IS EVIDENCE-DRIVEN
+Governance baseline: Master Engineering System
 
-Governance baseline: Engineering Governance v1.0.0
+## Migration basis
 
-## Qualification Evidence
+The migration to the current Master Engineering System was prepared after a read-only live re-baseline of TYFINO.
 
-The TYFINO repository has completed the governance-adoption qualification flow.
+Migration reference inspected:
+- Central governance repository: `n923760-rgb/engineering-governance`
+- Central `main` inspected at: `641e4f9e45da109257ba1f38752b94604c2e4531`
+- TYFINO official `main` inspected at: `bcfa27ed15fc5b074303d9bbefd53f8a67e2ed1a`
+- Read-only baseline findings persisted in: `/ENGINEERING/REPORTS/MASTER_ENGINEERING_BASELINE_REPORT.md`
 
-Verified adoption sequence:
+These SHAs are migration evidence only. They are not future task expected-HEAD values.
 
-- Initial live source before adoption: `main@0ab59398d64e936430cced924d0cd8f4fdc56c3f`
-- Adoption PR: #106
-- Adoption PR exact head: `49be6a9f18292733bf0edded675481e607b67680`
-- PR Validate run: `35746762235` / run #304 — PASS
-- Owner explicitly authorized merge.
-- Adoption merge commit: `344aabffd2921fdd7c849167606b17a1ea08ddac`
-- Post-merge Validate run: `35747421502` / run #305 — PASS
-- All post-merge jobs passed:
-  - deployment-config;
-  - api;
-  - admin;
-  - database-backup-restore;
-  - android;
-  - android-instrumentation (phone-api-27);
-  - android-instrumentation (tablet-api-35).
+## Established foundation
 
-The adoption diff was governance-only: `AGENTS.md` plus files under `governance/`. It did not modify Android behavior, API/Admin/database behavior, CI test logic, signing workflow behavior, deployment behavior, or product architecture.
+- [x] Root `AGENTS.md` aligned to the Master Engineering System.
+- [x] Single canonical `/ENGINEERING/MASTER_ROADMAP.md` established.
+- [x] `/ENGINEERING/REPORTS/` established.
+- [x] `/ENGINEERING/EVIDENCE/` established.
+- [x] TYFINO project profile reconciled with the new authority model.
+- [x] Existing TYFINO-specific governance controls preserved.
+- [x] Protected actions and project stop conditions retained.
+- [x] Existing Task Packet / Result Packet discipline retained.
 
-These SHAs and run IDs are historical qualification evidence only. Every future engineering task must re-query live repository, PR, CI, and environment state when they matter.
+## Historical qualification
 
-## Qualified Operating Model
+TYFINO previously completed the older Engineering Governance v1.0.0 adoption and qualification sequence. Those records remain historical evidence under this directory.
 
-TYFINO engineering now follows Engineering Governance v1.0.0:
+The new Master Engineering System does not convert historical PASS results into present PASS. Every future task must re-query live source, CI, environment, and runtime evidence when relevant.
 
-Current Problem → Current Source → Isolated Change → Evidence → Review → Merge Decision
+## Qualification rules going forward
 
-For each future source task:
-- verify live repository identity and official `main` HEAD;
-- read `AGENTS.md`, this project profile, and applicable scoped contracts;
-- define one bounded engineering scope;
-- use an isolated branch/PR for repository mutation;
-- run the smallest deterministic test first, then relevant regressions;
-- record PASS / FAIL / BLOCKED / SKIPPED / NOT RUN honestly;
-- tie important conclusions to exact source and execution evidence;
-- perform protected actions only when explicitly authorized by the current owner instruction.
+A governed task is only qualified when its exact source and required proof are attributable.
 
-## Deliberately Not Qualified by Governance Adoption
+Use:
+- `PASS`
+- `FAIL`
+- `BLOCKED`
+- `UNKNOWN`
+- `NOT RUN`
+- `SKIPPED`
 
-Governance adoption does **not** mean the TYFINO product is production-qualified.
+Governance qualification does not mean the TYFINO product or production environment is release-qualified.
 
-The following remain separately gated:
+## Remaining independent gates
 
-- production deployment;
-- production server/VPS state;
-- production database migration;
-- physical Android TV/Google TV qualification;
-- API-24-class physical-device qualification;
+These remain separate from governance adoption:
+
+- production deployment qualification;
+- production backup/restore and monitoring evidence;
+- signing-key custody/recovery and exact-release signing;
+- physical Android TV / Google TV qualification;
+- low-RAM/API-24-class and foldable qualification;
 - real-provider/media playback qualification;
-- RTL/accessibility/performance physical-device qualification;
-- signing-key custody beyond repository workflow evidence;
-- production backup destination, retention, and restore target;
-- unresolved OPEN product/deployment decisions.
+- RTL/accessibility/performance physical-device evidence;
+- unresolved retention/operations decisions.
 
-Those require their own bounded Task Packets and attributable evidence.
+## Protected-action rule
+
+Merge, release, signing, deployment, and every other protected action require explicit current owner authorization for the exact action. Repository permissions alone are not authority.
