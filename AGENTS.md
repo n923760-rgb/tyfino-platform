@@ -9,11 +9,11 @@ The target repository is always the source of live project truth. Historical cha
 1. Current explicit owner instruction.
 2. The nearest applicable `AGENTS.md`.
 3. The central Master Engineering System (`engineering-governance/MASTER_GOVERNANCE.md`).
-4. `/ENGINEERING/MASTER_ROADMAP.md`.
-5. Approved TYFINO architecture/security/data-ownership documents and scoped subsystem contracts.
+4. Approved TYFINO architecture/security/data-ownership documents and scoped subsystem contracts.
+5. `/ENGINEERING/MASTER_ROADMAP.md` as the canonical engineering state and sequencing record.
 6. TYFINO engineering-environment and task/result governance under `governance/`.
 
-A lower layer may narrow authority but must not widen a higher layer.
+The roadmap coordinates work but does not override an applicable approved subsystem contract. A lower layer may narrow authority but must not widen a higher layer.
 
 ## Canonical engineering state
 
