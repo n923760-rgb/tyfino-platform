@@ -38,19 +38,31 @@ Do not create a second roadmap.
 
 - governance/README.md
 - governance/PROJECT_PROFILE.md
+- governance/project-profile.json
 - governance/ADOPTION_STATUS.md
 - governance/REPOSITORY_FOUNDATION_STATUS.md
 - governance/ENGINEERING_ENVIRONMENT_CONTRACT.md
 - governance/ENGINEERING_ENVIRONMENT_STATUS.md
+- governance/engineering-environment.json
 - governance/RESOURCE_MAP.md
 - governance/TASK_RESULT_PROTOCOL.md
 - governance/TASK_RESULT_PROTOCOL_STATUS.md
+- governance/task-result-protocol.json
 - governance/templates/TASK_PACKET.md
 - governance/templates/RESULT_PACKET.md
 - governance/task-records/
 - governance/AI_EXECUTOR_QUALIFICATION.md
+- governance/AI_EXECUTOR_QUALIFICATION_STATUS.md
+- governance/AI_EXECUTOR_BEHAVIORAL_TRIAL_PROTOCOL.md
+- governance/ai-executor-qualification.json
+- governance/executor-qualification/
 - governance/CI_QUALIFICATION.md
+- governance/CI_QUALIFICATION_STATUS.md
+- governance/ci-qualification.json
 - governance/GOVERNANCE_QUALIFICATION.md
+- governance/GOVERNANCE_QUALIFICATION_STATUS.md
+- governance/governance-qualification.json
+- governance/governance-qualification/
 - governance/scripts/
 
 ## Project / Architecture Baselines
