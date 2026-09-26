@@ -1,21 +1,28 @@
 # TYFINO Project Governance Profile
 
-Status: QUALIFIED
-Governance baseline: Engineering Governance v1.0.0
-Qualification record: governance/ADOPTION_STATUS.md
-Repository foundation record: governance/REPOSITORY_FOUNDATION_STATUS.md
+Status: ACTIVE — LIVE VERIFICATION REQUIRED PER TASK
+Governance baseline: Master Engineering System
+Central reference: https://github.com/n923760-rgb/engineering-governance
+Canonical roadmap: /ENGINEERING/MASTER_ROADMAP.md
 
 ## Project Identity
 
 PROJECT NAME: TYFINO
 REPOSITORY: n923760-rgb/tyfino-platform
+REPOSITORY URL: https://github.com/n923760-rgb/tyfino-platform
+DEFAULT BRANCH: main
 OFFICIAL BRANCH: main
 
 ## Governing Instructions
 
-REPOSITORY INSTRUCTION FILE: AGENTS.md
+REPOSITORY AUTHORITY FILE: AGENTS.md
 PROJECT BASELINE: README.md
-ENGINEERING GUIDES:
+MASTER ROADMAP: /ENGINEERING/MASTER_ROADMAP.md
+MASTER BASELINE REPORT: /ENGINEERING/REPORTS/MASTER_ENGINEERING_BASELINE_REPORT.md
+REPORT LOCATION: /ENGINEERING/REPORTS/
+EVIDENCE LOCATION: /ENGINEERING/EVIDENCE/
+
+ARCHITECTURE / SECURITY / OWNERSHIP GUIDES:
 - docs/architecture.md
 - docs/data-ownership.md
 - docs/security.md
@@ -36,113 +43,78 @@ SUBSYSTEM CONTRACTS:
 
 CI SYSTEM:
 - .github/workflows/ci.yml — Validate
-- .github/workflows/release-apk.yml — manual protected signed APK build
+- .github/workflows/device-test-apk.yml — manual device-test APK
+- .github/workflows/release-apk.yml — protected signed APK flow
 
-REPOSITORY FOUNDATION:
-- governance/REPOSITORY_FOUNDATION_STATUS.md — Phase 1 repository-foundation qualification and external protection gate
-- .github/CODEOWNERS — repository ownership
-- .github/pull_request_template.md — atomic task/evidence PR discipline
+CURRENT PROTECTION MODEL:
+- PR-based engineering policy is required by AGENTS.md.
+- Live repository protection/ruleset state must be verified before protected decisions.
+- Technical ability to write or merge is not authorization.
+
+ENGINEERING ENVIRONMENT:
+- governance/ENGINEERING_ENVIRONMENT_CONTRACT.md
+- governance/ENGINEERING_ENVIRONMENT_STATUS.md
+- governance/engineering-environment.json
 
 TASK / RESULT PROTOCOL:
-- governance/TASK_RESULT_PROTOCOL.md — Phase 3 packet rules, storage, evidence, and qualification boundary
-- governance/TASK_RESULT_PROTOCOL_STATUS.md — exact Phase 3 qualification evidence
-- governance/templates/TASK_PACKET.md — standard atomic work order
-- governance/templates/RESULT_PACKET.md — standard attributable execution result
-- governance/task-result-protocol.json — machine-readable protocol manifest
-- governance/scripts/validate-task-result-protocol.sh — CI drift/structure validation
-
-AI EXECUTOR QUALIFICATION:
-- governance/AI_EXECUTOR_QUALIFICATION.md — Phase 4 behavioral requirements and qualification boundary
-- governance/AI_EXECUTOR_QUALIFICATION_STATUS.md — policy-gate evidence and behavioral qualification status
-- governance/AI_EXECUTOR_BEHAVIORAL_TRIAL_PROTOCOL.md — controlled non-destructive behavioral trial protocol
-- governance/executor-qualification/behavioral-trials/2026-09-22/trial-plan.json — immutable issued trial plan
-- governance/executor-qualification/behavioral-trials/2026-09-22/trial-results.json — observed trial Result record
-- governance/ai-executor-qualification.json — machine-readable Phase 4 manifest
-- governance/scripts/evaluate-executor-policy.py — deterministic fail-closed policy evaluator
-- governance/scripts/validate-ai-executor-qualification.sh — safe fixture validation
-- governance/scripts/validate-ai-executor-behavioral-trials.sh — behavioral evidence consistency validation
-- governance/executor-qualification/fixtures/ — synthetic non-production qualification fixtures
-
-CI QUALIFICATION:
-- governance/CI_QUALIFICATION.md — Phase 5 exact-source, build/test evidence, and artifact-attribution contract
-- governance/CI_QUALIFICATION_STATUS.md — Phase 5 qualification evidence/status
-- governance/ci-qualification.json — machine-readable Phase 5 manifest
-- governance/scripts/validate-ci-qualification.sh — CI qualification structure/evidence validator
-
-GOVERNANCE QUALIFICATION:
-- governance/GOVERNANCE_QUALIFICATION.md — Phase 6 adversarial stop-condition contract
-- governance/GOVERNANCE_QUALIFICATION_STATUS.md — Phase 6 qualification evidence/status
-- governance/governance-qualification.json — machine-readable Phase 6 manifest
-- governance/governance-qualification/run-project-qualification.py — synthetic adversarial suite
-- governance/scripts/validate-governance-qualification.sh — Phase 6 CI validator
-- governance/scripts/verify-repository-state.sh — live repository fail-closed gate
-- governance/scripts/verify-environment-capacity.py — execution-capacity fail-closed gate
+- governance/TASK_RESULT_PROTOCOL.md
+- governance/templates/TASK_PACKET.md
+- governance/templates/RESULT_PACKET.md
+- governance/task-records/
 
 CONTROLLER: Engineering Controller
-EXECUTOR: Engineering Executor / authorized GitHub Actions or local execution environment
+EXECUTOR: authorized engineering executor, GitHub Actions, or other task-qualified environment
 
 ## Protected Actions
 
-PROTECTED ACTIONS:
 - merge
 - release
 - tag
 - signing
-- production_deploy
-- destructive_database_migration
-- production_credential_rotation
-- server_destruction_or_reinstall
-- force_push
-- history_rewrite
-- repository_deletion
-- permanent_release_artifact_deletion
+- store publication
+- production deployment
+- DNS changes
+- destructive database migration
+- production credential rotation
+- destructive production database operations
+- server/VPS/cloud destruction or reinstall
+- force push / history rewrite
+- repository deletion
+- permanent release-artifact deletion
 
-Technical access does not grant protected-action authority.
+Each protected action requires explicit current owner authorization for the exact target and scope.
 
 ## Test Strategy
 
-Use the smallest deterministic test that proves the changed contract, then the relevant regression surface.
+Use the smallest deterministic proof for the changed contract, then the relevant regression surface.
 
-Current repository CI includes:
-- deployment configuration validation;
-- API type-check, tests, and build;
-- restricted PostgreSQL role/migration checks;
-- admin type-check and build;
-- database backup/restore verification;
-- Android debug and optimized unsigned release builds;
-- Android unit tests;
-- Android lint;
-- managed-device instrumentation on phone API 27 and tablet API 35.
+Repository CI currently covers API, Admin, database/backup controls, Android builds, Android unit/lint checks, and managed-device instrumentation. Exact jobs must be re-read from the live workflow before relying on them.
 
-Physical phone, Android TV/Google TV, API-24-class, media, RTL, accessibility, and performance qualification remain separate evidence under the Android device qualification contract.
+Physical phone, Android TV/Google TV, low-RAM/API-24-class, foldable, real-provider/media, RTL, accessibility, and performance claims remain runtime-evidence gates.
 
-## Evidence
+## Security / Privacy Boundaries
 
-EVIDENCE LOCATION: task-specific CI runs, reports, logs, runtime records, checksums, and approved artifacts.
-REPORT LOCATION: task Result Packet or PR evidence.
-
-Never classify BLOCKED, SKIPPED, or NOT RUN as PASS.
-Never reuse the historical adoption SHA as a future Task Packet expected HEAD; fetch current live state.
-
-## Deployment Boundary
-
-Repository source and CI evidence do not authorize production deployment.
-
-Production deployment remains governed by `docs/deployment.md`, including its explicit entry gate, backup/restore, secret, monitoring, rollback, database-role, signing, endpoint, and environment requirements.
+- IPTV credentials remain direct Android-to-provider data and must not cross into TYFINO licensing.
+- Activation codes and entitlement secrets must not be persisted or logged beyond approved secure storage behavior.
+- Signing material and production secrets must never enter repository source, reports, screenshots, or ordinary logs.
+- Production deployment remains separately authorized and qualified.
 
 ## Project-Specific Stop Conditions
 
 Stop mutation when any of the following occurs:
+
 - unexpected official `main` HEAD;
-- wrong repository or branch;
-- dirty canonical source when a clean base is required;
-- conflicting active PR for the task branch;
-- applicable instruction or subsystem-contract conflict;
+- wrong repository/branch or ambiguous source identity;
+- conflicting task PR or overlapping scope;
+- applicable instruction/contract conflict;
 - task authority ambiguity;
-- secret or signing-material exposure;
-- Android package/application identity change without explicit approval;
-- production licensing endpoint change without explicit approval;
-- signing/release/deployment action without explicit owner authorization;
-- missing required evidence;
-- environment or runner incapable of proving the required behavior;
-- task expands into unrelated product/backend/Android work.
+- secret/signing-material exposure;
+- missing required execution capability or evidence;
+- Android package/application identity or production licensing-origin change without explicit approval;
+- signing/release/deployment/merge without explicit current owner authorization;
+- environment incapable of proving the required behavior;
+- scope expansion into unrelated Android/backend/admin/infrastructure work.
+
+## Notes
+
+All current-state values are re-verified from live repository/environment evidence when they matter. Historical governance records remain evidence, not current truth.
