@@ -51,16 +51,50 @@ CURRENT PROTECTION MODEL:
 - Live repository protection/ruleset state must be verified before protected decisions.
 - Technical ability to write or merge is not authorization.
 
+REPOSITORY FOUNDATION:
+- governance/REPOSITORY_FOUNDATION_STATUS.md
+- .github/CODEOWNERS
+- .github/pull_request_template.md
+
 ENGINEERING ENVIRONMENT:
 - governance/ENGINEERING_ENVIRONMENT_CONTRACT.md
 - governance/ENGINEERING_ENVIRONMENT_STATUS.md
 - governance/engineering-environment.json
+- governance/scripts/validate-engineering-environment.sh
 
 TASK / RESULT PROTOCOL:
 - governance/TASK_RESULT_PROTOCOL.md
+- governance/TASK_RESULT_PROTOCOL_STATUS.md
+- governance/task-result-protocol.json
 - governance/templates/TASK_PACKET.md
 - governance/templates/RESULT_PACKET.md
 - governance/task-records/
+- governance/scripts/validate-task-result-protocol.sh
+
+AI EXECUTOR QUALIFICATION:
+- governance/AI_EXECUTOR_QUALIFICATION.md
+- governance/AI_EXECUTOR_QUALIFICATION_STATUS.md
+- governance/AI_EXECUTOR_BEHAVIORAL_TRIAL_PROTOCOL.md
+- governance/ai-executor-qualification.json
+- governance/scripts/evaluate-executor-policy.py
+- governance/scripts/validate-ai-executor-qualification.sh
+- governance/scripts/validate-ai-executor-behavioral-trials.sh
+- governance/executor-qualification/
+
+CI QUALIFICATION:
+- governance/CI_QUALIFICATION.md
+- governance/CI_QUALIFICATION_STATUS.md
+- governance/ci-qualification.json
+- governance/scripts/validate-ci-qualification.sh
+
+GOVERNANCE QUALIFICATION:
+- governance/GOVERNANCE_QUALIFICATION.md
+- governance/GOVERNANCE_QUALIFICATION_STATUS.md
+- governance/governance-qualification.json
+- governance/governance-qualification/run-project-qualification.py
+- governance/scripts/validate-governance-qualification.sh
+- governance/scripts/verify-repository-state.sh
+- governance/scripts/verify-environment-capacity.py
 
 CONTROLLER: Engineering Controller
 EXECUTOR: authorized engineering executor, GitHub Actions, or other task-qualified environment
