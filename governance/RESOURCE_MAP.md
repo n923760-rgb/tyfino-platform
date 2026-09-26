@@ -1,6 +1,6 @@
 # TYFINO Project Sources / Resource Map
 
-Status: CURRENT PROJECT MAP — verify live references before use.
+Status: CURRENT PROJECT MAP — VERIFY LIVE REFERENCES BEFORE USE
 
 ## Source Repository
 
@@ -8,53 +8,50 @@ https://github.com/n923760-rgb/tyfino-platform
 
 Official branch: `main`
 
-## Governance Baseline
+## Central Governance
 
-https://github.com/n923760-rgb/engineering-governance/releases/tag/v1.0.0
+https://github.com/n923760-rgb/engineering-governance
 
-TYFINO customization:
-- governance/PROJECT_PROFILE.md
-- governance/project-profile.json
-- governance/ENGINEERING_ENVIRONMENT_CONTRACT.md
-- governance/ENGINEERING_ENVIRONMENT_STATUS.md
-- governance/engineering-environment.json
-- governance/scripts/validate-engineering-environment.sh
-- governance/ADOPTION_STATUS.md
-- governance/REPOSITORY_FOUNDATION_STATUS.md
-- governance/TASK_RESULT_PROTOCOL.md
-- governance/TASK_RESULT_PROTOCOL_STATUS.md
-- governance/task-result-protocol.json
-- governance/templates/TASK_PACKET.md
-- governance/templates/RESULT_PACKET.md
-- governance/task-records/README.md
-- governance/scripts/validate-task-result-protocol.sh
-- governance/AI_EXECUTOR_QUALIFICATION.md
-- governance/AI_EXECUTOR_QUALIFICATION_STATUS.md
-- governance/AI_EXECUTOR_BEHAVIORAL_TRIAL_PROTOCOL.md
-- governance/executor-qualification/behavioral-trials/2026-09-22/trial-plan.json
-- governance/executor-qualification/behavioral-trials/2026-09-22/trial-results.json
-- governance/ai-executor-qualification.json
-- governance/scripts/evaluate-executor-policy.py
-- governance/scripts/validate-ai-executor-qualification.sh
-- governance/scripts/validate-ai-executor-behavioral-trials.sh
-- governance/executor-qualification/fixtures/
-- governance/CI_QUALIFICATION.md
-- governance/CI_QUALIFICATION_STATUS.md
-- governance/ci-qualification.json
-- governance/scripts/validate-ci-qualification.sh
-- governance/GOVERNANCE_QUALIFICATION.md
-- governance/GOVERNANCE_QUALIFICATION_STATUS.md
-- governance/governance-qualification.json
-- governance/governance-qualification/run-project-qualification.py
-- governance/scripts/validate-governance-qualification.sh
-- governance/scripts/verify-repository-state.sh
-- governance/scripts/verify-environment-capacity.py
+Primary reusable authority:
+- `MASTER_GOVERNANCE.md`
+- `GLOBAL_REFERENCE.md`
+- `docs/ADOPTION_GUIDE.md`
+- `docs/QUICK_START.md`
+
+The central repository is a reusable reference. TYFINO's live repository remains the source of project truth.
+
+## Canonical TYFINO Engineering State
+
+- ENGINEERING/MASTER_ROADMAP.md
+- ENGINEERING/REPORTS/
+- ENGINEERING/EVIDENCE/
+
+Do not create a second roadmap.
 
 ## Repository Instructions
 
 - AGENTS.md
 - .github/CODEOWNERS
 - .github/pull_request_template.md
+
+## TYFINO Governance Customization
+
+- governance/README.md
+- governance/PROJECT_PROFILE.md
+- governance/ADOPTION_STATUS.md
+- governance/REPOSITORY_FOUNDATION_STATUS.md
+- governance/ENGINEERING_ENVIRONMENT_CONTRACT.md
+- governance/ENGINEERING_ENVIRONMENT_STATUS.md
+- governance/RESOURCE_MAP.md
+- governance/TASK_RESULT_PROTOCOL.md
+- governance/TASK_RESULT_PROTOCOL_STATUS.md
+- governance/templates/TASK_PACKET.md
+- governance/templates/RESULT_PACKET.md
+- governance/task-records/
+- governance/AI_EXECUTOR_QUALIFICATION.md
+- governance/CI_QUALIFICATION.md
+- governance/GOVERNANCE_QUALIFICATION.md
+- governance/scripts/
 
 ## Project / Architecture Baselines
 
@@ -64,6 +61,7 @@ TYFINO customization:
 - docs/security.md
 - docs/api.md
 - docs/deployment.md
+- docs/v1-gap-audit-2026-09-19.md
 
 ## Android Baseline and Contracts
 
@@ -80,6 +78,7 @@ TYFINO customization:
 ## CI / Release Workflows
 
 - .github/workflows/ci.yml
+- .github/workflows/device-test-apk.yml
 - .github/workflows/release-apk.yml
 
 ## Infrastructure / Database
@@ -89,8 +88,8 @@ TYFINO customization:
 - database/
 - docs/deployment.md
 
-## Evidence
+## Evidence rule
 
 Use exact CI run URLs/IDs, exact Git SHAs, Result Packets, checksums, runtime records, or approved artifacts as appropriate to the task.
 
-Do not turn this resource map into a second rulebook.
+Historical evidence proves only the round that produced it. This resource map is navigation, not a second rulebook.
