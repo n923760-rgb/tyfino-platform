@@ -10,10 +10,10 @@ This is the single permanent engineering roadmap for TYFINO. Detailed reports be
 
 Repository: `n923760-rgb/tyfino-platform`
 Official branch: `main`
-Baseline official HEAD: `bcfa27ed15fc5b074303d9bbefd53f8a67e2ed1a`
-Baseline verified: 2026-09-26
-Available migration execution mode: authenticated GitHub repository connector/API; no local shell/runtime proof in this round.
-Active PR at baseline: #159 — Android Movies/Series sorting/history UI refinement.
+Baseline official HEAD: `bdae620f989a4e8cb163b40bcdded917c19a46d3`
+Baseline verified: 2026-09-27
+Available execution mode: authenticated GitHub repository connector/API; no local physical-device/runtime proof in this round.
+Active product PR at baseline: #159 — Android Movies/Series sorting/history UI refinement.
 Current engineering phase: V1 product refinement + release/physical qualification.
 
 The baseline SHA is historical evidence for the re-baseline only. Re-query live `main` before every mutation.
@@ -42,7 +42,7 @@ Historical PASS does not replace current-task verification.
 ## 4. Current Findings
 
 FACT:
-- The repository had no canonical `/ENGINEERING/` structure before this governance migration.
+- The canonical `/ENGINEERING/` structure is now present after governance migration PR #160.
 - Root `AGENTS.md` and a substantial TYFINO-specific `governance/` layer already existed.
 - `main` was not branch-protected at the 2026-09-26 baseline query.
 - PR #159 was open and scoped to Android Movies/Series UI behavior.
@@ -116,12 +116,12 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the governance-migration Pull Request on its exact head, review its full diff, and make an owner-controlled merge decision.
-Why now: the canonical roadmap/report/evidence structure must land before future governed engineering rounds rely on it.
-Required authority: repository mutation already authorized for this governance change; merge requires explicit current owner authorization.
-Required execution capability: GitHub PR/CI inspection.
-Expected evidence: exact PR head, changed-file diff, CI results, no source/product behavior changes.
-Stop conditions: unexpected base/head movement, overlap with unrelated PR scope, failing governance-related checks, secret exposure, or unreviewed unrelated files.
+Task: establish the first legal/compliance/security documentation slice from the 2026-09-27 owner-supplied TYFINO recommendations, reconciled against live contracts and current platform policies.
+Why now: privacy/Play readiness and a maintained threat model are release-governance gaps, while the implementation already has strong data-boundary and security controls that should be documented accurately.
+Required authority: documentation/repository mutation is authorized by the current owner request; merge remains a protected action requiring explicit current owner authorization.
+Required execution capability: GitHub repository inspection, official policy research, PR/CI validation.
+Expected evidence: exact PR head, five new documentation files under `docs/legal/` and `docs/security/`, full diff review, current CI results, and no product/runtime behavior changes.
+Stop conditions: legal claims presented as finalized without review, policy statements contradicted by live official sources, conflict with approved TYFINO contracts, unexpected base/head movement, secret exposure, or unrelated source/product changes.
 
 ## Linked Reports
 
