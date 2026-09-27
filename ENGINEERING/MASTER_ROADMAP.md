@@ -10,9 +10,9 @@ This is the single permanent engineering roadmap for TYFINO. Detailed reports be
 
 Repository: `n923760-rgb/tyfino-platform`
 Official branch: `main`
-Baseline official HEAD: `bdae620f989a4e8cb163b40bcdded917c19a46d3`
+Baseline official HEAD: `41c046ad313d447d8d5213f3a431cadf7cbf4df5`
 Baseline verified: 2026-09-27
-Available execution mode: authenticated GitHub repository connector/API; no local physical-device/runtime proof in this round.
+Available execution mode: authenticated GitHub repository connector/API plus local source checkout; no physical-device or production-runtime proof in this round.
 Active product PR at baseline: #159 — Android Movies/Series sorting/history UI refinement.
 Current engineering phase: V1 product refinement + release/physical qualification.
 
@@ -43,6 +43,7 @@ Historical PASS does not replace current-task verification.
 
 FACT:
 - The canonical `/ENGINEERING/` structure is now present after governance migration PR #160.
+- Legal/security documentation PR #161 was merged after exact-head Validate #439 succeeded on its second attempt; the first attempt had one tablet emulator focus assertion failure, so test stability remains a separate observation.
 - Root `AGENTS.md` and a substantial TYFINO-specific `governance/` layer already existed.
 - `main` was not branch-protected at the 2026-09-26 baseline query.
 - PR #159 was open and scoped to Android Movies/Series UI behavior.
@@ -116,16 +117,17 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: establish the first legal/compliance/security documentation slice from the 2026-09-27 owner-supplied TYFINO recommendations, reconciled against live contracts and current platform policies.
-Why now: privacy/Play readiness and a maintained threat model are release-governance gaps, while the implementation already has strong data-boundary and security controls that should be documented accurately.
-Required authority: documentation/repository mutation is authorized by the current owner request; merge remains a protected action requiring explicit current owner authorization.
-Required execution capability: GitHub repository inspection, official policy research, PR/CI validation.
-Expected evidence: exact PR head, five new documentation files under `docs/legal/` and `docs/security/`, full diff review, current CI results, and no product/runtime behavior changes.
-Stop conditions: legal claims presented as finalized without review, policy statements contradicted by live official sources, conflict with approved TYFINO contracts, unexpected base/head movement, secret exposure, or unrelated source/product changes.
+Task: document operations observability, disaster recovery, and measurable performance targets from the owner-supplied recommendations without claiming unimplemented infrastructure or measured budgets.
+Why now: release blockers include monitoring, external audit anchoring, off-host backup/restore, rollback, and physical performance qualification; the current source provides partial controls but no production evidence.
+Required authority: documentation/repository mutation is authorized by the owner's "merge and continue" instruction; merge of the next PR remains a separate protected decision.
+Required execution capability: live repository inspection, local diff checks, PR/CI validation.
+Expected evidence: three scoped documents under `docs/operations/` and `docs/architecture/`, a report, exact PR head and diff, and CI status without product/runtime changes.
+Stop conditions: unsupported production objectives presented as attained, source/contract conflict, unexpected base/head movement, secret exposure, or unrelated changes.
 
 ## Linked Reports
 
 - `/ENGINEERING/REPORTS/MASTER_ENGINEERING_BASELINE_REPORT.md`
+- `/ENGINEERING/REPORTS/OPERATIONS_PERFORMANCE_DOC_ROUND_2026-09-27.md`
 
 ## Linked Evidence
 
