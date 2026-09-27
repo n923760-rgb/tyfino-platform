@@ -70,7 +70,7 @@ class SettingsScreenTest {
         compose.waitUntil(timeoutMillis = 5_000) {
             compose.onAllNodesWithTag("open-account-switcher")
                 .fetchSemanticsNodes()
-                .any { it.config.getOrNull(SemanticsProperties.Focused) == true }
+                .any { it.config[SemanticsProperties.Focused] }
         }
         compose.onNodeWithTag("open-account-switcher").assertIsFocused()
     }
