@@ -18,7 +18,7 @@ The test now waits up to five seconds for the target's actual focused semantics 
 ## Validation
 
 - Local diff/whitespace and changed-file review: PASS before PR creation.
-- Android instrumentation on exact PR head: PENDING.
+- Initial PR head `e8dfdffa6742edb49ea325075a7e3224d00cea47`: FAIL at `compileDebugAndroidTestKotlin` on phone and tablet because `SemanticsConfiguration.getOrNull` is unavailable in the pinned Compose API. Corrected to the supported `SemanticsConfiguration[SemanticsProperties.Focused]` operator; exact corrected-head CI: PENDING.
 - Physical TV/Google TV initial focus: NOT RUN; remains BLOCKED under `docs/android/device-qualification-v1.md`.
 
 Merge and any release action remain owner-protected under `AGENTS.md`.
