@@ -10,7 +10,7 @@ This is the single permanent engineering roadmap for TYFINO. Detailed reports be
 
 Repository: `n923760-rgb/tyfino-platform`
 Official branch: `main`
-Baseline official HEAD: `41c046ad313d447d8d5213f3a431cadf7cbf4df5`
+Baseline official HEAD: `bb71bbb7d75ab5f083e63d1c263e07be6e318821`
 Baseline verified: 2026-09-27
 Available execution mode: authenticated GitHub repository connector/API plus local source checkout; no physical-device or production-runtime proof in this round.
 Active product PR at baseline: #159 — Android Movies/Series sorting/history UI refinement.
@@ -44,6 +44,7 @@ Historical PASS does not replace current-task verification.
 FACT:
 - The canonical `/ENGINEERING/` structure is now present after governance migration PR #160.
 - Legal/security documentation PR #161 was merged after exact-head Validate #439 succeeded on its second attempt; the first attempt had one tablet emulator focus assertion failure, so test stability remains a separate observation.
+- Operations/performance documentation PR #162 was merged after exact-head Validate #441 succeeded on its second attempt; the same tablet focus assertion failed in the first attempt and remains a separate test-stability finding.
 - Root `AGENTS.md` and a substantial TYFINO-specific `governance/` layer already existed.
 - `main` was not branch-protected at the 2026-09-26 baseline query.
 - PR #159 was open and scoped to Android Movies/Series UI behavior.
@@ -117,17 +118,18 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: document operations observability, disaster recovery, and measurable performance targets from the owner-supplied recommendations without claiming unimplemented infrastructure or measured budgets.
-Why now: release blockers include monitoring, external audit anchoring, off-host backup/restore, rollback, and physical performance qualification; the current source provides partial controls but no production evidence.
-Required authority: documentation/repository mutation is authorized by the owner's "merge and continue" instruction; merge of the next PR remains a separate protected decision.
+Task: define a V1 device, provider, media, accessibility, security, and operations test matrix that refers to the existing authoritative device ledger and manual record.
+Why now: the next owner-supplied phase is test planning, and release qualification gaps need explicit scenarios and attributable evidence before any PASS claim.
+Required authority: documentation/repository mutation is authorized by the owner's "merge and continue" instruction for PR #162; merge of this new PR remains a separate protected decision.
 Required execution capability: live repository inspection, local diff checks, PR/CI validation.
-Expected evidence: three scoped documents under `docs/operations/` and `docs/architecture/`, a report, exact PR head and diff, and CI status without product/runtime changes.
-Stop conditions: unsupported production objectives presented as attained, source/contract conflict, unexpected base/head movement, secret exposure, or unrelated changes.
+Expected evidence: one scoped `docs/testing/TEST_MATRIX.md`, a report, exact PR head and diff, and CI status without product/runtime changes.
+Stop conditions: emulator/source evidence treated as physical PASS, conflicting test authority, unexpected base/head movement, secret exposure, or unrelated changes.
 
 ## Linked Reports
 
 - `/ENGINEERING/REPORTS/MASTER_ENGINEERING_BASELINE_REPORT.md`
 - `/ENGINEERING/REPORTS/OPERATIONS_PERFORMANCE_DOC_ROUND_2026-09-27.md`
+- `/ENGINEERING/REPORTS/TEST_MATRIX_DOC_ROUND_2026-09-27.md`
 
 ## Linked Evidence
 
