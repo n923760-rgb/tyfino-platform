@@ -98,6 +98,8 @@ Primary navigation follows full window width: a bottom menu below 600dp, a compa
 
 The scoped report is [Android interface and menu refinement](../../ENGINEERING/REPORTS/ANDROID_INTERFACE_MENUS_2026-09-30.md). Added managed-device tests cover selection, Arabic RTL at larger font scale, short-pane access to Settings and directional focus/Enter. Exact-head CI outcomes are attached to the task PR; screenshot review, physical TV, TalkBack, overscan and performance still require separate runtime evidence.
 
+Settings presents account actions first in a framed section, followed by a separate provider-compatibility section. Headings expose accessibility semantics, related controls form focus groups, and account management uses the quieter button style. The page scrolls in compact panes and keeps content centered at a maximum 840dp width on larger windows; text and buttons can grow with the current font size. Initial D-pad focus remains on Switch IPTV account, and the existing account destinations and local provider presets are preserved.
+
 ## TV and D-pad focus scope
 
 Primary screens request a deterministic first focus target after attachment. Navigation destinations, horizontal content rails, season selectors, and adaptive catalog grids are focus groups so directional input visits related controls coherently; buttons and cards retain a visible focus border. Managed-device tests assert representative Settings, Movie details, and Series details entry targets. This is emulator evidence only: physical Android TV/Google TV traversal, overscan, Back behavior, playback controls, RTL, accessibility, and performance qualification remains `BLOCKED` until recorded under the device-qualification contract.

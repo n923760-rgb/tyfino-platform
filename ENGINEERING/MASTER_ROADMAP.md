@@ -4,7 +4,7 @@ Canonical path: `/ENGINEERING/MASTER_ROADMAP.md`
 
 Status: ACTIVE — RECONCILE WITH LIVE EVIDENCE
 
-2026-09-30 clipboard round: a bounded Admin correction awaits clipboard completion before success, handles denied/unavailable writes with manual-copy guidance, and disables duplicate clicks while pending. Source baseline is `main@ef420e7e9c0d968f271ada14bce1ab3076a655c7`; exact-head CI evidence belongs to the task PR. Details: [Admin clipboard result](REPORTS/ADMIN_CLIPBOARD_RESULT_2026-09-30.md). PRs #166 and #167 remain separate, unmerged changes.
+2026-09-30 clipboard round: a bounded Admin correction awaits clipboard completion before success, handles denied/unavailable writes with manual-copy guidance, and disables duplicate clicks while pending. Source baseline is `main@ef420e7e9c0d968f271ada14bce1ab3076a655c7`; exact-head CI evidence belongs to the task PR. Details: [Admin clipboard result](REPORTS/ADMIN_CLIPBOARD_RESULT_2026-09-30.md). At that round's source checkpoint, PRs #166 and #167 were separate, unmerged changes.
 
 This is the single permanent engineering roadmap for TYFINO. Detailed reports belong under `/ENGINEERING/REPORTS/`; evidence indexes/metadata belong under `/ENGINEERING/EVIDENCE/`.
 
@@ -15,7 +15,7 @@ Official branch: `main`
 Baseline official HEAD: `cd83a1c23819ae972185c748e7487156890a7dbf`
 Baseline verified: 2026-09-27
 Available execution mode: authenticated GitHub repository connector/API plus local source checkout; no physical-device or production-runtime proof in this round.
-Active product PR at baseline: #159 — Android Movies/Series sorting/history UI refinement.
+Historical active product PR at baseline: #159 — Android Movies/Series sorting/history UI refinement.
 Current engineering phase: V1 product refinement + release/physical qualification.
 
 The baseline SHA is historical evidence for the re-baseline only. Re-query live `main` before every mutation.
@@ -27,6 +27,14 @@ Execution mode for this round: authenticated GitHub API/MCP plus JavaScript sour
 No open PRs were returned at this checkpoint. PRs #159, #164 and #165 are merged.
 Validate run 36665625417 and device-test APK run 36666243511 succeeded on this official source. These are source/build/emulator evidence only.
 The earlier baseline SHA and active-PR entries above are historical context.
+
+### 2026-09-30 integrated source checkpoint
+
+Owner instruction: merge all prepared changes and continue application improvements with full authority. PRs #166–#171 were squash-merged through their expected heads into official `main@904f74621e342adb50075757345999ff9fdfd649`. This is the current source checkpoint for the Settings refinement; earlier round notes describe their original source/authority snapshots.
+
+PASS: [official-main Validate 36769206816](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36769206816), push event, all seven jobs. Both managed devices ran 62 cases with zero failures or skips, including the combined navigation and catalog changes. Exact source composition matched all seven shared files; no prepared change was lost.
+
+Current bounded UI round: organize Settings into account and provider sections with heading semantics, adaptive centered width and preserved actions/focus/preferences. Report: `/ENGINEERING/REPORTS/ANDROID_SETTINGS_SECTIONS_2026-09-30.md`. Exact new-head qualification is recorded on its PR. No production deployment, signing or release has occurred.
 
 ## 2. Architecture
 
@@ -70,7 +78,9 @@ UNKNOWN / MUST VERIFY LIVE:
 - Current signing-key custody/recovery evidence.
 - Exact physical-device qualification state unless a newer attributable report exists.
 
-### 2026-09-30 review findings
+### 2026-09-30 review findings (historical source checkpoint)
+
+The first four findings below were corrected by merged PRs #166–#169. Modal keyboard accessibility and the separate catalog concurrency diagnosis remain open.
 
 - FACT: First-use activation expiry was incorrectly applied to already activated grants. A bounded correction and PostgreSQL integration regression coverage are prepared on `fix/licensing-first-use-expiry-2026-09-30`; this is not yet merged into official source.
 - FACT: Admin code creation/settings changes and their audit events use separate commits.
@@ -147,12 +157,12 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: complete exact-head validation and review of the first-use activation-expiry correction, then address transactional Admin business/audit writes in a separate bounded round.
-Why now: source inspection and isolated handler checks reproduce rejection of valid activated grants after the original first-use deadline. The remaining Admin transaction finding can lose auditability or a one-time activation code when audit insertion fails.
-Required authority: the owner's current request authorizes review and improvements to the whole project. Merge remains separately protected.
-Required execution capability: GitHub repository API/MCP and existing exact-head Validate workflow for the licensing correction; PostgreSQL failure-injection tests for the later transaction correction.
-Expected evidence: isolated handler proof, integration coverage for expired unused/activated one-year/lifetime/device/reset/revocation/paid-expiry behavior, full scoped diff, and exact-head CI run results.
-Stop conditions: unexpected official/head movement, conflicting PR, failing affected tests, secret exposure, unsupported runtime claims or unrelated changes.
+Task: address Admin modal keyboard containment, background inertness and focus restoration in a separate bounded round after Settings qualification.
+Why now: the remaining source review finding affects modal navigation and accessibility; the licensing, Admin transaction/clipboard/statistics and Android menu/catalog corrections are now integrated and qualified.
+Required authority: the owner's current merge-and-continue instruction covers repository improvements and reviewed merges within this application scope.
+Required execution capability: repository inspection and a browser-capable executor/CI for native DOM keyboard and focus behavior.
+Expected evidence: bounded dialog behavior regression tests, real browser results, exact-head CI and a scoped report. Physical Android/provider/media and production qualification remain separate.
+Stop conditions: unproved browser behavior reported as PASS, source movement outside the planned work, unrelated state/data/identity changes or secret exposure.
 
 ## Linked Reports
 
