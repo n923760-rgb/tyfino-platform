@@ -16,4 +16,4 @@ The test runs the real development-mode React application, including StrictMode,
 
 This is Chromium keyboard/layout evidence, not screen-reader, Safari/Firefox, physical touch, production API, or visual-design qualification. Browser exceptions and unexpected requests fail the run. Fixtures and full codes are not printed; no screenshots, storage state, traces or credentials are retained.
 
-The first browser run found a separate desktop pointer obstruction by the existing RTL sidebar. That shell/menu defect is tracked as the immediate next scoped task; this keyboard suite does not claim pointer reachability of background openers.
+The separate RTL sidebar correction adds a ninth scenario on a 1280×400 desktop viewport: actual sidebar/content separation, sticky document-scroll behavior, internal account-control reachability (non-mutating hit-target trial), ordinary pointer opening/cancellation of create/session/reset/revoke dialogs and navigation, with no additional API mutation. Existing keyboard/dialog and compact coverage remain.

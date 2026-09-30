@@ -52,7 +52,7 @@ input:focus, select:focus, textarea:focus { border-color:#2563eb; box-shadow:0 0
 .button-ghost { color:#2563eb; background:#eff6ff; }
 
 .app-shell { min-height:100vh; display:grid; grid-template-columns:260px minmax(0,1fr); }
-.sidebar { position:fixed; inset:0 auto 0 0; width:260px; padding:26px 18px; background:#101936; color:white; display:flex; flex-direction:column; z-index:20; direction:rtl; }
+.sidebar { position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; width:260px; padding:26px 18px; background:#101936; color:white; display:flex; flex-direction:column; z-index:20; direction:rtl; }
 .logo { display:flex; align-items:center; gap:11px; direction:ltr; }
 .logo > div { width:42px; height:42px; display:grid; place-items:center; border-radius:13px; background:linear-gradient(135deg,#2563eb,#7c3aed); font-weight:900; font-size:20px; }
 .logo > span { display:grid; font-weight:900; letter-spacing:.08em; }
