@@ -39,6 +39,8 @@ Authoritative architecture, data-ownership, security, deployment, Android decisi
 
 Historical PASS does not replace current-task verification.
 
+Current Android catalog refinement: item grids now account for both pane width and system font size, and artwork titles reserve two font-relative lines. See `/ENGINEERING/REPORTS/ANDROID_CATALOG_READABILITY_2026-09-30.md`; exact-head CI is recorded on the task PR, while physical-device and visual qualification remain separate gates.
+
 ## 4. Current Findings
 
 FACT:
