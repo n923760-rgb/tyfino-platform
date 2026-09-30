@@ -114,6 +114,8 @@ Admin dashboard review (2026-09-30): a bounded follow-up on official base `ef420
 
 Runtime claims require attributable device/environment evidence. Emulator CI does not qualify physical TV, real providers/media, low-memory behavior, accessibility, RTL, or performance.
 
+Android interface/menu refinement (2026-09-30): the owner requested professional interface and menu improvements. Scope is a consistent native dark palette, adaptive bottom/compact/expanded menus, explicit selection/focus, quieter Home actions and a framed category sidebar. Report: `/ENGINEERING/REPORTS/ANDROID_INTERFACE_MENUS_2026-09-30.md`. Exact-head CI is recorded in the isolated PR; visual screenshot review and physical TV/RTL/TalkBack/performance qualification remain open. Merge, signing and deployment are not authorized by this round.
+
 ## 9. Release Gates
 
 No release or production deployment is authorized by this roadmap.

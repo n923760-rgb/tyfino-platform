@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TYFINO</string>
+    <string name="navigation_browse">المشاهدة</string>
+    <string name="navigation_preferences">التفضيلات</string>
+    <string name="catalog_categories_title">التصنيفات</string>
     <string name="destination_home">الرئيسية</string>
     <string name="destination_live">البث المباشر</string>
     <string name="destination_movies">الأفلام</string>
@@ -26,7 +29,6 @@
     <string name="home_recent_series">آخر المسلسلات مشاهدة</string>
     <string name="playback_landscape">المشاهدة بالعرض</string>
     <string name="playback_restore_orientation">العودة للعرض المعتاد</string>
-    <string name="open_settings">فتح الإعدادات</string>
     <string name="settings_title">الإعدادات</string>
     <string name="settings_description">إدارة حسابات IPTV المحفوظة على هذا الجهاز.</string>
     <string name="settings_user_agent_title">توافق المزوّد</string>

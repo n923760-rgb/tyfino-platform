@@ -55,6 +55,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -573,7 +574,19 @@ private fun CategoryStrip(
     modifier: Modifier = Modifier,
     vertical: Boolean = false,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = if (vertical) modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(12.dp) else modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (vertical) Text(
+            text = stringResource(R.string.catalog_categories_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { heading() },
+        )
         when (state) {
             CatalogState.Empty, CatalogState.Loading -> CatalogLoadingState()
             is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)

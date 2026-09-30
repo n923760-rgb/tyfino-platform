@@ -233,13 +233,15 @@ internal fun HomeScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().focusGroup()) {
                         FocusVisibleButton(
                             label = stringResource(R.string.xtream_switch_account),
+                            prominent = false,
                             onClick = onOpenAccountSwitcher,
                             modifier = Modifier.weight(1f)
                                 .then(if (featured == null) Modifier.focusRequester(initialFocus) else Modifier)
                                 .testTag("open-account-switcher"),
                         )
                         FocusVisibleButton(
-                            label = stringResource(R.string.open_settings),
+                            label = stringResource(R.string.destination_settings),
+                            prominent = false,
                             onClick = onOpenSettings,
                             modifier = Modifier.weight(1f).testTag("home-open-settings"),
                         )

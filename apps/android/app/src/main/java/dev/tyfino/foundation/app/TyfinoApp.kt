@@ -1,20 +1,12 @@
 package dev.tyfino.foundation.app
 
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -29,9 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -653,6 +642,7 @@ private fun LicensedAppShell(
             AppNavigationRail(
                 selectedRoute = currentDestination?.route,
                 onDestinationSelected = navigateTo,
+                expanded = navigationType == AppNavigationType.Sidebar,
             )
             navHost(
                 Modifier
@@ -906,43 +896,3 @@ private const val PLAYBACK_ROUTE = "playback"
 private const val SERIES_DETAILS_ROUTE = "series-details"
 private const val MOVIE_DETAILS_ROUTE = "movie-details"
 
-@Composable
-private fun AppBottomBar(
-    selectedRoute: String?,
-    onDestinationSelected: (AppDestination) -> Unit,
-) {
-    NavigationBar(modifier = Modifier.focusGroup()) {
-        AppDestination.entries.forEach { destination ->
-            val label = stringResource(destination.labelRes)
-            NavigationBarItem(
-                modifier = Modifier.testTag("destination-${destination.route}"),
-                selected = selectedRoute == destination.route,
-                onClick = { onDestinationSelected(destination) },
-                icon = { Icon(painterResource(destination.iconRes), contentDescription = null, modifier = Modifier.size(20.dp)) },
-                label = { Text(label) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun AppNavigationRail(
-    selectedRoute: String?,
-    onDestinationSelected: (AppDestination) -> Unit,
-) {
-    NavigationRail(
-        modifier = Modifier.focusGroup(),
-        windowInsets = WindowInsets.safeDrawing,
-    ) {
-        AppDestination.entries.forEach { destination ->
-            val label = stringResource(destination.labelRes)
-            NavigationRailItem(
-                modifier = Modifier.testTag("destination-${destination.route}"),
-                selected = selectedRoute == destination.route,
-                onClick = { onDestinationSelected(destination) },
-                icon = { Icon(painterResource(destination.iconRes), contentDescription = null, modifier = Modifier.size(20.dp)) },
-                label = { Text(label) },
-            )
-        }
-    }
-}

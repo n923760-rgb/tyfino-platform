@@ -21,6 +21,7 @@ internal fun FocusVisibleButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    prominent: Boolean = true,
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
@@ -37,7 +38,10 @@ internal fun FocusVisibleButton(
             },
         ),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
-        colors = ButtonDefaults.buttonColors(),
+        colors = if (prominent) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
     ) {
         Text(label)
     }
