@@ -15,7 +15,7 @@ Expected files (seven): shared `apps/admin/src/components.tsx`, its `styles.css`
 
 The old modal focused close on every `onClose` callback change, listened globally for Escape, and declared `aria-modal` without enforcing background inertness, Tab containment or focus restoration. Inline callbacks change when the actual parent rerenders (for example toast expiry), so typing focus could also move.
 
-The shared surface now uses native `<dialog>` with `showModal()`. The browser supplies modal keyboard/background behavior. A mount-only effect focuses close once, closes the native dialog on cleanup and restores the captured opener when still connected. React StrictMode setup/cleanup is exercised by the real app. Escape uses the dialog cancel event; the existing callback controls dismissal. Pointer dismissal requires a target on the dialog and coordinates outside its bounds, so clicks on empty interior padding or content do not close it. `useId()` gives each heading its own accessible label.
+The shared surface now uses native `<dialog>` with `showModal()`. The browser supplies background modality; a scoped Tab handler wraps between the first and last current enabled/visible form controls to keep repeated traversal inside the document dialog. A mount-only effect focuses close once, closes the native dialog on cleanup and restores the captured opener when still connected. React StrictMode setup/cleanup is exercised by the real app. Escape uses the dialog cancel event; the existing callback controls dismissal. Pointer dismissal requires a target on the dialog and coordinates outside its bounds, so clicks on empty interior padding or content do not close it. `useId()` gives each heading its own accessible label.
 
 Native `::backdrop` retains the existing dim/blur treatment. The framed scrollable dialog retains normal/wide widths with 20px desktop and 10px compact viewport clearance and no browser-default padding/border. Existing child forms and business callbacks are unchanged. No manual inert flags or document-wide keyboard listeners are introduced.
 
@@ -44,6 +44,12 @@ NOT RUN: screen readers, Safari/Firefox, physical input, production API and visu
 FAIL: [Validate 36779314452](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36779314452), initial head `80c47851e8ac30114d3e641a64a479e345bf557d`: typecheck/build and Chromium installation passed, but the first opener pointer click was intercepted by the existing sidebar. No modal scenario completed. Source confirms the RTL grid reserves the leading/right column while the fixed sidebar uses physical left positioning. This is a separate shell/menu defect; no click success is claimed.
 
 This scoped keyboard suite opens controls with real focus plus Enter, not forced pointer dispatch. All containment/restoration assertions remain; dialog dismissal still uses ordinary pointer actions. The separate desktop pointer/RTL menu defect is the immediate next task. Native compact styling also removes an obsolete wrapper rule and preserves the original 10px compact clearance; geometry assertions follow that contract.
+
+## Second browser attempt and keyboard correction
+
+FAIL: [Validate 36779675127](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36779675127), head `6c127f5221447edfd78763b35666a246dcbc011e`: opening/close focus and excluded background programmatic focus succeeded, then repeated Tab traversal failed `Focus escaped the dialog`. Native Chromium modality alone did not satisfy the stronger in-document traversal requirement.
+
+The product now handles Tab only on the dialog: boundary traversal wraps first/last enabled visible controls, while native modality retains background inertness. No global keyboard listener is added. Existing 48 forward/reverse assertions remain, with a bounded tag/key/step diagnostic if any target escapes; no fixture values are logged.
 
 ## Next gate
 

@@ -1,6 +1,6 @@
 # Admin modal browser regression
 
-The shared Modal uses native `HTMLDialogElement.showModal()`: the browser makes the background inert and contains keyboard focus. Opening focuses the close button. Unmount closes the native dialog and restores its connected opener; Escape, close, backdrop and existing form cancellation remain controlled by the original `onClose`. Title IDs are unique per instance. Callback changes do not reopen or refocus the dialog.
+The shared Modal uses native `HTMLDialogElement.showModal()`: the browser makes the background inert, while a dialog-scoped Tab handler wraps current enabled/visible controls at traversal boundaries. Opening focuses the close button. Unmount closes the native dialog and restores its connected opener; Escape, close, backdrop and existing form cancellation remain controlled by the original `onClose`. Title IDs are unique per instance. Callback changes do not reopen or refocus the dialog.
 
 Run from `apps/admin` with Node 22 after `npm ci`:
 

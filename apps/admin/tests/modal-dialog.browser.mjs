@@ -107,7 +107,10 @@ try {
   for (const key of ["Tab", "Shift+Tab"]) {
     for (let i = 0; i < 24; i++) {
       await page.keyboard.press(key);
-      assert.ok(await dialog.evaluate((element) => element.contains(document.activeElement)), "Focus escaped the dialog");
+      const focus = await dialog.evaluate((element) => ({
+        inside: element.contains(document.activeElement), tag: document.activeElement?.tagName,
+      }));
+      assert.ok(focus.inside, "Focus escaped the dialog: " + key + " step " + i + " target " + focus.tag);
     }
   }
   console.log("PASS: native modal focus containment and background focus exclusion");
