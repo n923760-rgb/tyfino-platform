@@ -41,6 +41,14 @@ Remove the unused English/Arabic string pair and use the non-deprecated locale f
 
 This diagnostic change is necessary because this session can download the report ZIP but has no shell/archive reader. The next exact-head run must establish the phone failure reason or record it as unresolved; no blind UI workaround or test weakening is authorized.
 
+## Phone focus fixture diagnosis
+
+Run [36728070934](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36728070934) on `2a62206fcae0f0bd2b513cafef6d1de747020c5f` printed 60 phone test cases, one failure, zero skipped. The same-branch archive confirmed the identical initial-head failure: `AppNavigationTest.sideMenuSupportsDirectionalFocusAndKeyboardActivation` failed at the first Home-focused assertion, before directional traversal. The other three new navigation cases (bottom selection, short pane and Arabic RTL/larger text) passed.
+
+The test requested node focus immediately after composition without establishing window-focus and keyboard-input preconditions. Synchronize on the host window, explicitly request keyboard input through Compose's input-mode manager and verify that mode before the unchanged Home-focus, Down/Live-focus and Enter/action assertions. Use bounded event/state waits, not sleeps or retries of the suite.
+
+Previous-artifact access was used only for diagnosis and is removed from the final workflow, along with Actions-read permissions and token environment. Keep the small always-run current-XML summary for attributable navigation results and failure details; it needs no network or token access. Final native CI remains required on the corrected source.
+
 ## Evidence and completion gates
 
 Review the full diff, source identity, shared roadmap composition and exact-head Actions. Fix reproducible failures before readiness; record any unresolved/flaky runtime failures honestly. Stop for unexpected base/head movement, overlapping product work, authority conflict, secrets or unrelated source changes. Signing and deployment remain outside this task.

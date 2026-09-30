@@ -1,5 +1,6 @@
 package dev.tyfino.foundation.app
 
+import android.view.View
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,11 +12,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
@@ -40,6 +45,7 @@ import dev.tyfino.foundation.ui.theme.TyfinoTheme
 import java.util.Locale
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -121,8 +127,23 @@ class AppNavigationTest {
 
     @Test fun sideMenuSupportsDirectionalFocusAndKeyboardActivation() {
         var opened: AppDestination? = null
+        var hostView: View? = null
+        var inputModeManager: InputModeManager? = null
         compose.setContent {
+            hostView = LocalView.current
+            inputModeManager = LocalInputModeManager.current
             TyfinoTheme { AppNavigationRail(AppDestination.Home.route, { opened = it }, expanded = true) }
+        }
+        // API 27 can publish semantics before its activity window receives focus.
+        // Establish real window/keyboard preconditions before requesting the entry node.
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.runOnIdle { hostView?.hasWindowFocus() == true }
+        }
+        compose.runOnIdle {
+            assertTrue(inputModeManager!!.requestInputMode(InputMode.Keyboard))
+        }
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.runOnIdle { inputModeManager?.inputMode == InputMode.Keyboard }
         }
         compose.onNodeWithTag("destination-home")
             .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
