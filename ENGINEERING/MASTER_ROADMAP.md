@@ -136,3 +136,15 @@ Stop conditions: unimplemented OpenAPI/sunset/UX behavior claimed as current, co
 ## Linked Evidence
 
 - `/ENGINEERING/EVIDENCE/README.md`
+
+## 2026-09-30 Admin audit atomicity round
+
+Official source inspected: `ef420e7e9c0d968f271ada14bce1ab3076a655c7`. PR #166 remains open for the earlier first-use activation-expiry correction; its source is not part of official `main`.
+Owner authorization: review/improvement and continued engineering work. No protected merge/release/deployment authority is granted.
+
+FACT: Admin activation-code creation and settings changes used separate commits for the business write and audit insertion. A bounded correction on `fix/admin-audit-atomicity-2026-09-30` places each pair in one transaction and rolls back failed code-generation attempts.
+PASS: extracted-handler JavaScript checks reproduce partial writes on old source and verify rollback/retry/release behavior on the correction.
+Exact-head PostgreSQL/Fastify integration and build results belong to the task PR/CI record; local shell/PostgreSQL checks are NOT RUN.
+Report: [Admin audit atomicity](REPORTS/ADMIN_AUDIT_ATOMICITY_2026-09-30.md).
+
+Immediate next round: finish exact-head validation/review of this correction, then address Admin clipboard success/error handling in a separate bounded change.

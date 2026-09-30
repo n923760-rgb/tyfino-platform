@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import pg from "pg";
 import { buildApp } from "./app.js";
+import { assertAdminAuditAtomicity } from "./test-helpers/admin-audit-atomicity.js";
 import type { AppConfig } from "./config.js";
 import { tokenHash, totpCodeAt } from "./security.js";
 
@@ -76,6 +77,8 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     assert.equal(verified.statusCode, 200);
     const cookie = verified.cookies.find((item) => item.name === "tyfino_admin_session");
     assert.ok(cookie);
+
+    await assertAdminAuditAtomicity(app, db, ownerDb, `tyfino_admin_session=${cookie.value}`);
 
     const supportAdmin = await db.query<{ id: string }>(
       `INSERT INTO admins (email, password_hash, role)
