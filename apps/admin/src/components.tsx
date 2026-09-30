@@ -56,7 +56,10 @@ export function Modal({ title, children, onClose, width = "normal" }: {
       if (event.target !== event.currentTarget) return;
       const bounds = event.currentTarget.getBoundingClientRect();
       if (event.clientX < bounds.left || event.clientX > bounds.right ||
-          event.clientY < bounds.top || event.clientY > bounds.bottom) onClose();
+          event.clientY < bounds.top || event.clientY > bounds.bottom) {
+        event.preventDefault();
+        onClose();
+      }
     }}>
     <header><h2 id={titleId}>{title}</h2><button ref={closeRef} type="button" className="icon-button" onClick={onClose} aria-label="إغلاق">×</button></header>
     <div className="modal-content">{children}</div>

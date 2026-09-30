@@ -51,6 +51,12 @@ FAIL: [Validate 36779675127](https://github.com/n923760-rgb/tyfino-platform/acti
 
 The product now handles Tab only on the dialog: boundary traversal wraps first/last enabled visible controls, while native modality retains background inertness. No global keyboard listener is added. Existing 48 forward/reverse assertions remain, with a bounded tag/key/step diagnostic if any target escapes; no fixture values are logged.
 
+## Third browser attempt and pointer-focus correction
+
+FAIL: [Validate 36780002930](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36780002930), head `36e76429fef3a40d8c93d093efbb31e54bca8e51`: all 48 Tab/Shift+Tab containment checks and excluded background focus passed; Escape restoration also passed. Backdrop dismissal closed the dialog but opener-focus assertion failed. The outside mousedown default can change focus after React dismisses/cleans up the dialog.
+
+The outside-only handler now prevents that mousedown default before invoking the unchanged callback, preserving restoration. Interior actions remain untouched. The same backdrop dismissal/restoration assertion is required; it is not retried or excluded.
+
 ## Next gate
 
 Qualify/review the exact new head, merge under the current explicit owner instruction, then check official-main Validate and record results on the task PR. No production deployment/signing/release in this round. Next separate task: align the Admin sidebar with the RTL grid and prove actual pointer reachability. The catalog concurrency finding remains a later deterministic ownership diagnosis.
