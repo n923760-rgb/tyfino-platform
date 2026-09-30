@@ -1,24 +1,79 @@
-# TYFINO repository instructions
+# TYFINO Repository Engineering Instructions
 
-TYFINO adopts Engineering Governance v1.0.0 from `n923760-rgb/engineering-governance`.
-Project-specific customization lives under `governance/`.
+TYFINO uses the central **Master Engineering System** from `n923760-rgb/engineering-governance`.
 
-Authority order is: current owner instruction → this/nearest `AGENTS.md` → approved scoped subsystem contracts → engineering environment contract → advisory guides → atomic Task Packet. Lower layers may narrow but must not widen higher-layer authority.
+The target repository is always the source of live project truth. Historical chats, AI memory, old Pull Requests, screenshots, archived SHAs, copied configs, and another project's governance files are context only.
 
-Read the nearest `AGENTS.md`, `governance/PROJECT_PROFILE.md`, and the authoritative documentation for the area being changed before editing.
+## Authority order
 
-- Keep work atomic: one confirmed problem or scoped feature per branch and pull request.
+1. Current explicit owner instruction.
+2. The nearest applicable `AGENTS.md`.
+3. The central Master Engineering System (`engineering-governance/MASTER_GOVERNANCE.md`).
+4. Approved TYFINO architecture/security/data-ownership documents and scoped subsystem contracts.
+5. `/ENGINEERING/MASTER_ROADMAP.md` as the canonical engineering state and sequencing record.
+6. TYFINO engineering-environment and task/result governance under `governance/`.
+
+The roadmap coordinates work but does not override an applicable approved subsystem contract. A lower layer may narrow authority but must not widen a higher layer.
+
+## Canonical engineering state
+
+- Master roadmap: `/ENGINEERING/MASTER_ROADMAP.md`
+- Detailed reports: `/ENGINEERING/REPORTS/`
+- Evidence indexes/metadata: `/ENGINEERING/EVIDENCE/`
+
+Do not create a competing roadmap elsewhere in the repository.
+
+## Before any repository mutation
+
+Verify live:
+
+- repository identity is `n923760-rgb/tyfino-platform`;
+- official/default branch is `main`;
+- current official `main` HEAD;
+- current branch or API target branch;
+- open/conflicting Pull Requests;
+- actual execution capabilities available in the current session;
+- nearest `AGENTS.md`, `governance/PROJECT_PROFILE.md`, `/ENGINEERING/MASTER_ROADMAP.md`, and relevant subsystem contracts;
+- exact task scope and current owner authorization.
+
+If source identity, authority, scope, or required evidence is ambiguous, stop mutation and classify the gap honestly.
+
+## Work discipline
+
+- One confirmed problem or one coherent governance change per branch and Pull Request.
+- Do not push ordinary changes directly to `main`.
 - Audit, review, and diagnosis are read-only unless implementation is explicitly requested.
 - Do not make speculative fixes or unrelated refactors.
-- Never merge, force-push, amend, rewrite history, destructively reset, delete valid commits, tag, release, deploy production, or change signing without explicit current owner instruction.
-- Verify the live repository identity, official branch, remote HEAD, current branch/worktree, current or conflicting PRs, relevant CI, and applicable instructions before repository work.
-- If an expected SHA or PR state differs from live state, stop mutation and investigate the mismatch first.
-- Do not log credentials, tokens, authorization headers, activation codes, signing material, or secret-bearing URLs.
-- Every asynchronous result must validate its authoritative owner at commit time; cancellation alone is not sufficient.
-- Android work must remain performance-first, adaptive by available window and input mode, RTL-safe, accessible, and usable with TV D-pad input. Images and background work must never block navigation.
-- Do not change package/application identity, app name, version policy, signing, endpoints, branding, colors, logo, or ABI policy unless the value is explicitly approved.
-- Validation statuses must be reported honestly as `PASS`, `FAIL`, `BLOCKED`, `SKIPPED`, or `NOT RUN`; `BLOCKED` and `NOT RUN` are never `PASS`.
-- Important engineering conclusions require attributable evidence tied to the exact tested source.
-- Production source remains authoritative over historical chats, old PRs, screenshots, archived SHAs, or AI memory.
+- Use the smallest deterministic validation first, then the affected regression surface.
+- Review the full diff for accidental files, unrelated changes, and secrets before asking for merge.
+- Report validation as `PASS`, `FAIL`, `BLOCKED`, `UNKNOWN`, `NOT RUN`, or `SKIPPED`.
+- Important conclusions require attributable evidence tied to the exact source tested.
 
-Android foundation decisions and provisional values are documented in `apps/android/README.md`. Existing backend documentation under `docs/` applies to the backend only and must not be used to infer Android client architecture where it conflicts with approved Android scope.
+## Protected actions
+
+Merge, release, tag, signing, store publication, production deployment, DNS changes, destructive database migration, production credential rotation, destructive production operations, server/VPS/cloud destruction or reinstall, repository deletion, force-push/history rewrite, and permanent release-artifact deletion require explicit current owner authorization for that exact action.
+
+Technical access does not equal authorization.
+
+## Secrets and identity
+
+Never commit or expose credentials, tokens, authorization headers, IPTV passwords, activation codes, signing material, private keys, recovery codes, production secrets, or secret-bearing URLs.
+
+Do not change TYFINO package/application identity, app name, version policy, signing model, approved production licensing endpoint, branding identity, or ABI policy without explicit approval.
+
+## Android-specific rules
+
+Read `apps/android/README.md` and the applicable contracts under `docs/android/` before Android work.
+
+Android work must remain:
+
+- performance-first and lightweight;
+- adaptive to available window size and input mode;
+- RTL-safe and accessible;
+- usable with TV / Google TV D-pad focus;
+- resilient to stale asynchronous results;
+- non-blocking for artwork/background work.
+
+Every asynchronous completion that can mutate visible or persisted state must revalidate its authoritative account/destination/generation owner at commit time; cancellation alone is not sufficient.
+
+Physical-device, real-provider/media, accessibility, RTL, low-memory, TV/foldable, and performance claims require their own runtime evidence and must not be inferred from source or emulator CI alone.

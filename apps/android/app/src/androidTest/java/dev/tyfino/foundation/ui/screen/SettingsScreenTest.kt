@@ -1,8 +1,10 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -63,7 +65,13 @@ class SettingsScreenTest {
             }
         }
 
-        compose.waitForIdle()
+        // A Dialog owns a separate window. Compose idleness can precede that window's
+        // focus callback, which is when the screen requests its initial D-pad focus.
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithTag("open-account-switcher")
+                .fetchSemanticsNodes()
+                .any { it.config[SemanticsProperties.Focused] }
+        }
         compose.onNodeWithTag("open-account-switcher").assertIsFocused()
     }
 
