@@ -7,7 +7,6 @@
     <string name="destination_series">Series</string>
     <string name="catalog_sort_newest">Newest added</string>
     <string name="catalog_sort_rating">Top rated</string>
-    <string name="catalog_sort_name">Name</string>
     <string name="destination_settings">Settings</string>
     <string name="home_title">What would you like to watch?</string>
     <string name="home_empty_sections">Open a Live, Movies, or Series category to start discovering content here.</string>
@@ -175,7 +174,6 @@
     <string name="catalog_favorite_error">Favorites are unavailable. Try again.</string>
     <string name="catalog_recent_title">Recently watched</string>
     <string name="catalog_history_empty">No recently watched items in downloaded categories.</string>
-    <string name="series_history_title">Recently watched episodes</string>
     <string name="series_history_play">Play episode again</string>
     <string name="epg_title">Program guide</string>
     <string name="epg_refresh">Refresh guide</string>

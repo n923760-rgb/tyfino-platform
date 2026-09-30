@@ -7,7 +7,6 @@
     <string name="destination_series">المسلسلات</string>
     <string name="catalog_sort_newest">الأحدث إضافة</string>
     <string name="catalog_sort_rating">الأعلى تقييمًا</string>
-    <string name="catalog_sort_name">الاسم</string>
     <string name="destination_settings">الإعدادات</string>
     <string name="home_title">ماذا تريد أن تشاهد؟</string>
     <string name="home_empty_sections">افتح قسم القنوات أو الأفلام أو المسلسلات لتظهر لك المحتويات هنا.</string>
@@ -175,7 +174,6 @@
     <string name="catalog_favorite_error">المفضلة غير متاحة الآن. أعد المحاولة.</string>
     <string name="catalog_recent_title">شوهد مؤخرًا</string>
     <string name="catalog_history_empty">لا توجد عناصر شوهدت مؤخرًا ضمن التصنيفات المحمّلة.</string>
-    <string name="series_history_title">الحلقات المشاهدة مؤخرًا</string>
     <string name="series_history_play">تشغيل الحلقة مرة أخرى</string>
     <string name="epg_title">دليل البرامج</string>
     <string name="epg_refresh">تحديث الدليل</string>

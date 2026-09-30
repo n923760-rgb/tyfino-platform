@@ -368,10 +368,6 @@ internal fun CatalogScreen(
         if (seriesContinueWatching.isNotEmpty()) {
             SeriesContinueWatchingStrip(seriesContinueWatching, onResumeEpisode)
         }
-        if (seriesHistory.isNotEmpty()) {
-            SeriesHistoryStrip(seriesHistory, onPlayHistoryEpisode)
-        }
-
         BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
             val sidebar = maxWidth >= CATEGORY_SIDEBAR_MIN_WIDTH
             Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -452,7 +448,6 @@ private fun CatalogSortTabs(order: CatalogSort, onSelect: (CatalogSort) -> Unit)
             val label = when (option) {
                 CatalogSort.Newest -> R.string.catalog_sort_newest
                 CatalogSort.HighestRated -> R.string.catalog_sort_rating
-                CatalogSort.Name -> R.string.catalog_sort_name
             }
             CatalogFilterButton(
                 label = stringResource(label),
@@ -557,39 +552,6 @@ private fun SeriesContinueWatchingStrip(
                     label = listOfNotNull(item.seriesTitle, item.episode.title).filter { it.isNotBlank() }.joinToString(" • "),
                     supporting = item.progressPercent?.let { stringResource(R.string.continue_watching_progress, it) }
                         ?: stringResource(R.string.continue_watching_resume),
-                    selected = false,
-                    onClick = { onPlay(item) },
-                    modifier = Modifier.widthIn(min = 136.dp, max = 180.dp),
-                    showArtwork = true,
-                    artworkUrl = item.seriesArtworkUrl,
-                    artworkAspectRatio = POSTER_ASPECT_RATIO,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-internal fun SeriesHistoryStrip(
-    records: List<SeriesHistoryItem>,
-    onPlay: (SeriesHistoryItem) -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth().testTag("series-history"),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(stringResource(R.string.series_history_title), style = MaterialTheme.typography.titleLarge)
-        LazyRow(
-            modifier = Modifier.fillMaxWidth().focusGroup(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(records, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
-                val episodeLabel = item.episode.title?.takeIf(String::isNotBlank)
-                    ?: item.episode.episodeNumber?.let { stringResource(R.string.series_episode_number, it) }
-                    ?: stringResource(R.string.series_episode_order, item.episode.providerOrder + 1)
-                CatalogTile(
-                    label = listOf(item.seriesTitle, episodeLabel).filter(String::isNotBlank).joinToString(" • "),
-                    supporting = stringResource(R.string.series_history_play),
                     selected = false,
                     onClick = { onPlay(item) },
                     modifier = Modifier.widthIn(min = 136.dp, max = 180.dp),
