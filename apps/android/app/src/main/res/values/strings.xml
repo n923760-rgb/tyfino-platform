@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TYFINO</string>
+    <string name="navigation_browse">Browse</string>
+    <string name="navigation_preferences">Preferences</string>
+    <string name="catalog_categories_title">Categories</string>
     <string name="destination_home">Home</string>
     <string name="destination_live">Live TV</string>
     <string name="destination_movies">Movies</string>

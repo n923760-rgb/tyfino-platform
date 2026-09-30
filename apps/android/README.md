@@ -90,6 +90,14 @@ An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation 
 
 The ordinary Release variant runs R8 code optimization and resource shrinking in CI and embeds only the approved `https://api.tyfino.online` licensing origin. It remains unsigned by default and is build evidence only. The manual protected workflow signs only when explicitly requested with provisioned environment secrets, verifies the approved certificate fingerprint, and produces an owner-review artifact without publishing it. Production signing material must never be committed.
 
+## Interface and adaptive menus
+
+The dark cyan/violet palette defines tonal containers and surface levels across cards, menus, fields and dialogs. Headings use stronger weights and shared Material corner sizes; no external font or UI dependency is added.
+
+Primary navigation follows full window width: a bottom menu below 600dp, a compact 96dp side menu from 600 to 839dp, and a labeled 232dp sidebar from 840dp. Both side menus scroll in short panes. The sidebar groups browsing and preferences, preserves the five existing destinations and uses start-relative layout for Arabic RTL. A cyan tonal surface marks selection; a separate light outline marks keyboard/D-pad focus. Home account/settings actions use a quieter surface treatment, and the vertical catalog category picker has its own heading and matching surface.
+
+The scoped report is [Android interface and menu refinement](../../ENGINEERING/REPORTS/ANDROID_INTERFACE_MENUS_2026-09-30.md). Added managed-device tests cover selection, Arabic RTL at larger font scale, short-pane access to Settings and directional focus/Enter. Exact-head CI outcomes are attached to the task PR; screenshot review, physical TV, TalkBack, overscan and performance still require separate runtime evidence.
+
 ## TV and D-pad focus scope
 
 Primary screens request a deterministic first focus target after attachment. Navigation destinations, horizontal content rails, season selectors, and adaptive catalog grids are focus groups so directional input visits related controls coherently; buttons and cards retain a visible focus border. Managed-device tests assert representative Settings, Movie details, and Series details entry targets. This is emulator evidence only: physical Android TV/Google TV traversal, overscan, Back behavior, playback controls, RTL, accessibility, and performance qualification remains `BLOCKED` until recorded under the device-qualification contract.

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TYFINO</string>
+    <string name="navigation_browse">المشاهدة</string>
+    <string name="navigation_preferences">التفضيلات</string>
+    <string name="catalog_categories_title">التصنيفات</string>
     <string name="destination_home">الرئيسية</string>
     <string name="destination_live">البث المباشر</string>
     <string name="destination_movies">الأفلام</string>
