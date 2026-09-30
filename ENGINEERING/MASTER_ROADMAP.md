@@ -4,6 +4,8 @@ Canonical path: `/ENGINEERING/MASTER_ROADMAP.md`
 
 Status: ACTIVE — RECONCILE WITH LIVE EVIDENCE
 
+2026-09-30 clipboard round: a bounded Admin correction awaits clipboard completion before success, handles denied/unavailable writes with manual-copy guidance, and disables duplicate clicks while pending. Source baseline is `main@ef420e7e9c0d968f271ada14bce1ab3076a655c7`; exact-head CI evidence belongs to the task PR. Details: [Admin clipboard result](REPORTS/ADMIN_CLIPBOARD_RESULT_2026-09-30.md). PRs #166 and #167 remain separate, unmerged changes.
+
 This is the single permanent engineering roadmap for TYFINO. Detailed reports belong under `/ENGINEERING/REPORTS/`; evidence indexes/metadata belong under `/ENGINEERING/EVIDENCE/`.
 
 ## 1. Current Verified State
