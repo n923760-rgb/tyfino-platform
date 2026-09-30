@@ -22,8 +22,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -60,9 +58,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -704,37 +703,30 @@ private fun ItemGrid(
         CatalogLoadingState()
         return
     }
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(catalogGridColumns(maxWidth)),
-            modifier = Modifier.fillMaxSize().focusGroup().testTag("catalog-items"),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(sorted, key = { it.providerId }) { item ->
-                Box {
-                    CatalogTile(
-                        label = item.name,
-                        supporting = listOfNotNull(item.releaseYear, item.rating).joinToString(" • "),
-                        selected = false,
-                        onClick = { onPlay(item) },
-                        modifier = Modifier.fillMaxWidth(),
-                        showArtwork = true,
-                        artworkUrl = item.artworkUrl,
-                        artworkAspectRatio = section.artworkAspectRatio(),
+    CatalogGrid {
+        items(sorted, key = { it.providerId }) { item ->
+            Box {
+                CatalogTile(
+                    label = item.name,
+                    supporting = listOfNotNull(item.releaseYear, item.rating).joinToString(" • "),
+                    selected = false,
+                    onClick = { onPlay(item) },
+                    modifier = Modifier.fillMaxWidth(),
+                    showArtwork = true,
+                    artworkUrl = item.artworkUrl,
+                    artworkAspectRatio = section.artworkAspectRatio(),
+                )
+                if (onToggleFavorite != null) {
+                    val isFavorite = item.providerId in favoriteIds
+                    CatalogFavoriteButton(
+                        label = stringResource(
+                            if (isFavorite) R.string.catalog_favorite_remove else R.string.catalog_favorite_add,
+                            item.name,
+                        ),
+                        selected = isFavorite,
+                        onClick = { onToggleFavorite(item) },
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).testTag("catalog-favorite-toggle"),
                     )
-                    if (onToggleFavorite != null) {
-                        val isFavorite = item.providerId in favoriteIds
-                        CatalogFavoriteButton(
-                            label = stringResource(
-                                if (isFavorite) R.string.catalog_favorite_remove else R.string.catalog_favorite_add,
-                                item.name,
-                            ),
-                            selected = isFavorite,
-                            onClick = { onToggleFavorite(item) },
-                            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).testTag("catalog-favorite-toggle"),
-                        )
-                    }
                 }
             }
         }
@@ -743,38 +735,22 @@ private fun ItemGrid(
 
 @Composable
 private fun SeriesHistoryGrid(records: List<SeriesHistoryItem>, onPlay: (SeriesHistoryItem) -> Unit) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(catalogGridColumns(maxWidth)),
-            modifier = Modifier.fillMaxSize().focusGroup().testTag("catalog-items"),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(records, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
-                val episodeLabel = item.episode.title?.takeIf(String::isNotBlank)
-                    ?: item.episode.episodeNumber?.let { stringResource(R.string.series_episode_number, it) }
-                    ?: stringResource(R.string.series_episode_order, item.episode.providerOrder + 1)
-                CatalogTile(
-                    label = listOf(item.seriesTitle, episodeLabel).filter(String::isNotBlank).joinToString(" • "),
-                    supporting = stringResource(R.string.series_history_play),
-                    selected = false,
-                    onClick = { onPlay(item) },
-                    modifier = Modifier.fillMaxWidth(),
-                    showArtwork = true,
-                    artworkUrl = item.seriesArtworkUrl,
-                    artworkAspectRatio = POSTER_ASPECT_RATIO,
-                )
-            }
+    CatalogGrid {
+        items(records, key = { "${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { item ->
+            val episodeLabel = item.episode.title?.takeIf(String::isNotBlank)
+                ?: item.episode.episodeNumber?.let { stringResource(R.string.series_episode_number, it) }
+                ?: stringResource(R.string.series_episode_order, item.episode.providerOrder + 1)
+            CatalogTile(
+                label = listOf(item.seriesTitle, episodeLabel).filter(String::isNotBlank).joinToString(" • "),
+                supporting = stringResource(R.string.series_history_play),
+                selected = false,
+                onClick = { onPlay(item) },
+                modifier = Modifier.fillMaxWidth(),
+                showArtwork = true,
+                artworkUrl = item.seriesArtworkUrl,
+                artworkAspectRatio = POSTER_ASPECT_RATIO,
+            )
         }
-    }
-}
-
-internal fun catalogGridColumns(width: Dp): Int {
-    return when {
-        width >= 900.dp -> 6
-        width >= 600.dp -> 5
-        width >= 480.dp -> 4
-        else -> 3
     }
 }
 
@@ -793,6 +769,20 @@ internal fun CatalogTile(
     compact: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
+    // Untrimmed, font-relative leading also accommodates Arabic fallback font metrics.
+    val titleStyle = if (showArtwork) {
+        MaterialTheme.typography.bodyMedium.copy(
+            lineHeight = 1.8.em,
+            lineHeightStyle = LineHeightStyle(
+                alignment = LineHeightStyle.Alignment.Center,
+                trim = LineHeightStyle.Trim.None,
+            ),
+        )
+    } else if (compact) {
+        MaterialTheme.typography.bodyMedium
+    } else {
+        MaterialTheme.typography.titleMedium
+    }
     val context = LocalContext.current
     val monogram = remember(label) {
         val words = label.trim().split(Regex("\\s+")).filter(String::isNotEmpty)
@@ -874,8 +864,8 @@ internal fun CatalogTile(
             }
             Text(
                 text = label,
-                style = if (compact || showArtwork) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium,
-                modifier = if (showArtwork) Modifier.heightIn(min = 38.dp) else Modifier,
+                style = titleStyle,
+                minLines = if (showArtwork) 2 else 1,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
