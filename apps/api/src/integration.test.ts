@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
+import { assertAdminDashboardSummary } from "./test-helpers/admin-dashboard-summary.js";
 import test from "node:test";
 import pg from "pg";
 import { buildApp } from "./app.js";
 import type { AppConfig } from "./config.js";
 import { tokenHash, totpCodeAt } from "./security.js";
-import { assertAdminDashboardSummary } from "./test-helpers/admin-dashboard-summary.js";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 const ownerDatabaseUrl = process.env.TEST_OWNER_DATABASE_URL;
