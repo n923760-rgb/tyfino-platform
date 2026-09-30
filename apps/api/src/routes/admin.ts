@@ -41,8 +41,10 @@ export async function registerAdminRoutes(app: FastifyInstance, db: Database, co
     const value = parsed.data;
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const code = generateActivationCode();
+      const client = await db.connect();
       try {
-        const result = await db.query<{ id: string }>(
+        await client.query("BEGIN");
+        const result = await client.query<{ id: string }>(
           `INSERT INTO activation_codes
              (code_hash, code_suffix, license_kind, pre_activation_expires_at, customer_name,
               phone_number, external_reference, admin_label, internal_note, created_by)
@@ -52,12 +54,16 @@ export async function registerAdminRoutes(app: FastifyInstance, db: Database, co
             value.externalReference ?? null, value.adminLabel ?? null, value.internalNote ?? null, admin.id]
         );
         const id = result.rows[0]!.id;
-        await writeAudit(db, request, admin.id, "activation.create", "activation_code", id, {
+        await writeAudit(client, request, admin.id, "activation.create", "activation_code", id, {
           codeSuffix: code.slice(-6), licenseKind: value.licenseKind
         });
+        await client.query("COMMIT");
         return reply.code(201).send({ id, code });
       } catch (error) {
+        await client.query("ROLLBACK");
         if ((error as { code?: string }).code !== "23505") throw error;
+      } finally {
+        client.release();
       }
     }
     return reply.code(503).send({ error: "code_generation_failed" });
@@ -156,9 +162,19 @@ export async function registerAdminRoutes(app: FastifyInstance, db: Database, co
     if (!admin) return;
     const parsed = SettingsBody.safeParse(request.body);
     if (!parsed.success) return reply.code(400).send({ error: "invalid_request" });
-    await db.query("UPDATE app_settings SET trial_enabled = $1, updated_at = now() WHERE singleton = true", [parsed.data.trialEnabled]);
-    await writeAudit(db, request, admin.id, "settings.update", "app_settings", null, { trialEnabled: parsed.data.trialEnabled });
-    return { trialEnabled: parsed.data.trialEnabled };
+    const client = await db.connect();
+    try {
+      await client.query("BEGIN");
+      await client.query("UPDATE app_settings SET trial_enabled = $1, updated_at = now() WHERE singleton = true", [parsed.data.trialEnabled]);
+      await writeAudit(client, request, admin.id, "settings.update", "app_settings", null, { trialEnabled: parsed.data.trialEnabled });
+      await client.query("COMMIT");
+      return { trialEnabled: parsed.data.trialEnabled };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   });
 
   app.get("/v1/admin/audit-logs", async (request, reply) => {
