@@ -57,8 +57,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -754,6 +756,20 @@ internal fun CatalogTile(
     compact: Boolean = false,
 ) {
     var focused by remember { mutableStateOf(false) }
+    // Untrimmed, font-relative leading also accommodates Arabic fallback font metrics.
+    val titleStyle = if (showArtwork) {
+        MaterialTheme.typography.bodyMedium.copy(
+            lineHeight = 1.6.em,
+            lineHeightStyle = LineHeightStyle(
+                alignment = LineHeightStyle.Alignment.Center,
+                trim = LineHeightStyle.Trim.None,
+            ),
+        )
+    } else if (compact) {
+        MaterialTheme.typography.bodyMedium
+    } else {
+        MaterialTheme.typography.titleMedium
+    }
     val context = LocalContext.current
     val monogram = remember(label) {
         val words = label.trim().split(Regex("\\s+")).filter(String::isNotEmpty)
@@ -835,7 +851,7 @@ internal fun CatalogTile(
             }
             Text(
                 text = label,
-                style = if (compact || showArtwork) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium,
+                style = titleStyle,
                 minLines = if (showArtwork) 2 else 1,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
