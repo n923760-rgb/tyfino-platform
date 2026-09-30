@@ -33,6 +33,14 @@ Added four managed-device UI tests: all five bottom destinations and exclusive s
 NOT RUN at commit preparation — native compilation/unit/lint/instrumentation. Exact-head Validate and native results must be attached to the PR before readiness.
 NOT RUN — screenshot/visual review, physical phone/TV/Google TV, TalkBack, overscan, real-provider/media, low-RAM and measured performance. Managed phone/tablet fixtures do not qualify physical TV or full accessibility.
 
+## First native verification and diagnostic follow-up
+
+Validate run [36725882728](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36725882728) on `ecd9a833e75247cdcdba252fcdec0406270689e6`: API/Admin/database/deployment and tablet instrumentation PASS; Debug/unsigned Release builds and JVM unit tests PASS; Android lint FAIL for the obsolete `open_settings` string; phone instrumentation FAIL without a testcase reason in the console.
+
+Remove the unused English/Arabic string pair and use the non-deprecated locale factory in the new test. Add an always-run instrumentation summary to the existing CI job: current XML results and new navigation cases are printed, and the most recent same-branch failed artifact may be inspected with bounded read-only Actions access. Previous results are explicitly labeled with run/head and never used as current proof. Reports are parsed in memory, URLs/secret-like message fields are redacted, ZIP/XML size is bounded, and original test failure status is preserved. Exact checkout, required checks, source/artifact attribution and failure uploads remain intact.
+
+This diagnostic change is necessary because this session can download the report ZIP but has no shell/archive reader. The next exact-head run must establish the phone failure reason or record it as unresolved; no blind UI workaround or test weakening is authorized.
+
 ## Evidence and completion gates
 
 Review the full diff, source identity, shared roadmap composition and exact-head Actions. Fix reproducible failures before readiness; record any unresolved/flaky runtime failures honestly. Stop for unexpected base/head movement, overlapping product work, authority conflict, secrets or unrelated source changes. Signing and deployment remain outside this task.

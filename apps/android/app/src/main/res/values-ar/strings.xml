@@ -29,7 +29,6 @@
     <string name="home_recent_series">آخر المسلسلات مشاهدة</string>
     <string name="playback_landscape">المشاهدة بالعرض</string>
     <string name="playback_restore_orientation">العودة للعرض المعتاد</string>
-    <string name="open_settings">فتح الإعدادات</string>
     <string name="settings_title">الإعدادات</string>
     <string name="settings_description">إدارة حسابات IPTV المحفوظة على هذا الجهاز.</string>
     <string name="settings_user_agent_title">توافق المزوّد</string>

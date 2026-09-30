@@ -311,6 +311,9 @@ jobs:
           retention-days: 7
 
   android-instrumentation:
+    permissions:
+      contents: read
+      actions: read
     name: android-instrumentation (${{ matrix.device }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -350,6 +353,75 @@ jobs:
         run: >-
           ./gradlew --no-daemon --stacktrace :app:${{ matrix.task }}
           -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+      - name: Summarize instrumentation results
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TYFINO_CI_REPOSITORY: ${{ github.repository }}
+          TYFINO_CI_BRANCH: ${{ github.head_ref || github.ref_name }}
+          TYFINO_CI_DEVICE: ${{ matrix.device }}
+        run: |
+          python3 - <<'PY'
+          import io, json, os, re, subprocess, zipfile
+          from pathlib import Path
+          from urllib.parse import urlencode
+          import xml.etree.ElementTree as ET
+
+          def summarize(documents, label):
+              cases = {}
+              for data in documents:
+                  try:
+                      root = ET.fromstring(data)
+                  except ET.ParseError:
+                      continue
+                  for case in root.iter("testcase"):
+                      failure = case.find("failure")
+                      if failure is None:
+                          failure = case.find("error")
+                      key = (case.get("classname", ""), case.get("name", ""))
+                      result = ("FAIL", failure) if failure is not None else (
+                          ("SKIPPED", None) if case.find("skipped") is not None else ("PASS", None))
+                      if key not in cases or result[0] == "FAIL":
+                          cases[key] = result
+              print(f"{label}: tests={len(cases)}, failed={sum(r[0] == 'FAIL' for r in cases.values())}, skipped={sum(r[0] == 'SKIPPED' for r in cases.values())}")
+              for (owner, name), (status, failure) in sorted(cases.items()):
+                  if status == "FAIL" or owner.endswith(".AppNavigationTest"):
+                      print(f"{status}: {owner}.{name}")
+                      if failure is not None:
+                          message = (failure.get("message") or failure.text or "").strip()
+                          message = " ".join(message.splitlines()[:3])[:400]
+                          message = re.sub(r"(?:https?|rtsp|rtsps)://\S+", "[URL redacted]", message)
+                          message = re.sub(r"(?i)(password|token|secret|activationCode|username|authorization)\s*[:=]\s*[^\s,]+", r"\1=[redacted]", message)
+                          print(message)
+
+          reports = Path("app/build/outputs/androidTest-results/managedDevice")
+          summarize((p.read_bytes() for p in reports.rglob("*.xml")), "Current exact-source instrumentation")
+
+          # Read the prior failed run on this branch; never treat its results as current proof.
+          def api(path):
+              return subprocess.check_output(["gh", "api", path], stderr=subprocess.PIPE, timeout=30)
+
+          try:
+              repo = os.environ["TYFINO_CI_REPOSITORY"]
+              query = urlencode({"branch": os.environ["TYFINO_CI_BRANCH"], "event": "pull_request", "status": "failure", "per_page": 5})
+              runs = json.loads(api(f"repos/{repo}/actions/runs?{query}"))["workflow_runs"]
+              for run in runs:
+                  if run["name"] != "Validate" or run["head_repository"]["full_name"] != repo:
+                      continue
+                  artifacts = json.loads(api(f"repos/{repo}/actions/runs/{run['id']}/artifacts"))["artifacts"]
+                  prefix = f"android-test-{os.environ['TYFINO_CI_DEVICE']}-{run['head_sha']}-"
+                  artifact = next((a for a in artifacts if a["name"].startswith(prefix) and not a["expired"]), None)
+                  if artifact is None or artifact["size_in_bytes"] > 5 * 1024 * 1024:
+                      continue
+                  archive = zipfile.ZipFile(io.BytesIO(api(f"repos/{repo}/actions/artifacts/{artifact['id']}/zip")))
+                  xml = [entry for entry in archive.infolist() if entry.filename.endswith(".xml")]
+                  if sum(entry.file_size for entry in xml) > 10 * 1024 * 1024:
+                      raise ValueError("Oversized test report")
+                  summarize((archive.read(entry) for entry in xml), f"Prior failed run {run['id']} head {run['head_sha']}")
+                  break
+          except Exception as error:
+              print(f"Prior failure details unavailable ({type(error).__name__}); current test result is unchanged.")
+          PY
       - name: Upload instrumentation report on failure
         if: failure()
         uses: actions/upload-artifact@v4

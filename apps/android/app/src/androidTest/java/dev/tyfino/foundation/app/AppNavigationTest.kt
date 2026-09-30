@@ -80,7 +80,7 @@ class AppNavigationTest {
         var selected by mutableStateOf(AppDestination.Home.route)
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val configuration = Configuration(context.resources.configuration).apply {
-            setLocale(Locale("ar"))
+            setLocale(Locale.forLanguageTag("ar"))
         }
         val arabicContext = context.createConfigurationContext(configuration)
         compose.setContent {
