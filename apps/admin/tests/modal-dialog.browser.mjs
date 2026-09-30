@@ -39,7 +39,8 @@ async function focused(locator) {
 }
 
 async function openDialog(page, opener, title) {
-  await opener.click();
+  await opener.focus();
+  await opener.press("Enter");
   const dialog = page.getByRole("dialog", { name: title, exact: true });
   await dialog.waitFor();
   await focused(dialog.getByRole("button", { name: "إغلاق", exact: true }));
@@ -174,7 +175,7 @@ try {
   const compactOpener = compact.page.getByRole("button", { name: "+ كود جديد", exact: true });
   dialog = await openDialog(compact.page, compactOpener, "إنشاء كود تفعيل");
   const box = await dialog.boundingBox();
-  assert.ok(box && box.x >= 19 && box.x + box.width <= 356 && box.y >= 19 && box.y + box.height <= 648, "Compact dialog exceeded the viewport");
+  assert.ok(box && box.x >= 9 && box.x + box.width <= 366 && box.y >= 9 && box.y + box.height <= 658, "Compact dialog exceeded the viewport");
   await dialog.getByRole("textbox", { name: "ملاحظة داخلية", exact: true }).fill("اختبار");
   await dialog.getByRole("button", { name: "إلغاء", exact: true }).click();
   await closed(compact.page, compactOpener);

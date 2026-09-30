@@ -169,7 +169,7 @@ Why now: the source finding affects keyboard navigation and typing focus. All li
 Required execution capability: existing exact-source Admin CI with pinned Chromium, intercepted fixture API and real DOM keyboard/focus/layout checks.
 Expected evidence: source diff review, eight browser scenarios, full exact-head Validate results and attributable official-main results on the task PR.
 Stop conditions: unproved browser behavior reported as PASS, unexpected source movement, unrelated state/data/identity changes or secret exposure.
-Following separate diagnosis: reproduce or dismiss the foreground/background catalog same-account stale-write concern with deterministic ownership evidence before changing repositories. Physical/device/provider/production gates remain independent.
+Following separate task: correct the confirmed Admin RTL shell/menu overlap found by the actual browser opener click; qualify pointer reachability. The foreground/background catalog stale-write concern remains a later deterministic ownership diagnosis. Physical/device/provider/production gates remain independent.
 
 ## Linked Reports
 

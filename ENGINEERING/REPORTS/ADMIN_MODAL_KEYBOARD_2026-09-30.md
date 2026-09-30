@@ -17,7 +17,7 @@ The old modal focused close on every `onClose` callback change, listened globall
 
 The shared surface now uses native `<dialog>` with `showModal()`. The browser supplies modal keyboard/background behavior. A mount-only effect focuses close once, closes the native dialog on cleanup and restores the captured opener when still connected. React StrictMode setup/cleanup is exercised by the real app. Escape uses the dialog cancel event; the existing callback controls dismissal. Pointer dismissal requires a target on the dialog and coordinates outside its bounds, so clicks on empty interior padding or content do not close it. `useId()` gives each heading its own accessible label.
 
-Native `::backdrop` retains the existing dim/blur treatment. The framed scrollable dialog retains normal/wide widths with 20px viewport clearance and no browser-default padding/border. Existing child forms and business callbacks are unchanged. No manual inert flags or document-wide keyboard listeners are introduced.
+Native `::backdrop` retains the existing dim/blur treatment. The framed scrollable dialog retains normal/wide widths with 20px desktop and 10px compact viewport clearance and no browser-default padding/border. Existing child forms and business callbacks are unchanged. No manual inert flags or document-wide keyboard listeners are introduced.
 
 ## Validation and evidence boundaries
 
@@ -39,6 +39,12 @@ Eight logged browser scenarios cover:
 
 NOT RUN: screen readers, Safari/Firefox, physical input, production API and visual-design qualification. Browser CI evidence must not be generalized to these surfaces.
 
+## First browser attempt and bounded correction
+
+FAIL: [Validate 36779314452](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36779314452), initial head `80c47851e8ac30114d3e641a64a479e345bf557d`: typecheck/build and Chromium installation passed, but the first opener pointer click was intercepted by the existing sidebar. No modal scenario completed. Source confirms the RTL grid reserves the leading/right column while the fixed sidebar uses physical left positioning. This is a separate shell/menu defect; no click success is claimed.
+
+This scoped keyboard suite opens controls with real focus plus Enter, not forced pointer dispatch. All containment/restoration assertions remain; dialog dismissal still uses ordinary pointer actions. The separate desktop pointer/RTL menu defect is the immediate next task. Native compact styling also removes an obsolete wrapper rule and preserves the original 10px compact clearance; geometry assertions follow that contract.
+
 ## Next gate
 
-Qualify/review the exact new head, merge under the current explicit owner instruction, then check official-main Validate and record results on the task PR. No production deployment/signing/release in this round. Remaining catalog concurrency finding requires a separate deterministic ownership diagnosis before any fix.
+Qualify/review the exact new head, merge under the current explicit owner instruction, then check official-main Validate and record results on the task PR. No production deployment/signing/release in this round. Next separate task: align the Admin sidebar with the RTL grid and prove actual pointer reachability. The catalog concurrency finding remains a later deterministic ownership diagnosis.

@@ -192,8 +192,7 @@ input:focus, select:focus, textarea:focus { border-color:#2563eb; box-shadow:0 0
   .page-header p { font-size:14px; }
   .toolbar { grid-template-columns:1fr; }
   .form-row, .choice-grid, .setting-facts { grid-template-columns:1fr; }
-  .modal-backdrop { padding:10px; }
-  .modal { max-height:calc(100vh - 20px); border-radius:18px; }
+  .modal { width:calc(100% - 20px); max-height:calc(100vh - 20px); border-radius:18px; }
   .toast { right:16px; left:16px; bottom:18px; }
   .timeline article { grid-template-columns:1fr; }
   .timeline time { justify-self:start; }
