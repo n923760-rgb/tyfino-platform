@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { assertAdminDashboardSummary } from "./test-helpers/admin-dashboard-summary.js";
 import test from "node:test";
 import pg from "pg";
 import { buildApp } from "./app.js";
@@ -124,6 +125,8 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
       payload: {}
     });
     assert.equal(supportCannotRevokeSessions.statusCode, 403);
+
+    await assertAdminDashboardSummary(app, ownerDb, `tyfino_admin_session=${cookie.value}`, forbiddenSupportToken);
 
     const consumedChallenge = await app.inject({
       method: "POST",

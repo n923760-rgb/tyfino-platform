@@ -232,6 +232,21 @@ Admin authentication and authorization are enforced server-side on every route.
 | GET/PATCH | `/v1/admin/app-settings` | Read or update approved licensing settings |
 | GET | `/v1/admin/audit-logs` | Read redacted administrative activity |
 
+### Activation-code list summary
+
+`GET /v1/admin/activation-codes` preserves the existing `activationCodes` array of at most 500 newest redacted records and adds a `summary` object computed over all activation codes using server time:
+
+| Field | Meaning |
+| --- | --- |
+| `totalCodes` | All activation-code records, including unused, expired and revoked |
+| `availableCodes` | Unused, never activated codes whose optional first-use deadline is absent or still in the future |
+| `activeLicenses` | Active codes with a recorded activation and a started grant; lifetime grants have no expiry, while one-year grants must have a future paid expiry |
+| `boundDevices` | Distinct installation bindings among those active licenses; expired/revoked grants are excluded and multiple valid codes bound to one installation count once |
+
+The first-use deadline is irrelevant after activation. The summary returns counts only, not installation identities, codes or customer metadata. Existing Admin read authorization remains required, including for Support. This is an additive V1 response field; existing list consumers keep using `activationCodes`. The updated Dashboard requires the summary and shows a localized load failure if a server does not supply it, instead of guessing totals from the bounded list. Backend support must be available before rolling out that Dashboard. No licensing-authority, trial, reset or revocation behavior changes.
+
+The aggregate has a fixed response size and uses the existing database statement timeout. Production query latency on a large deployed database has not been measured.
+
 Forbidden Admin routes include provider hosts, provider accounts, IPTV credentials, M3U, Stalker/MAC Portal, packages, channels, streams, reseller operations, and IPTV expiry.
 
 ### 5.1 OWNER two-factor authentication

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { api, errorMessage } from "./api";
+import { api, ApiError, errorMessage } from "./api";
 import { Button, EmptyState, Field, formatDate, licenseName, Loading, Modal, PageHeader, Status } from "./components";
 import type { Activation, Admin, AuditLog } from "./types";
 
@@ -22,21 +22,22 @@ export function DashboardPage({ role }: { role: Admin["role"] }) {
       api.activations(), api.settings(), api.health(),
       role === "support" ? Promise.resolve({ auditLogs: [] as AuditLog[], integrityVerified: true }) : api.auditLogs()
     ]);
-    return { codes: codes.activationCodes, settings, health, audit: audit.auditLogs };
+    if (!codes.summary) throw new ApiError(502, "dashboard_statistics_unavailable");
+    return { codes: codes.activationCodes, summary: codes.summary, settings, health, audit: audit.auditLogs };
   });
   if (error) return <EmptyState title="تعذر تحميل لوحة المؤشرات" text={error} />;
   if (!data) return <Loading />;
   const stats = [
-    { label: "الأكواد المتاحة", value: data.codes.filter((x) => x.status === "unused").length, note: "جاهزة للتفعيل", tone: "blue" },
-    { label: "التراخيص النشطة", value: data.codes.filter((x) => x.status === "active").length, note: "سنة أو مدى الحياة", tone: "violet" },
-    { label: "الأجهزة المرتبطة", value: data.codes.filter((x) => x.deviceBound).length, note: "جهاز واحد لكل كود", tone: "cyan" },
+    { label: "الأكواد المتاحة", value: data.summary.availableCodes, note: "جاهزة للتفعيل", tone: "blue" },
+    { label: "التراخيص النشطة", value: data.summary.activeLicenses, note: "سنة أو مدى الحياة", tone: "violet" },
+    { label: "الأجهزة المرتبطة", value: data.summary.boundDevices, note: "مرتبطة بتراخيص نشطة", tone: "cyan" },
     { label: "التجربة المجانية", value: data.settings.trialEnabled ? "مفعّلة" : "متوقفة", note: "7 أيام", tone: data.settings.trialEnabled ? "green" : "gray" }
   ];
   return <>
     <PageHeader title="الرئيسية" description="ملخص حالة تراخيص تطبيق TYFINO." />
     <div className="stats-grid">{stats.map((item) => <article className={`stat-card tone-${item.tone}`} key={item.label}><span>{item.label}</span><strong>{item.value}</strong><small>{item.note}</small></article>)}</div>
     <div className="dashboard-grid">
-      <section className="panel"><div className="panel-title"><h2>أحدث الأكواد</h2><span>{data.codes.length}</span></div>
+      <section className="panel"><div className="panel-title"><h2>أحدث الأكواد</h2><span>{data.summary.totalCodes}</span></div>
         {data.codes.length ? <div className="simple-list">{data.codes.slice(0, 5).map((item) => <div key={item.id}><div><strong>{item.customerName || item.adminLabel || "بدون اسم"}</strong><small className="ltr">TYF-•••••-•••••-{item.codeSuffix}</small></div><Status value={item.status} /></div>)}</div> : <p className="muted">لم تُنشأ أكواد بعد.</p>}
       </section>
       <section className="panel"><div className="panel-title"><h2>حالة النظام</h2></div><div className="health-list">
