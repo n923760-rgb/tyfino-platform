@@ -16,7 +16,7 @@
 
 The preferred 3/4/5/6-column breakpoints remain. The shared lazy grid additionally caps columns by the space required for an 88dp card allocation scaled by the current font size plus the existing 8dp gaps. Extremely narrow panes can use one or two columns; small fonts do not increase baseline density. Both catalog/search/favorite/history items and Series episode history use this same production layout.
 
-Artwork titles use two minimum and maximum lines measured at the current font size instead of a fixed 38dp minimum, with untrimmed 1.6em leading to accommodate Arabic fallback font metrics. Compact category labels retain one minimum and two maximum lines. The full card accessibility description retains the original title and metadata.
+Artwork titles use two minimum and maximum lines measured at the current font size instead of a fixed 38dp minimum, with untrimmed 1.8em leading to accommodate Arabic fallback font metrics. Compact category labels retain one minimum and two maximum lines. The full card accessibility description retains the original title and metadata.
 
 Provider and episode stable keys, item actions, favorite overlays, sorting ownership, artwork loading/cache/ratios, account/generation ownership and loading/empty/error states are preserved. No provider requests or new caches are introduced.
 
@@ -37,7 +37,11 @@ First exact-head Validate run [36763481228](https://github.com/n923760-rgb/tyfin
 
 A bounded temporary CI reader inspected only that run's attached report, with read-only Actions access. Its log in [run 36764598463](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36764598463), job `110055465546`, identifies the exact failure. The temporary extra checkout job also failed the existing CI qualification checkout-count guard; the diagnostic job and its additional permissions are removed from the final source.
 
-The correction retains two title lines and the original alignment/click assertions. It sets untrimmed, font-relative 1.6em line height only for artwork titles, providing space for Arabic fallback metrics instead of relying on the default trimmed line spacing. No fixed height clamp or loosened assertion is introduced. Exact corrected-head native results are recorded on the PR.
+The intermediate 1.6em correction in [run 36765233833](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36765233833), source `a42d3ae10876bab189c203e5adbbaa9490720090`, reduced but did not eliminate the tablet difference: 668px versus 674px, with the grid test passing. A second bounded reader in [run 36766648444](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36766648444), job `110062386400`, established these values using the original report. Its temporary download steps and read permissions are removed before readiness.
+
+AndroidX line-height behavior protects paragraph boundaries when requested leading is smaller than the fallback font's natural metrics. The observed remaining 6px difference means the 1.6em allocation still fell short for the tablet Arabic font. The final 1.8em allocation provides additional room, with no height clamp. The final source retains the same current-result XML summary already present in open PR #170, byte-for-byte; it has no report-download step, network access or additional permissions.
+
+The final correction retains two title lines and the original alignment/click assertions. It sets untrimmed, font-relative 1.8em line height only for artwork titles, providing space for Arabic fallback metrics instead of relying on the default trimmed line spacing. No fixed height clamp or loosened assertion is introduced. Exact corrected-head native results are recorded on the PR.
 
 ## Review and next gate
 

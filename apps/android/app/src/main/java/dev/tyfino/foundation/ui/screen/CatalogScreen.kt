@@ -759,7 +759,7 @@ internal fun CatalogTile(
     // Untrimmed, font-relative leading also accommodates Arabic fallback font metrics.
     val titleStyle = if (showArtwork) {
         MaterialTheme.typography.bodyMedium.copy(
-            lineHeight = 1.6.em,
+            lineHeight = 1.8.em,
             lineHeightStyle = LineHeightStyle(
                 alignment = LineHeightStyle.Alignment.Center,
                 trim = LineHeightStyle.Trim.None,
