@@ -54,6 +54,7 @@ export function ActivationsPage({ notify, role }: { notify: Notify; role: Admin[
   const [reload, setReload] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [createdCode, setCreatedCode] = useState("");
+  const [copyBusy, setCopyBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | Activation["status"]>("all");
@@ -83,6 +84,19 @@ export function ActivationsPage({ notify, role }: { notify: Notify; role: Admin[
       setCreateOpen(false); setCreatedCode(result.code); setReload((x) => x + 1); notify("تم إنشاء كود التفعيل.");
     } catch (reason) { notify(errorMessage(reason), "error"); }
     finally { setBusy(false); }
+  }
+
+  async function copyCode() {
+    if (!createdCode || copyBusy) return;
+    setCopyBusy(true);
+    try {
+      await navigator.clipboard.writeText(createdCode);
+      notify("تم نسخ الكود.");
+    } catch {
+      notify("تعذر النسخ تلقائيًا. حدّد الكود وانسخه يدويًا.", "error");
+    } finally {
+      setCopyBusy(false);
+    }
   }
 
   async function revoke() {
@@ -122,7 +136,7 @@ export function ActivationsPage({ notify, role }: { notify: Notify; role: Admin[
       <div className="security-note">بيانات العميل داخلية ولا تُرسل إلى تطبيق Android.</div>
       <div className="form-actions"><Button type="button" variant="secondary" onClick={() => setCreateOpen(false)}>إلغاء</Button><Button type="submit" busy={busy}>إنشاء الكود</Button></div>
     </form></Modal>}
-    {createdCode && <Modal title="تم إنشاء الكود" onClose={() => setCreatedCode("")}><div className="code-result"><p>انسخه الآن؛ لن يظهر كاملًا مرة أخرى.</p><strong className="ltr">{createdCode}</strong><Button onClick={() => { void navigator.clipboard.writeText(createdCode); notify("تم نسخ الكود."); }}>نسخ الكود</Button></div></Modal>}
+    {createdCode && <Modal title="تم إنشاء الكود" onClose={() => setCreatedCode("")}><div className="code-result"><p>انسخه الآن؛ لن يظهر كاملًا مرة أخرى.</p><strong className="ltr">{createdCode}</strong><Button busy={copyBusy} onClick={() => void copyCode()}>نسخ الكود</Button></div></Modal>}
     {resetTarget && <Modal title="تغيير الجهاز المرتبط" onClose={() => setResetTarget(null)}><form className="form" onSubmit={reset}><p className="modal-text">سيتم إلغاء جلسة الجهاز السابق مع الحفاظ على مدة الترخيص.</p><Field label="سبب التغيير"><textarea name="reason" minLength={3} maxLength={500} rows={3} required /></Field><div className="form-actions"><Button type="button" variant="secondary" onClick={() => setResetTarget(null)}>رجوع</Button><Button type="submit" busy={busy}>تأكيد التغيير</Button></div></form></Modal>}
     {revokeTarget && <Modal title="إلغاء كود التفعيل" onClose={() => setRevokeTarget(null)}><div className="confirm-content"><p>سيُلغى الترخيص وجميع جلساته فورًا. لا يمكن استخدام الكود بعد ذلك.</p><div className="form-actions"><Button variant="secondary" onClick={() => setRevokeTarget(null)}>رجوع</Button><Button variant="danger" busy={busy} onClick={() => void revoke()}>إلغاء نهائي</Button></div></div></Modal>}
   </>;
