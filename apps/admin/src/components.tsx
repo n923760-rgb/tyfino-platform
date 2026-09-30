@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 
 export function Button({ children, variant = "primary", busy, ...props }: {
   children: ReactNode;
@@ -17,21 +17,31 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 export function Modal({ title, children, onClose, width = "normal" }: {
   title: string; children: ReactNode; onClose: () => void; width?: "normal" | "wide";
 }) {
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialog.showModal();
     closeRef.current?.focus();
-    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
-    window.addEventListener("keydown", escape);
-    return () => window.removeEventListener("keydown", escape);
-  }, [onClose]);
-  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => {
-    if (event.target === event.currentTarget) onClose();
-  }}>
-    <section className={`modal modal-${width}`} role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <header><h2 id="modal-title">{title}</h2><button ref={closeRef} className="icon-button" onClick={onClose} aria-label="إغلاق">×</button></header>
-      <div className="modal-content">{children}</div>
-    </section>
-  </div>;
+    return () => {
+      if (dialog.open) dialog.close();
+      if (opener?.isConnected) opener.focus();
+    };
+  }, []);
+  return <dialog ref={dialogRef} className={`modal modal-${width}`} aria-labelledby={titleId}
+    onCancel={(event) => { event.preventDefault(); onClose(); }}
+    onMouseDown={(event) => {
+      if (event.target !== event.currentTarget) return;
+      const bounds = event.currentTarget.getBoundingClientRect();
+      if (event.clientX < bounds.left || event.clientX > bounds.right ||
+          event.clientY < bounds.top || event.clientY > bounds.bottom) onClose();
+    }}>
+    <header><h2 id={titleId}>{title}</h2><button ref={closeRef} type="button" className="icon-button" onClick={onClose} aria-label="إغلاق">×</button></header>
+    <div className="modal-content">{children}</div>
+  </dialog>;
 }
 
 const statusText: Record<string, string> = { active: "نشط", unused: "جديد", revoked: "ملغي" };

@@ -36,6 +36,13 @@ PASS: [official-main Validate 36769206816](https://github.com/n923760-rgb/tyfino
 
 Current bounded UI round: organize Settings into account and provider sections with heading semantics, adaptive centered width and preserved actions/focus/preferences. Report: `/ENGINEERING/REPORTS/ANDROID_SETTINGS_SECTIONS_2026-09-30.md`. Exact new-head qualification is recorded on its PR. No production deployment, signing or release has occurred.
 
+
+### 2026-09-30 Admin modal source checkpoint
+
+Settings PR #172 is merged into official `main@a21342df6ba3ca8465b5ef6b179bb145c8f7f5d6`. Exact-head [Validate 36772162343](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36772162343) passed all seven jobs with 64 cases per managed device, zero failures/skips. Its first phone job failed during emulator ZIP installation before tests; retrying only that job on unchanged source passed. Official-main [Validate 36779000481](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36779000481) was in progress at this checkpoint.
+
+Current bounded round: correct shared Admin modal keyboard containment, background inertness, opener restoration and unwanted refocus across parent rerenders. Native browser proof runs the actual development-mode app with synthetic intercepted API fixtures in the existing exact-source Admin CI job. Report: [Admin modal keyboard](REPORTS/ADMIN_MODAL_KEYBOARD_2026-09-30.md). Exact new-head results belong to its PR; screen-reader/other-browser/physical/production proof is separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -157,12 +164,12 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: address Admin modal keyboard containment, background inertness and focus restoration in a separate bounded round after Settings qualification.
-Why now: the remaining source review finding affects modal navigation and accessibility; the licensing, Admin transaction/clipboard/statistics and Android menu/catalog corrections are now integrated and qualified.
-Required authority: the owner's current merge-and-continue instruction covers repository improvements and reviewed merges within this application scope.
-Required execution capability: repository inspection and a browser-capable executor/CI for native DOM keyboard and focus behavior.
-Expected evidence: bounded dialog behavior regression tests, real browser results, exact-head CI and a scoped report. Physical Android/provider/media and production qualification remain separate.
-Stop conditions: unproved browser behavior reported as PASS, source movement outside the planned work, unrelated state/data/identity changes or secret exposure.
+Task: finish native Chromium qualification and exact-head review of the scoped Admin modal correction, merge under current owner authority, then verify official-main CI.
+Why now: the source finding affects keyboard navigation and typing focus. All licensing/Admin data corrections and Android menu/catalog/Settings rounds are merged.
+Required execution capability: existing exact-source Admin CI with pinned Chromium, intercepted fixture API and real DOM keyboard/focus/layout checks.
+Expected evidence: source diff review, eight browser scenarios, full exact-head Validate results and attributable official-main results on the task PR.
+Stop conditions: unproved browser behavior reported as PASS, unexpected source movement, unrelated state/data/identity changes or secret exposure.
+Following separate diagnosis: reproduce or dismiss the foreground/background catalog same-account stale-write concern with deterministic ownership evidence before changing repositories. Physical/device/provider/production gates remain independent.
 
 ## Linked Reports
 
