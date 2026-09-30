@@ -1,5 +1,12 @@
 export type Admin = { id: string; email: string; role: "owner" | "admin" | "support" };
 
+export type ActivationSummary = {
+  totalCodes: number;
+  availableCodes: number;
+  activeLicenses: number;
+  boundDevices: number;
+};
+
 export type Activation = {
   id: string;
   codeSuffix: string;

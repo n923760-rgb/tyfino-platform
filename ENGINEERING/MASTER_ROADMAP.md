@@ -75,6 +75,8 @@ UNKNOWN / MUST VERIFY LIVE:
 - Performance/startup/scrolling/playback/memory measurements on target hardware.
 - Production operational evidence.
 
+Admin dashboard review (2026-09-30): a bounded follow-up on official base `ef420e7e9c0d968f271ada14bce1ab3076a655c7` replaces counts inferred from 500 rows with a full-table authenticated summary and serial PostgreSQL regression coverage. Detailed scope, validation limits and backend-first rollout are recorded in `/ENGINEERING/REPORTS/ADMIN_DASHBOARD_STATISTICS_2026-09-30.md`. Exact-head CI evidence belongs to the PR; merge/deployment and runtime qualification remain separate.
+
 ## 7. Ordered Engineering Gates
 
 1. Repository/governance live gate.

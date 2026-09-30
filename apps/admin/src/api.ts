@@ -1,4 +1,4 @@
-import type { Activation, Admin, AuditLog } from "./types";
+import type { Activation, ActivationSummary, Admin, AuditLog } from "./types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "";
 
@@ -18,6 +18,7 @@ const messages: Record<string, string> = {
   activation_inactive: "لا يمكن تعديل كود ملغي أو منتهي.",
   code_generation_failed: "تعذر إنشاء كود جديد. حاول مرة أخرى.",
   rate_limited: "طلبات كثيرة خلال وقت قصير. انتظر قليلًا ثم حاول مرة أخرى.",
+  dashboard_statistics_unavailable: "تعذر تحميل إحصاءات التراخيص. أعد المحاولة.",
   request_failed: "تعذر الاتصال بالخادم. حاول مرة أخرى.",
   internal_error: "حدث خطأ داخلي. حاول مرة أخرى."
 };
@@ -53,7 +54,7 @@ export const api = {
   logout: () => request<void>("/v1/admin/auth/logout", { method: "POST", ...json({}) }),
   revokeOtherAdminSessions: () => request<{ revokedSessions: number }>("/v1/admin/auth/revoke-other-sessions", { method: "POST", ...json({}) }),
   health: () => request<{ status: string; database: string; schema: string }>("/readyz"),
-  activations: () => request<{ activationCodes: Activation[] }>("/v1/admin/activation-codes"),
+  activations: () => request<{ activationCodes: Activation[]; summary?: ActivationSummary }>("/v1/admin/activation-codes"),
   createActivation: (value: object) => request<{ id: string; code: string }>("/v1/admin/activation-codes", { method: "POST", ...json(value) }),
   revokeActivation: (id: string) => request<{ id: string; status: string }>(`/v1/admin/activation-codes/${id}/revoke`, { method: "POST", ...json({}) }),
   resetDevice: (id: string, reason: string) => request<{ id: string; deviceBound: boolean }>(`/v1/admin/activation-codes/${id}/reset-device`, { method: "POST", ...json({ reason }) }),

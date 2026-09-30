@@ -30,7 +30,25 @@ export async function registerAdminRoutes(app: FastifyInstance, db: Database, co
               admin_label AS "adminLabel", internal_note AS "internalNote", created_at AS "createdAt"
          FROM activation_codes ORDER BY created_at DESC LIMIT 500`
     );
-    return { activationCodes: result.rows };
+    const summary = await db.query<{
+      totalCodes: number; availableCodes: number; activeLicenses: number; boundDevices: number;
+    }>(
+      `WITH classified AS (
+        SELECT *,
+               status = 'active' AND activated_at IS NOT NULL
+                 AND grant_starts_at <= now()
+                 AND ((license_kind = 'lifetime' AND grant_expires_at IS NULL)
+                   OR (license_kind = 'one_year' AND grant_expires_at > now())) AS entitled
+          FROM activation_codes
+      )
+      SELECT count(*)::int AS "totalCodes",
+             (count(*) FILTER (WHERE status = 'unused' AND activated_at IS NULL
+               AND (pre_activation_expires_at IS NULL OR pre_activation_expires_at > now())))::int AS "availableCodes",
+             (count(*) FILTER (WHERE entitled))::int AS "activeLicenses",
+             (count(DISTINCT bound_installation_id) FILTER (WHERE entitled))::int AS "boundDevices"
+        FROM classified`
+    );
+    return { activationCodes: result.rows, summary: summary.rows[0]! };
   });
 
   app.post("/v1/admin/activation-codes", async (request, reply) => {
