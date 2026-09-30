@@ -174,6 +174,53 @@ try {
   console.log("PASS: administrative session dismissal restores focus without revocation");
   await context.close();
 
+  const shell = await pageFor({ width: 1280, height: 400 });
+  const shellPage = shell.page;
+  const sidebar = shellPage.locator(".sidebar");
+  const main = shellPage.locator(".content");
+  const sidebarBox = await sidebar.boundingBox();
+  const mainBox = await main.boundingBox();
+  assert.ok(sidebarBox && mainBox &&
+    Math.abs(sidebarBox.x + sidebarBox.width - 1280) <= 1 &&
+    mainBox.x + mainBox.width <= sidebarBox.x + 1, "RTL sidebar overlaps the content column");
+  const shellOpener = shellPage.getByRole("button", { name: "+ كود جديد", exact: true });
+  await shellOpener.click();
+  let shellDialog = shellPage.getByRole("dialog", { name: "إنشاء كود تفعيل", exact: true });
+  await shellDialog.getByRole("button", { name: "إغلاق", exact: true }).click();
+  await closed(shellPage, shellOpener);
+  await shellPage.evaluate(() => window.scrollTo(0, 200));
+  await waitFor(() => shellPage.evaluate(() => window.scrollY > 0), "Fixture must exercise document scrolling");
+  const scrolledSidebar = await sidebar.boundingBox();
+  assert.ok(scrolledSidebar && Math.abs(scrolledSidebar.y) <= 1, "Sidebar moved out of the viewport on document scroll");
+  const logout = sidebar.getByRole("button", { name: "تسجيل الخروج", exact: true });
+  await logout.scrollIntoViewIfNeeded();
+  await logout.click({ trial: true });
+  const logoutBox = await logout.boundingBox();
+  assert.ok(logoutBox && logoutBox.y >= 0 && logoutBox.y + logoutBox.height <= 401, "Sidebar account action is clipped in a short viewport");
+  const nav = sidebar.getByRole("navigation", { name: "التنقل الرئيسي" });
+  await nav.getByRole("button", { name: "إعدادات التطبيق", exact: true }).click();
+  await shellPage.getByRole("heading", { name: "إعدادات التطبيق", exact: true }).waitFor();
+  const sessionOpener = shellPage.getByRole("button", { name: "إلغاء الجلسات الأخرى", exact: true });
+  await sessionOpener.click();
+  shellDialog = shellPage.getByRole("dialog", { name: "إلغاء الجلسات الإدارية الأخرى", exact: true });
+  await shellDialog.getByRole("button", { name: "رجوع", exact: true }).click();
+  await closed(shellPage, sessionOpener);
+  await nav.getByRole("button", { name: "أكواد التفعيل", exact: true }).click();
+  await shellPage.getByRole("heading", { name: "أكواد التفعيل", exact: true }).waitFor();
+  const shellReset = shellPage.getByRole("button", { name: "تغيير الجهاز", exact: true });
+  await shellReset.click();
+  shellDialog = shellPage.getByRole("dialog", { name: "تغيير الجهاز المرتبط", exact: true });
+  await shellDialog.getByRole("button", { name: "رجوع", exact: true }).click();
+  await closed(shellPage, shellReset);
+  const shellRevoke = shellPage.getByRole("button", { name: "إلغاء", exact: true });
+  await shellRevoke.click();
+  shellDialog = shellPage.getByRole("dialog", { name: "إلغاء كود التفعيل", exact: true });
+  await shellDialog.getByRole("button", { name: "رجوع", exact: true }).click();
+  await closed(shellPage, shellRevoke);
+  assert.deepEqual(mutations, ["/v1/admin/activation-codes"], "Pointer navigation/cancellation sent a mutation");
+  console.log("PASS: RTL sidebar separates content, stays visible on scroll, and exposes pointer actions in a short desktop viewport");
+  await shell.context.close();
+
   const compact = await pageFor({ width: 375, height: 667 });
   const compactOpener = compact.page.getByRole("button", { name: "+ كود جديد", exact: true });
   dialog = await openDialog(compact.page, compactOpener, "إنشاء كود تفعيل");
@@ -185,7 +232,7 @@ try {
   console.log("PASS: compact RTL dialog fits and scrolls to form controls and cancellation");
   await compact.context.close();
   assert.deepEqual(problems, [], "Browser fixture encountered an unexpected error or request");
-  console.log("PASS: 8 browser dialog scenarios; no external API/provider requests");
+  console.log("PASS: 9 browser dialog/menu scenarios; no external API/provider requests");
 } finally {
   try { await browser?.close(); } finally { server.kill("SIGTERM"); }
 }

@@ -43,6 +43,13 @@ Settings PR #172 is merged into official `main@a21342df6ba3ca8465b5ef6b179bb145c
 
 Current bounded round: correct shared Admin modal keyboard containment, background inertness, opener restoration and unwanted refocus across parent rerenders. Native browser proof runs the actual development-mode app with synthetic intercepted API fixtures in the existing exact-source Admin CI job. Report: [Admin modal keyboard](REPORTS/ADMIN_MODAL_KEYBOARD_2026-09-30.md). Exact new-head results belong to its PR; screen-reader/other-browser/physical/production proof is separate.
 
+
+### 2026-09-30 Admin sidebar source checkpoint
+
+The scoped modal correction #173 is merged into official `main@0f7720d26c17c2235df9e7661efe92285cce97ba`. Exact-head [Validate 36780321130](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36780321130) passed all seven jobs with eight Chromium dialog scenarios and 64 cases per managed Android device, zero failures/skips. Earlier browser failures and their product corrections are preserved in its report/PR. Official-main [Validate 36781046104](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36781046104) was in progress at this checkpoint.
+
+Current bounded round: fix the confirmed RTL sidebar/content overlap found by an ordinary browser click, keep navigation visible during document scroll and expose account controls on short viewports. The sidebar now occupies its existing grid track with sticky positioning and internal vertical overflow. The existing browser suite adds actual geometry and pointer reachability on a short RTL desktop viewport; its eight modal cases and compact coverage remain. Report: [Admin sidebar RTL](REPORTS/ADMIN_SIDEBAR_RTL_2026-09-30.md). Exact-head/official-main evidence is recorded on the task PR.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -164,12 +171,11 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: finish native Chromium qualification and exact-head review of the scoped Admin modal correction, merge under current owner authority, then verify official-main CI.
-Why now: the source finding affects keyboard navigation and typing focus. All licensing/Admin data corrections and Android menu/catalog/Settings rounds are merged.
-Required execution capability: existing exact-source Admin CI with pinned Chromium, intercepted fixture API and real DOM keyboard/focus/layout checks.
-Expected evidence: source diff review, eight browser scenarios, full exact-head Validate results and attributable official-main results on the task PR.
-Stop conditions: unproved browser behavior reported as PASS, unexpected source movement, unrelated state/data/identity changes or secret exposure.
-Following separate task: correct the confirmed Admin RTL shell/menu overlap found by the actual browser opener click; qualify pointer reachability. The foreground/background catalog stale-write concern remains a later deterministic ownership diagnosis. Physical/device/provider/production gates remain independent.
+Task: qualify/review the scoped Admin sidebar RTL geometry and ordinary pointer correction, merge under current owner authority, then verify official-main Validate with the integrated Android and Admin improvements.
+Why now: the actual browser click demonstrated a blocked create-code action; the shared modal keyboard and restoration correction is now merged and qualified.
+Required evidence: five-file source review, existing eight dialog scenarios plus the ninth sidebar geometry/pointer/scroll case, all exact-head Validate jobs and attributable official-main results.
+Stop conditions: unexpected main/head movement, forced clicks hiding the overlay, unproved browser results reported as PASS, unrelated business/data/identity changes or secret exposure.
+Following separate diagnosis: reproduce or dismiss the foreground/background catalog same-account stale-write concern with deterministic ownership evidence before changing repositories. Physical/device/provider/production gates remain independent.
 
 ## Linked Reports
 
