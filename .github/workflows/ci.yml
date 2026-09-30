@@ -359,3 +359,59 @@ jobs:
             apps/android/app/build/reports/androidTests/managedDevice/debug
             apps/android/app/build/outputs/androidTest-results/managedDevice
           if-no-files-found: ignore
+
+  catalog-failure-diagnostic:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact source SHA
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Read prior tablet report
+        uses: actions/download-artifact@v4
+        with:
+          name: android-test-tablet-api-35-db163ec8f2bb36e17cc252c22298ac88e8aa3a2f-1
+          run-id: 36763481228
+          github-token: ${{ github.token }}
+          path: /tmp/tyfino-catalog-failure
+      - name: Summarize bounded prior results
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          cases = {}
+          for path in Path("/tmp/tyfino-catalog-failure").rglob("*.xml"):
+              if path.stat().st_size > 1048576:
+                  continue
+              try:
+                  root = ET.fromstring(path.read_bytes())
+              except ET.ParseError:
+                  continue
+              for case in root.iter("testcase"):
+                  failure = case.find("failure")
+                  if failure is None:
+                      failure = case.find("error")
+                  key = (case.get("classname", ""), case.get("name", ""))
+                  status = "FAIL" if failure is not None else (
+                      "SKIPPED" if case.find("skipped") is not None else "PASS")
+                  if key not in cases or status == "FAIL":
+                      cases[key] = (status, failure)
+          print("Prior tablet source: db163ec8f2bb36e17cc252c22298ac88e8aa3a2f; run 36763481228 attempt 1")
+          print(f"tests={len(cases)}, failed={sum(s == 'FAIL' for s, _ in cases.values())}, skipped={sum(s == 'SKIPPED' for s, _ in cases.values())}")
+          for (owner, name), (status, failure) in sorted(cases.items()):
+              if status == "FAIL" or owner.endswith(".CatalogLayoutAccessibilityTest"):
+                  print(f"{status}: {owner}.{name}")
+                  if failure is not None:
+                      message = (failure.get("message") or failure.text or "").strip()
+                      message = " ".join(message.splitlines()[:3])[:400]
+                      message = re.sub(r"(?:https?|rtsp|rtsps)://\S+", "[URL redacted]", message)
+                      message = re.sub(r"(?i)(password|token|secret|activationCode|username|authorization)\s*[:=]\s*[^\s,]+", r"\1=[redacted]", message)
+                      print(message)
+          PY
