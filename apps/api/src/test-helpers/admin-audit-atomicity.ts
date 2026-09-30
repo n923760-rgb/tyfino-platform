@@ -29,7 +29,7 @@ export async function assertAdminAuditAtomicity(
        END IF;
        RETURN NEW;
      END;
-     $`
+     $$`
   );
   await rejectAudit("P0001");
   try {
