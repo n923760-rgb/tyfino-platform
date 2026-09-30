@@ -133,9 +133,9 @@ input:focus, select:focus, textarea:focus { border-color:#2563eb; box-shadow:0 0
 .loading span:nth-child(2){animation-delay:.2s}.loading span:nth-child(3){animation-delay:.4s}
 @keyframes pulse{to{opacity:.2;transform:translateY(-8px)}}
 
-.modal-backdrop { position:fixed; inset:0; z-index:100; background:#0a1026aa; backdrop-filter:blur(6px); display:grid; place-items:center; padding:20px; }
-.modal { width:min(520px,100%); max-height:calc(100vh - 40px); overflow:auto; background:white; border-radius:22px; box-shadow:0 30px 100px #0005; }
-.modal-wide { width:min(760px,100%); }
+.modal::backdrop { background:#0a1026aa; backdrop-filter:blur(6px); }
+.modal { width:min(520px,calc(100% - 40px)); max-height:calc(100vh - 40px); margin:auto; padding:0; border:0; overflow:auto; background:white; color:inherit; border-radius:22px; box-shadow:0 30px 100px #0005; }
+.modal-wide { width:min(760px,calc(100% - 40px)); }
 .modal > header { position:sticky; top:0; background:white; z-index:2; display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid #eef2f7; }
 .modal h2 { margin:0; font-size:20px; }
 .modal-content { padding:0 24px 24px; }
@@ -192,8 +192,7 @@ input:focus, select:focus, textarea:focus { border-color:#2563eb; box-shadow:0 0
   .page-header p { font-size:14px; }
   .toolbar { grid-template-columns:1fr; }
   .form-row, .choice-grid, .setting-facts { grid-template-columns:1fr; }
-  .modal-backdrop { padding:10px; }
-  .modal { max-height:calc(100vh - 20px); border-radius:18px; }
+  .modal { width:calc(100% - 20px); max-height:calc(100vh - 20px); border-radius:18px; }
   .toast { right:16px; left:16px; bottom:18px; }
   .timeline article { grid-template-columns:1fr; }
   .timeline time { justify-self:start; }
