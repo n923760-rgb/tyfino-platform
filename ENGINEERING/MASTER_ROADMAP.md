@@ -18,6 +18,14 @@ Current engineering phase: V1 product refinement + release/physical qualificatio
 
 The baseline SHA is historical evidence for the re-baseline only. Re-query live `main` before every mutation.
 
+### 2026-09-30 live reconciliation
+
+Inspected official source: `ef420e7e9c0d968f271ada14bce1ab3076a655c7`.
+Execution mode for this round: authenticated GitHub API/MCP plus JavaScript source-level checks; existing GitHub Actions provides build/integration validation. Local shell/PostgreSQL/Android/browser/physical-device execution is unavailable.
+No open PRs were returned at this checkpoint. PRs #159, #164 and #165 are merged.
+Validate run 36665625417 and device-test APK run 36666243511 succeeded on this official source. These are source/build/emulator evidence only.
+The earlier baseline SHA and active-PR entries above are historical context.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -57,6 +65,18 @@ UNKNOWN / MUST VERIFY LIVE:
 - Current off-host backup freshness and restore proof.
 - Current signing-key custody/recovery evidence.
 - Exact physical-device qualification state unless a newer attributable report exists.
+
+### 2026-09-30 review findings
+
+- FACT: First-use activation expiry was incorrectly applied to already activated grants. A bounded correction and PostgreSQL integration regression coverage are prepared on `fix/licensing-first-use-expiry-2026-09-30`; this is not yet merged into official source.
+- FACT: Admin code creation/settings changes and their audit events use separate commits.
+- FACT: Clipboard success is shown before the write promise resolves.
+- FACT: Dashboard counts use at most 500 newest codes and persisted status without grant-expiry classification.
+- FACT: Admin modal source lacks Tab containment/background inertness/focus restoration; browser evidence is NOT RUN.
+- INFERENCE: Separate foreground/background catalog repository instances need a deterministic same-account stale-write diagnosis.
+- UNKNOWN / BLOCKED: Physical-device, real-provider/media, browser-accessibility and production qualification have not been performed in this round.
+
+Details: [2026-09-30 source review and correction](REPORTS/PROJECT_REVIEW_FIRST_USE_EXPIRY_2026-09-30.md).
 
 ## 5. Release Blocker Map
 
@@ -119,12 +139,12 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: document API version transitions, ADR process, contribution conventions and UI states using the current V1 implementation and approved contracts.
-Why now: the owner-supplied recommendations call for a maintainable change process and consistent state guidance; the current repository has V1 routes and localized states but lacks these four focused reference documents.
-Required authority: documentation/repository mutation is authorized by the owner's "merge and continue" instruction for PR #163; merge of this new PR remains a separate protected decision.
-Required execution capability: live repository inspection, local diff checks, PR/CI validation.
-Expected evidence: four scoped documents under `docs/architecture/`, `docs/`, and `docs/ux/`, a report, exact PR head/diff and CI status without product/runtime changes.
-Stop conditions: unimplemented OpenAPI/sunset/UX behavior claimed as current, conflicting contract authority, unexpected base/head movement, secret exposure, or unrelated changes.
+Task: complete exact-head validation and review of the first-use activation-expiry correction, then address transactional Admin business/audit writes in a separate bounded round.
+Why now: source inspection and isolated handler checks reproduce rejection of valid activated grants after the original first-use deadline. The remaining Admin transaction finding can lose auditability or a one-time activation code when audit insertion fails.
+Required authority: the owner's current request authorizes review and improvements to the whole project. Merge remains separately protected.
+Required execution capability: GitHub repository API/MCP and existing exact-head Validate workflow for the licensing correction; PostgreSQL failure-injection tests for the later transaction correction.
+Expected evidence: isolated handler proof, integration coverage for expired unused/activated one-year/lifetime/device/reset/revocation/paid-expiry behavior, full scoped diff, and exact-head CI run results.
+Stop conditions: unexpected official/head movement, conflicting PR, failing affected tests, secret exposure, unsupported runtime claims or unrelated changes.
 
 ## Linked Reports
 
@@ -132,6 +152,7 @@ Stop conditions: unimplemented OpenAPI/sunset/UX behavior claimed as current, co
 - `/ENGINEERING/REPORTS/OPERATIONS_PERFORMANCE_DOC_ROUND_2026-09-27.md`
 - `/ENGINEERING/REPORTS/TEST_MATRIX_DOC_ROUND_2026-09-27.md`
 - `/ENGINEERING/REPORTS/API_ADR_CONVENTIONS_UX_DOC_ROUND_2026-09-27.md`
+- `/ENGINEERING/REPORTS/PROJECT_REVIEW_FIRST_USE_EXPIRY_2026-09-30.md`
 
 ## Linked Evidence
 

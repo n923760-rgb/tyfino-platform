@@ -149,7 +149,10 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
       method: "POST",
       url: "/v1/admin/activation-codes",
       headers: { cookie: `tyfino_admin_session=${cookie.value}` },
-      payload: { licenseKind: "one_year", customerName: "Test customer" }
+      payload: {
+        licenseKind: "one_year", customerName: "Test customer",
+        preActivationExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+      }
     });
     assert.equal(issued.statusCode, 201);
     const issuedBody = issued.json() as { id: string; code: string };
@@ -166,6 +169,27 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     assert.equal(rejectedProviderField.statusCode, 400);
     assert.equal(rejectedProviderField.json().error.code, "INVALID_REQUEST");
 
+    const expiredUnusedCode = await app.inject({
+      method: "POST",
+      url: "/v1/admin/activation-codes",
+      headers: { cookie: `tyfino_admin_session=${cookie.value}` },
+      payload: {
+        licenseKind: "one_year",
+        preActivationExpiresAt: new Date(Date.now() - 60 * 60 * 1000).toISOString()
+      }
+    });
+    assert.equal(expiredUnusedCode.statusCode, 201);
+    const expiredUnusedActivation = await app.inject({
+      method: "POST",
+      url: "/v1/licensing/activations",
+      payload: {
+        activationCode: expiredUnusedCode.json().code,
+        installationId: installationA, platform: "android", appVersion: "1.0.0"
+      }
+    });
+    assert.equal(expiredUnusedActivation.statusCode, 422);
+    assert.equal(expiredUnusedActivation.json().error.code, "ACTIVATION_REJECTED");
+
     const trial = await app.inject({
       method: "POST",
       url: "/v1/licensing/trials/start",
@@ -181,6 +205,21 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     });
     assert.equal(activated.statusCode, 200);
     assert.equal(activated.json().entitlement.kind, "one_year");
+
+    // A first-use deadline must not invalidate an already activated grant.
+    await ownerDb.query(
+      "UPDATE activation_codes SET pre_activation_expires_at = now() - interval '1 hour' WHERE id = $1",
+      [issuedBody.id]
+    );
+    const reactivated = await app.inject({
+      method: "POST",
+      url: "/v1/licensing/activations",
+      payload: { activationCode, installationId: installationA, platform: "android", appVersion: "1.0.0" }
+    });
+    assert.equal(reactivated.statusCode, 200);
+    assert.equal(reactivated.json().entitlement.kind, "one_year");
+    assert.equal(reactivated.json().entitlement.startsAt, activated.json().entitlement.startsAt);
+    assert.equal(reactivated.json().entitlement.expiresAt, activated.json().entitlement.expiresAt);
 
     const secondDevice = await app.inject({
       method: "POST",
@@ -204,6 +243,8 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
       payload: { activationCode, installationId: installationB, platform: "android", appVersion: "1.0.0" }
     });
     assert.equal(replacementDevice.statusCode, 200);
+    assert.equal(replacementDevice.json().entitlement.startsAt, activated.json().entitlement.startsAt);
+    assert.equal(replacementDevice.json().entitlement.expiresAt, activated.json().entitlement.expiresAt);
     const replacementSession = replacementDevice.json().session.token as string;
 
     const refreshed = await app.inject({
@@ -214,6 +255,76 @@ test("licensing API enforces the V1 boundary and lifecycle", { skip: !databaseUr
     });
     assert.equal(refreshed.statusCode, 200);
     assert.equal(refreshed.json().entitlement.kind, "one_year");
+
+    const issuedLifetime = await app.inject({
+      method: "POST",
+      url: "/v1/admin/activation-codes",
+      headers: { cookie: `tyfino_admin_session=${cookie.value}` },
+      payload: {
+        licenseKind: "lifetime",
+        preActivationExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+      }
+    });
+    assert.equal(issuedLifetime.statusCode, 201);
+    const lifetimeCode = issuedLifetime.json() as { id: string; code: string };
+    const lifetimePayload = {
+      activationCode: lifetimeCode.code, installationId: "L".repeat(43),
+      platform: "android", appVersion: "1.0.0"
+    };
+    const lifetimeActivated = await app.inject({
+      method: "POST", url: "/v1/licensing/activations", payload: lifetimePayload
+    });
+    assert.equal(lifetimeActivated.statusCode, 200);
+    assert.equal(lifetimeActivated.json().entitlement.kind, "lifetime");
+    assert.equal(lifetimeActivated.json().entitlement.expiresAt, null);
+    await ownerDb.query(
+      "UPDATE activation_codes SET pre_activation_expires_at = now() - interval '1 hour' WHERE id = $1",
+      [lifetimeCode.id]
+    );
+    const lifetimeReactivated = await app.inject({
+      method: "POST", url: "/v1/licensing/activations", payload: lifetimePayload
+    });
+    assert.equal(lifetimeReactivated.statusCode, 200);
+    assert.equal(lifetimeReactivated.json().entitlement.startsAt, lifetimeActivated.json().entitlement.startsAt);
+    assert.equal(lifetimeReactivated.json().entitlement.expiresAt, null);
+    const lifetimeReset = await app.inject({
+      method: "POST",
+      url: `/v1/admin/activation-codes/${lifetimeCode.id}/reset-device`,
+      headers: { cookie: `tyfino_admin_session=${cookie.value}` },
+      payload: { reason: "Customer replaced the device after the first-use deadline" }
+    });
+    assert.equal(lifetimeReset.statusCode, 200);
+    const lifetimeReplacementPayload = { ...lifetimePayload, installationId: "M".repeat(43) };
+    const lifetimeReplacement = await app.inject({
+      method: "POST", url: "/v1/licensing/activations", payload: lifetimeReplacementPayload
+    });
+    assert.equal(lifetimeReplacement.statusCode, 200);
+    assert.equal(lifetimeReplacement.json().entitlement.startsAt, lifetimeActivated.json().entitlement.startsAt);
+    assert.equal(lifetimeReplacement.json().entitlement.expiresAt, null);
+    const lifetimeRevoked = await app.inject({
+      method: "POST",
+      url: `/v1/admin/activation-codes/${lifetimeCode.id}/revoke`,
+      headers: { cookie: `tyfino_admin_session=${cookie.value}` },
+      payload: {}
+    });
+    assert.equal(lifetimeRevoked.statusCode, 200);
+    const revokedLifetimeActivation = await app.inject({
+      method: "POST", url: "/v1/licensing/activations", payload: lifetimeReplacementPayload
+    });
+    assert.equal(revokedLifetimeActivation.statusCode, 422);
+    assert.equal(revokedLifetimeActivation.json().error.code, "ACTIVATION_REJECTED");
+
+    await ownerDb.query(
+      "UPDATE activation_codes SET grant_expires_at = now() - interval '1 hour' WHERE id = $1",
+      [issuedBody.id]
+    );
+    const expiredGrantActivation = await app.inject({
+      method: "POST",
+      url: "/v1/licensing/activations",
+      payload: { activationCode, installationId: installationB, platform: "android", appVersion: "1.0.0" }
+    });
+    assert.equal(expiredGrantActivation.statusCode, 403);
+    assert.equal(expiredGrantActivation.json().error.code, "ENTITLEMENT_EXPIRED");
 
     await Promise.all(Array.from({ length: 12 }, (_, index) => db.query(
       `INSERT INTO audit_logs (action, entity_type, entity_id, metadata)

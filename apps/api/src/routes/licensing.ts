@@ -99,7 +99,7 @@ export async function registerLicensingRoutes(app: FastifyInstance, db: Database
       )).rows[0];
       const now = new Date();
       if (!activation || activation.status === "revoked" ||
-          (activation.pre_activation_expires_at && activation.pre_activation_expires_at <= now)) {
+          (!activation.activated_at && activation.pre_activation_expires_at && activation.pre_activation_expires_at <= now)) {
         throw new LicensingError(422, "ACTIVATION_REJECTED");
       }
       const installationId = await ensureInstallation(client, parsed.data, config);
