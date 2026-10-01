@@ -336,6 +336,7 @@ jobs:
           retention-days: 7
 
   android-instrumentation:
+    needs: android
     name: android-instrumentation (${{ matrix.device }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -423,3 +424,24 @@ jobs:
             apps/android/app/build/reports/androidTests/managedDevice/debug
             apps/android/app/build/outputs/androidTest-results/managedDevice
           if-no-files-found: ignore
+
+      - name: Download exact owner-test APK for API33 install
+        if: matrix.device == 'phone-api-27'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: tyfino-owner-test-${{ github.event.pull_request.head.sha || github.sha }}-*
+          path: ${{ runner.temp }}/tyfino-api33-owner-test
+      - name: Clean-install and launch exact owner APK on Android 13
+        if: matrix.device == 'phone-api-27'
+        timeout-minutes: 25
+        env:
+          TYFINO_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 scripts/smoke-install-api33.py "$RUNNER_TEMP/tyfino-api33-owner-test"
+      - name: Upload API33 installation evidence
+        if: matrix.device == 'phone-api-27'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tyfino-api33-install-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
+          path: apps/android/build/api33-install-evidence/result.json
+          if-no-files-found: error
+          retention-days: 30

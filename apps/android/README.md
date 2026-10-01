@@ -20,7 +20,7 @@ Release builds use the approved production licensing origin `https://api.tyfino.
 
 Without that property, a Debug build's UI remains usable but licensing network actions fail safely as unavailable.
 
-Validate also attaches a separately named `tyfino-owner-test-<source SHA>-<attempt>` artifact after the normal disconnected Debug artifact. This owner development APK is built with the approved licensing origin explicitly configured. Its verifier checks the actual APK's standalone manifest, API24/37 policy, absence of test-only installation, ARM64 support when native libraries exist, ZIP integrity/alignment and signature compatibility for API24–33. The bundle includes exact source, APK SHA-256/size and public debug certificate evidence; it does not claim a physical-device install.
+Validate also attaches a separately named `tyfino-owner-test-<source SHA>-<attempt>` artifact after the normal disconnected Debug artifact. This owner development APK is built with the approved licensing origin explicitly configured. Its verifier checks the actual APK's standalone manifest, API24/37 policy without a maximum SDK restriction, absence of test-only installation, complete ARM64/ARMv7/x86/x86_64 native coverage, ELF architecture, 16KB load alignment for 64-bit libraries, 16KB native ZIP alignment and signature compatibility for API24–37. Phone and TV launcher declarations and optional touchscreen/leanback features are checked. The bundle includes exact source, APK SHA-256/size and public debug certificate evidence; it does not claim a physical-device install.
 
 Download the GitHub artifact ZIP, extract it, then open `TYFINO-device-test.apk`. Permit installation from the file manager if Android requests it. Renaming the ZIP to `.apk` does not create an Android package. Use this configured artifact for owner activation/device checks; the ordinary `tyfino-debug-*` artifact remains disconnected by default.
 
@@ -64,6 +64,16 @@ Official references checked on 2026-09-08:
 - <https://developer.android.com/jetpack/androidx/releases/compose-material3-adaptive>
 - <https://developer.android.com/jetpack/androidx/releases/navigation>
 - <https://developer.android.com/jetpack/androidx/releases/activity>
+
+## Compatibility scope
+
+One standalone APK contains the four supported native architectures: ARMv7 and x86 (32-bit), ARM64 and x86_64 (64-bit). The current minimum remains Android 7.0/API24 because the selected Navigation dependency requires it. Android 5/6 support needs a separate dependency/security/API review; lowering the manifest alone is insufficient.
+
+Phone/tablet and Android TV/Google TV launcher support share one application. Touchscreen and leanback are optional features, allowing either device class; physical TV input/media qualification remains open. The package verifier checks 16KB native ELF/ZIP alignment for newer devices, but this is not a 16KB physical runtime or universal codec guarantee.
+
+After the phone API27 suite, the same CI job downloads the exact configured owner APK from the Android job, checks its source/hash, clean-installs it without `-t`, and launches it offline on a separate Pixel 2/API33 x86_64 emulator. It requires a running process and resumed TYFINO activity after five seconds and uploads source/hash/certificate-bound evidence. It chooses the highest available artifact attempt from this run for the same SHA, so retrying a failed phone job does not require rebuilding a successful Android job. Existing phone/tablet instrumentation remains separate from this installer check.
+
+Exact-task/official-main results are recorded on the compatibility PR and [report](../../ENGINEERING/REPORTS/ANDROID_UNIVERSAL_COMPATIBILITY_2026-10-01.md). LG Velvet, physical TV, API24 hardware, foldables, 16KB devices and real providers/media still need their own runtime records.
 
 ## Application identity
 
