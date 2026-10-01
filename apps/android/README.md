@@ -20,6 +20,10 @@ Release builds use the approved production licensing origin `https://api.tyfino.
 
 Without that property, a Debug build's UI remains usable but licensing network actions fail safely as unavailable.
 
+Validate also attaches a separately named `tyfino-owner-test-<source SHA>-<attempt>` artifact after the normal disconnected Debug artifact. This owner development APK is built with the approved licensing origin explicitly configured. Its verifier checks the actual APK's standalone manifest, API24/37 policy, absence of test-only installation, ARM64 support when native libraries exist, ZIP integrity/alignment and signature compatibility for API24–33. The bundle includes exact source, APK SHA-256/size and public debug certificate evidence; it does not claim a physical-device install.
+
+Download the GitHub artifact ZIP, extract it, then open `TYFINO-device-test.apk`. Permit installation from the file manager if Android requests it. Renaming the ZIP to `.apk` does not create an Android package. Use this configured artifact for owner activation/device checks; the ordinary `tyfino-debug-*` artifact remains disconnected by default.
+
 For owner-run physical-device qualification, the manual [Build device test APK](../../.github/workflows/device-test-apk.yml) workflow builds a Debug APK from exact official `main` with the approved production licensing origin explicitly configured. It uses temporary debug signing, includes source SHA and checksum evidence, expires after seven days, and does not authorize customer distribution. Use the [manual test record](../../docs/android/manual-test-record-template.md) per build and physical device.
 
 ## Implemented Xtream authentication slice

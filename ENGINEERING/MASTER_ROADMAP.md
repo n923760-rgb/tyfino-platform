@@ -58,6 +58,13 @@ FACT: separate foreground/background catalog repositories allowed an older same-
 Current correction #175 shares process operation ownership/local lock, uses unique tokens through clear/new-request ordering, and rechecks publication/alerts. Four regression scenarios; [report](REPORTS/ANDROID_CATALOG_SHARED_OWNERSHIP_2026-10-01.md). Exact corrected-head proof belongs to the PR.
 Installation: user reports LG Velvet/Android13/no existing TYFINO and "App not installed"; exact installer cause UNKNOWN. Standard CI Debug has empty licensing origin. Physical install NOT RUN; configured owner-test build and exact metadata/signature evidence need a separate round.
 
+### 2026-10-01 configured owner-test APK checkpoint
+
+Catalog ownership #175 is merged at `ab799ea006a032cfd7c119abdfe52e34847d3fec`. Exact-head [Validate 36822547067](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36822547067) passed all seven jobs, nine Chromium cases and 64 cases per managed device with zero failures/skips. Diagnostic failure remains recorded; official-main Validate 36855923633 was in progress at this checkpoint and is recorded on #175.
+
+Current bounded task: create a separately named configured owner-test Debug APK with actual package/signature/ARM64/SDK/standalone/testOnly/CRC/alignment and exact source/hash/certificate evidence in the existing Android CI job. Ordinary Debug remains disconnected by default. [Report](REPORTS/ANDROID_OWNER_TEST_APK_2026-10-01.md).
+User-reported LG Velvet Android13 installation failure remains UNKNOWN in cause. APK static/signature evidence is not physical/emulator install proof; no speculative SDK/ABI/signing change is authorized by a generic error.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -179,11 +186,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify/review #175 catalog cross-instance ownership, merge under explicit owner authority, then verify official-main Validate.
-Why now: deterministic JVM evidence confirms delayed foreground/background responses overwrite newer same-account data.
-Required: five-file diff, four new cross-instance cases and preserved suite, all seven exact-head jobs and official-main proof.
-Stop: unexpected source movement, weakened assertions, unrelated data/identity/signing changes or unproved runtime claims.
-Following separate task: inspect exact APK signature/metadata and prepare configured owner-test artifact for LG Velvet Android13. The analogous Series concern needs its own deterministic diagnosis. Physical/provider/production gates remain independent.
+Task: qualify/review the configured owner-test APK artifact and verifier, merge under owner authority, then inspect official-main artifact/run evidence and provide the exact test download.
+Required: six-file diff; preserved normal Debug artifact/seven jobs; actual signature/manifest/ABI/CRC/alignment/identity/checksum/source output; exact-head and official-main PASS.
+Stop: source movement, secrets, altered production signing/identity/version/ABI/endpoint policy or unproved physical installation claim.
+Following gate: owner installation retry on LG Velvet Android13 and record exact file/installer error, then bounded Series cross-instance diagnosis. Physical/provider/production qualification remains independent.
 
 ## Linked Reports
 
