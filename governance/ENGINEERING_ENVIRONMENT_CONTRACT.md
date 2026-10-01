@@ -76,7 +76,11 @@ Managed-device CI currently qualifies:
 - `phone-api-27`;
 - `tablet-api-35`.
 
-These managed devices do not replace the separate physical-device qualification contract.
+The phone job also downloads the exact configured owner-test APK after its normal API27 instrumentation. It provisions a separate Pixel 2/API33 google_apis x86_64 emulator, verifies source/hash, installs without test-only/reinstall flags and launches offline. This serial check uses the same runner after managed-device work ends; the instrumentation job depends on the completed Android artifact job. Source/hash-bound installation evidence is retained separately. All seven jobs and six exact-source checkout definitions remain.
+
+The package verifier additionally checks all four native ABIs and 16KB ELF/ZIP alignment; it does not claim 16KB runtime execution.
+
+These managed devices and the additional installer smoke do not replace the separate physical-device qualification contract.
 
 ## Health Checks
 

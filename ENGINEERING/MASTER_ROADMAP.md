@@ -65,6 +65,12 @@ Catalog ownership #175 is merged at `ab799ea006a032cfd7c119abdfe52e34847d3fec`. 
 Current bounded task: create a separately named configured owner-test Debug APK with actual package/signature/ARM64/SDK/standalone/testOnly/CRC/alignment and exact source/hash/certificate evidence in the existing Android CI job. Ordinary Debug remains disconnected by default. [Report](REPORTS/ANDROID_OWNER_TEST_APK_2026-10-01.md).
 User-reported LG Velvet Android13 installation failure remains UNKNOWN in cause. APK static/signature evidence is not physical/emulator install proof; no speculative SDK/ABI/signing change is authorized by a generic error.
 
+### 2026-10-01 universal compatibility checkpoint
+
+Official source inspected: `28df1d451281d82aba8f2d3c0a51bc5490db4d1b`; #175/#176 are merged. [Official-main Validate36859421813](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36859421813) passed all seven jobs; no open PRs at the live gate. The source/hash/certificate-bound owner APK contains ARM64/ARMv7/x86/x86_64 and is min24/target37, standalone/no testOnly; earlier signature inspection ended at API33.
+Owner now requests a version across Android devices. Current bounded scope strengthens universal package/16KB/optional-feature/signature checks and adds an actual exact-artifact clean install/launch on API33. Existing minimum remains Android7/API24; Android5/6 requires a separate dependency/security/API compatibility decision, not an unsupported minSdk edit. [Report](REPORTS/ANDROID_UNIVERSAL_COMPATIBILITY_2026-10-01.md).
+Physical OEM/TV/16KB/provider behavior remains independent; generic LG Velvet installer cause UNKNOWN.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -186,10 +192,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify/review the configured owner-test APK artifact and verifier, merge under owner authority, then inspect official-main artifact/run evidence and provide the exact test download.
-Required: six-file diff; preserved normal Debug artifact/seven jobs; actual signature/manifest/ABI/CRC/alignment/identity/checksum/source output; exact-head and official-main PASS.
-Stop: source movement, secrets, altered production signing/identity/version/ABI/endpoint policy or unproved physical installation claim.
-Following gate: owner installation retry on LG Velvet Android13 and record exact file/installer error, then bounded Series cross-instance diagnosis. Physical/provider/production qualification remains independent.
+Task: qualify/review universal APK checks and exact-source API33 installation/launch in the existing seven-job pipeline; merge under owner authority and inspect official-main package/install evidence.
+Required: eight-file diff, all four ABIs and matching libraries, ELF/ZIP16KB alignment, optional phone/TV features, signatureAPI24–37, source/hash-bound clean API33 install/launch without bypass flags, preserved64 cases per managed device and all seven jobs.
+Stop: source movement, secrets, speculative SDK/dependency/signing changes, bypass flags or unproved all-device/physical claims.
+Following gate: owner LG Velvet retry, explicit Android5/6 scope if requested, and physical TV/older/16KB/provider qualification. Series ownership diagnosis remains a separate future task.
 
 ## Linked Reports
 
