@@ -84,8 +84,6 @@ internal class CatalogRepository(
     private val clock: CatalogClock = AndroidCatalogClock,
     private val onNewMovies: (Int) -> Unit = {},
 ) {
-    private val mutex = Mutex()
-    private val latestOperations = mutableMapOf<CatalogKey, Long>()
     private val monotonicRefreshes = mutableMapOf<CatalogKey, MonotonicRefresh>()
 
     suspend fun categories(
@@ -226,7 +224,7 @@ internal class CatalogRepository(
                 val ownedKey = key.copy(accountId = account.accountId)
                 val cache = runCatching { loadCache(account.accountId) }
                     .getOrElse { return@withLock Preparation.Failure(CatalogFailure.LocalStorage) }
-                val operationId = (latestOperations[ownedKey] ?: 0L) + 1L
+                val operationId = Any()
                 latestOperations[ownedKey] = operationId
                 Preparation.Ready(account, ownedKey, operationId, cache)
             }
@@ -238,10 +236,10 @@ internal class CatalogRepository(
         prepared as Preparation.Ready<T>
         val cache = prepared.cache
         if (cache != null && !forceRefresh && isFresh(prepared.key, cache, freshnessMillis)) {
-            publish(contentState(cache, refreshing = false))
+            publishIfOwned(prepared, contentState(cache, refreshing = false), publish)
             return
         }
-        publish(cache?.let { contentState(it, refreshing = true) } ?: CatalogState.Loading)
+        if (!publishIfOwned(prepared, cache?.let { contentState(it, refreshing = true) } ?: CatalogState.Loading, publish)) return
 
         val result = fetch(prepared.account)
         var newlyAddedMovies = 0
@@ -276,10 +274,23 @@ internal class CatalogRepository(
                 }
             }
         }
-        state?.let(publish)
-        if (newlyAddedMovies > 0 && state is CatalogState.Content<*> &&
-            accountStore.load()?.let { it.accountId == prepared.account.accountId && it.generation == prepared.account.generation } == true
-        ) onNewMovies(newlyAddedMovies)
+        if (state != null && publishIfOwned(prepared, state, publish) &&
+            newlyAddedMovies > 0 && state is CatalogState.Content<*>
+        ) {
+            mutex.withLock {
+                if (owns(prepared)) onNewMovies(newlyAddedMovies)
+            }
+        }
+    }
+
+    private suspend fun <T> publishIfOwned(
+        prepared: Preparation.Ready<T>,
+        state: CatalogState<T>,
+        publish: (CatalogState<T>) -> Unit,
+    ): Boolean = mutex.withLock {
+        if (!owns(prepared)) return@withLock false
+        publish(state)
+        true
     }
 
     private fun <T> contentState(
@@ -332,13 +343,18 @@ internal class CatalogRepository(
         data class Ready<T>(
             val account: SavedXtreamAccount,
             val key: CatalogKey,
-            val operationId: Long,
+            val operationId: Any,
             val cache: CatalogSnapshot<T>?,
         ) : Preparation<T>
         data class Failure(val failure: CatalogFailure) : Preparation<Nothing>
     }
 
     private companion object {
+        // Foreground and JobService repositories share one database in this process.
+        // Serialize local preparation/commits only; provider requests stay concurrent.
+        val mutex = Mutex()
+        val latestOperations = mutableMapOf<CatalogKey, Any>()
+
         const val CATEGORY_FRESHNESS_MILLIS = 12L * 60L * 60L * 1_000L
         const val ITEM_FRESHNESS_MILLIS = 6L * 60L * 60L * 1_000L
         const val MAX_CACHED_ITEM_LOOKUP = 200

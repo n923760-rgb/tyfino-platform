@@ -50,6 +50,14 @@ The scoped modal correction #173 is merged into official `main@0f7720d26c17c2235
 
 Current bounded round: fix the confirmed RTL sidebar/content overlap found by an ordinary browser click, keep navigation visible during document scroll and expose account controls on short viewports. The sidebar now occupies its existing grid track with sticky positioning and internal vertical overflow. The existing browser suite adds actual geometry and pointer reachability on a short RTL desktop viewport; its eight modal cases and compact coverage remain. Report: [Admin sidebar RTL](REPORTS/ADMIN_SIDEBAR_RTL_2026-09-30.md). Exact-head/official-main evidence is recorded on the task PR.
 
+### 2026-10-01 live reconciliation and catalog ownership
+
+Official source inspected: `cd3f9a8c219e188f9d51c6d2c6502ffb730aef2d`. #166–#174 are merged, initial open PRs: none. [Official-main Validate 36781939130](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36781939130): PASS all seven jobs. Older pending/authority notes are historical snapshots; subsequent explicit owner authority covers continued application improvements and reviewed merges.
+
+FACT: separate foreground/background catalog repositories allowed an older same-key response to replace newer data. Test-only source `7b3114b3501eeb2765fc7c1f7ea2eb51653b381a`, [Validate 36798162851](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36798162851), Android job 110166263879: 181 tests executed, two cross-instance categories/items failures, different-key control passed; other six jobs passed. Product source unchanged. This is expected diagnostic FAIL evidence.
+Current correction #175 shares process operation ownership/local lock, uses unique tokens through clear/new-request ordering, and rechecks publication/alerts. Four regression scenarios; [report](REPORTS/ANDROID_CATALOG_SHARED_OWNERSHIP_2026-10-01.md). Exact corrected-head proof belongs to the PR.
+Installation: user reports LG Velvet/Android13/no existing TYFINO and "App not installed"; exact installer cause UNKNOWN. Standard CI Debug has empty licensing origin. Physical install NOT RUN; configured owner-test build and exact metadata/signature evidence need a separate round.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -94,7 +102,7 @@ UNKNOWN / MUST VERIFY LIVE:
 
 ### 2026-09-30 review findings (historical source checkpoint)
 
-The first four findings below were corrected by merged PRs #166–#169. Modal keyboard accessibility and the separate catalog concurrency diagnosis remain open.
+These are historical findings. #166–#169 corrected the first four, #173 qualified the modal correction in Chromium, and #174 qualified the sidebar pointer correction. The catalog concern is confirmed by cross-instance tests and being corrected in #175. Physical/accessibility qualification remains independent.
 
 - FACT: First-use activation expiry was incorrectly applied to already activated grants. A bounded correction and PostgreSQL integration regression coverage are prepared on `fix/licensing-first-use-expiry-2026-09-30`; this is not yet merged into official source.
 - FACT: Admin code creation/settings changes and their audit events use separate commits.
@@ -171,11 +179,11 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify/review the scoped Admin sidebar RTL geometry and ordinary pointer correction, merge under current owner authority, then verify official-main Validate with the integrated Android and Admin improvements.
-Why now: the actual browser click demonstrated a blocked create-code action; the shared modal keyboard and restoration correction is now merged and qualified.
-Required evidence: five-file source review, existing eight dialog scenarios plus the ninth sidebar geometry/pointer/scroll case, all exact-head Validate jobs and attributable official-main results.
-Stop conditions: unexpected main/head movement, forced clicks hiding the overlay, unproved browser results reported as PASS, unrelated business/data/identity changes or secret exposure.
-Following separate diagnosis: reproduce or dismiss the foreground/background catalog same-account stale-write concern with deterministic ownership evidence before changing repositories. Physical/device/provider/production gates remain independent.
+Task: qualify/review #175 catalog cross-instance ownership, merge under explicit owner authority, then verify official-main Validate.
+Why now: deterministic JVM evidence confirms delayed foreground/background responses overwrite newer same-account data.
+Required: five-file diff, four new cross-instance cases and preserved suite, all seven exact-head jobs and official-main proof.
+Stop: unexpected source movement, weakened assertions, unrelated data/identity/signing changes or unproved runtime claims.
+Following separate task: inspect exact APK signature/metadata and prepare configured owner-test artifact for LG Velvet Android13. The analogous Series concern needs its own deterministic diagnosis. Physical/provider/production gates remain independent.
 
 ## Linked Reports
 

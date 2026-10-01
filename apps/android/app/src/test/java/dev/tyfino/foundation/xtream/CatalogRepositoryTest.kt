@@ -279,6 +279,30 @@ class CatalogRepositoryTest {
         assertEquals("Movies", (states.last() as CatalogState.Content).records.single().name)
     }
 
+
+    @Test
+    fun clearingFromAnotherRepositoryCannotResurrectPendingOperation() = runBlocking {
+        val accounts = FakeAccountStore(account("shared-clear", 4))
+        val store = FakeCatalogStore()
+        val blocked = BlockingCatalogApi(success("Old"))
+        val older = repository(accounts, blocked, store, 20_000)
+        val newer = repository(accounts, FixedCatalogApi(success("New")), store, 30_000)
+        val states = mutableListOf<CatalogState<CatalogCategory>>()
+
+        val pending = async { older.categories(CatalogSection.Live, true, states::add) }
+        blocked.started.await()
+        try {
+            assertTrue(newer.clearAccount("shared-clear"))
+            newer.categories(CatalogSection.Live, true) { }
+        } finally {
+            blocked.release.complete(Unit)
+        }
+        pending.await()
+
+        assertEquals("New", store.categories.getValue("shared-clear" to CatalogSection.Live).records.single().name)
+        assertEquals(listOf(CatalogState.Loading), states)
+    }
+
     private fun repository(
         accountStore: FakeAccountStore,
         api: XtreamCatalogApi,

@@ -130,6 +130,12 @@ Settings offers two bounded provider User-Agent presets: `TYFINO/<versionName> (
 
 The player opens the selected Live channel's program guide only when requested. A direct per-channel provider request updates an account-owned, bounded cache; playback does not wait for guide data. The dialog shows current/next programs and a lazy schedule with localized loading, empty, stale, and error states. Closing it or changing channels invalidates older results, and account removal clears the EPG cache. Physical TV D-pad, RTL, accessibility, media, and performance qualification remains BLOCKED until recorded under the device-qualification contract.
 
+## Catalog refresh ownership
+
+Foreground screens and the opt-in background new-content job use separate repositories for one catalog database in the default application process. They share the account/section/category operation registry and serialize local preparation, replacement and publication checks; provider requests remain concurrent. Newer work invalidates older completions across instances, and clearing an account cannot reuse a pending operation's unique token. Cache publication and movie alerts recheck the same owner.
+
+The [catalog ownership report](../../ENGINEERING/REPORTS/ANDROID_CATALOG_SHARED_OWNERSHIP_2026-10-01.md) records the failing test-only diagnosis and correction. JVM regressions cover delayed category/item results, stale alerts, independent keys and cross-instance clear. Physical/provider/multiple-process behavior remains separately qualified.
+
 ## Catalog artwork scope
 
 Catalog cards render already-validated artwork references lazily through one application-owned image loader. Live uses a landscape frame; Movies and Series use a poster frame. A local placeholder remains visible for missing, rejected, slow, redirected, oversized, or failed images, and the card stays navigable without waiting for artwork.
