@@ -315,6 +315,26 @@ jobs:
           compression-level: 0
           retention-days: 7
 
+      - name: Build configured owner device-test APK
+        run: >-
+          ./gradlew --no-daemon :app:assembleDebug
+          -PTYFINO_LICENSING_API_BASE_URL=https://api.tyfino.online
+      - name: Inspect owner APK installation metadata
+        env:
+          TYFINO_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          mkdir -p build/device-test-output
+          cp app/build/outputs/apk/debug/app-debug.apk build/device-test-output/TYFINO-device-test.apk
+          python3 scripts/verify-owner-test-apk.py build/device-test-output/TYFINO-device-test.apk build/device-test-output
+      - name: Upload verified owner device-test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tyfino-owner-test-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
+          path: apps/android/build/device-test-output
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
   android-instrumentation:
     name: android-instrumentation (${{ matrix.device }})
     runs-on: ubuntu-latest
