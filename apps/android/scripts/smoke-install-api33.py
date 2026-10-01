@@ -36,10 +36,10 @@ name = "tyfino_clean_install_api33"
 evidence_dir = Path("build/api33-install-evidence")
 evidence_dir.mkdir(parents=True, exist_ok=True)
 
-def command(args, *, timeout=30, check=True, input_text=None):
+def command(args, *, timeout=30, check=True, input_text=None, environment=None):
     result = subprocess.run(
         [str(arg) for arg in args], input=input_text, text=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, check=False,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, check=False, env=environment,
     )
     if check and result.returncode != 0:
         detail = " ".join((result.stderr or result.stdout).splitlines()[:3])[:400]
@@ -50,16 +50,24 @@ def command(args, *, timeout=30, check=True, input_text=None):
 def device(*args, **kwargs):
     return command([adb, "-s", serial, *args], **kwargs)
 
-command([sdkmanager, image], timeout=900)
-command([manager, "create", "avd", "--name", name, "--package", image, "--device", "pixel_2", "--force"],
-        timeout=60, input_text="no\n")
 runtime = Path(os.environ["RUNNER_TEMP"])
+android_user = runtime / "tyfino-api33-android-user"
+avd_directory = android_user / "avd"
+avd_directory.mkdir(parents=True, exist_ok=True)
+android_environment = os.environ.copy()
+android_environment["ANDROID_USER_HOME"] = str(android_user)
+android_environment["ANDROID_AVD_HOME"] = str(avd_directory)
+command([sdkmanager, image], timeout=900, environment=android_environment)
+command([manager, "create", "avd", "--name", name, "--package", image,
+         "--device", "pixel_2", "--path", avd_directory / (name + ".avd"), "--force"],
+        timeout=60, input_text="no\n", environment=android_environment)
+assert (avd_directory / (name + ".ini")).is_file(), "AVD registry missing from the explicit emulator directory"
 with (runtime / "tyfino-api33-emulator.log").open("w") as emulator_log:
     process = subprocess.Popen(
         [str(emulator), "-avd", name, "-port", "5580", "-no-window", "-no-audio",
          "-no-boot-anim", "-no-snapshot", "-wipe-data", "-gpu", "swiftshader_indirect",
          "-memory", "1536", "-cores", "2"],
-        stdout=emulator_log, stderr=subprocess.STDOUT,
+        stdout=emulator_log, stderr=subprocess.STDOUT, env=android_environment,
     )
     def boot_failure(reason):
         diagnostic = (runtime / "tyfino-api33-emulator.log").read_text(errors="replace")
