@@ -103,7 +103,19 @@ with (runtime / "tyfino-api33-emulator.log").open("w") as emulator_log:
         assert "base.apk" in device("shell", "pm", "path", "com.tyfino.player").stdout
         launched = device("shell", "am", "start", "-W", "-a", "android.intent.action.MAIN",
                           "-c", "android.intent.category.LAUNCHER", "-p", "com.tyfino.player", timeout=60)
-        assert re.search(r"^Status: ok$", launched.stdout, re.MULTILINE), "Launcher did not report success"
+        if not re.search(r"^Status: ok$", launched.stdout, re.MULTILINE):
+            prefixes = ("Status:", "Error:", "Warning:", "Activity:", "LaunchState:", "TotalTime:", "WaitTime:")
+            selected = [line for line in (launched.stdout + "\n" + launched.stderr).splitlines()
+                        if line.strip().startswith(prefixes)][:8]
+            detail = json.dumps(selected)[:1000]
+            detail = re.sub(r"(?:https?|rtsp|rtsps)://[^ ]+", "[URL redacted]", detail)
+            alive = bool(device("shell", "pidof", "com.tyfino.player", check=False, timeout=10).stdout.strip())
+            state = device("shell", "dumpsys", "activity", "activities", check=False, timeout=10).stdout
+            resumed = any("com.tyfino.player/" in line and
+                          ("mResumedActivity" in line or "topResumedActivity" in line)
+                          for line in state.splitlines())
+            raise RuntimeError("Launcher did not report success; selected=" + detail +
+                               "; package_alive=" + str(alive) + "; target_resumed=" + str(resumed))
         time.sleep(5)
         assert device("shell", "pidof", "com.tyfino.player").stdout.strip(), "Application exited after launch"
         activities = device("shell", "dumpsys", "activity", "activities").stdout
