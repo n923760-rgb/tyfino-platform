@@ -61,17 +61,25 @@ with (runtime / "tyfino-api33-emulator.log").open("w") as emulator_log:
          "-memory", "1536", "-cores", "2"],
         stdout=emulator_log, stderr=subprocess.STDOUT,
     )
+    def boot_failure(reason):
+        diagnostic = (runtime / "tyfino-api33-emulator.log").read_text(errors="replace")
+        selected = [line for line in diagnostic.splitlines()
+                    if any(marker in line.upper() for marker in ("ERROR", "FATAL", "PANIC", "WARNING"))]
+        detail = " ".join(selected[-8:])[:1200]
+        detail = re.sub(r"(?:https?|rtsp|rtsps)://[^ ]+", "[URL redacted]", detail)
+        raise RuntimeError(reason + "; exit=" + str(process.poll()) + "; " + detail)
+
     try:
         deadline = time.monotonic() + 300
         while time.monotonic() < deadline:
             if process.poll() is not None:
-                raise RuntimeError("API33 emulator exited before boot")
+                boot_failure("API33 emulator exited before boot")
             boot = device("shell", "getprop", "sys.boot_completed", check=False, timeout=10)
             if boot.returncode == 0 and boot.stdout.strip() == "1":
                 break
             time.sleep(3)
         else:
-            raise RuntimeError("API33 emulator boot timed out")
+            boot_failure("API33 emulator boot timed out")
         assert device("shell", "getprop", "ro.build.version.sdk").stdout.strip() == "33"
         abi = device("shell", "getprop", "ro.product.cpu.abi").stdout.strip()
         assert abi == "x86_64"

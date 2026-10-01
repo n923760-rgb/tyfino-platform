@@ -24,3 +24,7 @@ Actual verifier/build/unit/lint results, original managed64 cases per device, ni
 Full eight-file diff review before expected-head merge, official-main qualification afterward; task PR records exact heads/run IDs/artifact hashes/first causal failures.
 Local commands and physical OEM/TV/API24/16KB/foldable/provider/performance qualification NOT RUN. Static16KB checks are not a 16KB device run. Emulator x86_64 is not ARM physical evidence or all-device guarantee.
 Next: exact owner artifact download and LG Velvet retry, oldest-version decision if expanded, then appropriate physical/runtime matrix.
+
+## First qualification failure
+Exact head74d31188c87cde77734d956bb3d537eed1f7331e, Validate36861939450: Android package/ELF/ZIP16KB/signature checks PASS; API/Admin/database/governance/tablet jobs PASS. Phone job110368792713 ran original64 cases with zero failures/skips and downloaded/verified the exact artifact, then the API33 emulator exited before boot. No APK installation/launch occurred; this is not an installer rejection or OEM cause evidence.
+The emulator startup log was retained only on the ephemeral runner, so the initial result lacked the cause. Add bounded redacted ERROR/FATAL/PANIC/WARNING startup diagnostics without weakening install assertions or speculative product changes. Subsequent exact-head results belong to PR #177.
