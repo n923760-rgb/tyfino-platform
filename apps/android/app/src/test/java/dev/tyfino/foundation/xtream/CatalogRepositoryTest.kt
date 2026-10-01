@@ -181,6 +181,128 @@ class CatalogRepositoryTest {
         assertEquals(listOf(1), alerts)
     }
 
+
+    @Test
+    fun separateRepositoriesDiscardOlderCategoryCompletion() = runBlocking {
+        val accounts = FakeAccountStore(account("shared-categories", 4))
+        val store = FakeCatalogStore()
+        val blocked = BlockingCatalogApi(success("Old"))
+        val oldStates = mutableListOf<CatalogState<CatalogCategory>>()
+        val older = repository(accounts, blocked, store, 20_000)
+        val newer = repository(accounts, FixedCatalogApi(success("New")), store, 30_000)
+
+        val pending = async { older.categories(CatalogSection.Movies, true, oldStates::add) }
+        blocked.started.await()
+        try {
+            newer.categories(CatalogSection.Movies, true) { }
+        } finally {
+            blocked.release.complete(Unit)
+        }
+        pending.await()
+
+        val current = store.categories.getValue("shared-categories" to CatalogSection.Movies)
+        assertEquals("New", current.records.single().name)
+        assertEquals(30_000L, current.refreshedAtEpochMillis)
+        assertEquals(listOf(CatalogState.Loading), oldStates)
+    }
+
+    @Test
+    fun separateRepositoriesDiscardOlderItemsAndMovieAlert() = runBlocking {
+        val accounts = FakeAccountStore(account("shared-items", 4))
+        val store = FakeCatalogStore()
+        val baseline = CatalogItem("baseline", "category", "Baseline", 0, null, null, null, "mp4", 1)
+        val olderItem = baseline.copy(providerId = "old", name = "Old")
+        val newerItem = baseline.copy(providerId = "new", name = "New")
+        store.replaceItems("shared-items", CatalogSection.Movies, "category", CatalogSnapshot(7, 9_000, listOf(baseline)))
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val blocked = object : XtreamCatalogApi {
+            override suspend fun categories(account: SavedXtreamAccount, section: CatalogSection) =
+                CatalogResult.Success(emptyList<CatalogCategory>(), 0)
+            override suspend fun items(account: SavedXtreamAccount, section: CatalogSection, categoryId: String): CatalogResult<CatalogItem> {
+                started.complete(Unit)
+                release.await()
+                return CatalogResult.Success(listOf(olderItem), 0)
+            }
+        }
+        val immediate = object : XtreamCatalogApi {
+            override suspend fun categories(account: SavedXtreamAccount, section: CatalogSection) =
+                CatalogResult.Success(emptyList<CatalogCategory>(), 0)
+            override suspend fun items(account: SavedXtreamAccount, section: CatalogSection, categoryId: String) =
+                CatalogResult.Success(listOf(newerItem), 0)
+        }
+        val oldStates = mutableListOf<CatalogState<CatalogItem>>()
+        val oldAlerts = mutableListOf<Int>()
+        val newAlerts = mutableListOf<Int>()
+        val older = CatalogRepository(accounts, blocked, store, FakeClock(20_000, 5_000), oldAlerts::add)
+        val newer = CatalogRepository(accounts, immediate, store, FakeClock(30_000, 6_000), newAlerts::add)
+
+        val pending = async { older.items(CatalogSection.Movies, "category", true, oldStates::add) }
+        started.await()
+        try {
+            newer.items(CatalogSection.Movies, "category", true) { }
+        } finally {
+            release.complete(Unit)
+        }
+        pending.await()
+
+        val current = store.loadItems("shared-items", CatalogSection.Movies, "category")!!
+        assertEquals(listOf(newerItem), current.records)
+        assertEquals(8L, current.generation)
+        assertEquals(30_000L, current.refreshedAtEpochMillis)
+        assertEquals(1, oldStates.size)
+        assertTrue((oldStates.single() as CatalogState.Content).isRefreshing)
+        assertTrue(oldAlerts.isEmpty())
+        assertEquals(listOf(1), newAlerts)
+    }
+
+    @Test
+    fun anotherRepositoryRefreshOfDifferentKeyDoesNotDiscardCompletion() = runBlocking {
+        val accounts = FakeAccountStore(account("independent-keys", 4))
+        val store = FakeCatalogStore()
+        val blocked = BlockingCatalogApi(success("Movies"))
+        val older = repository(accounts, blocked, store, 20_000)
+        val newer = repository(accounts, FixedCatalogApi(success("Live")), store, 30_000)
+        val states = mutableListOf<CatalogState<CatalogCategory>>()
+
+        val pending = async { older.categories(CatalogSection.Movies, true, states::add) }
+        blocked.started.await()
+        try {
+            newer.categories(CatalogSection.Live, true) { }
+        } finally {
+            blocked.release.complete(Unit)
+        }
+        pending.await()
+
+        assertEquals("Movies", store.categories.getValue("independent-keys" to CatalogSection.Movies).records.single().name)
+        assertEquals("Live", store.categories.getValue("independent-keys" to CatalogSection.Live).records.single().name)
+        assertEquals("Movies", (states.last() as CatalogState.Content).records.single().name)
+    }
+
+
+    @Test
+    fun clearingFromAnotherRepositoryCannotResurrectPendingOperation() = runBlocking {
+        val accounts = FakeAccountStore(account("shared-clear", 4))
+        val store = FakeCatalogStore()
+        val blocked = BlockingCatalogApi(success("Old"))
+        val older = repository(accounts, blocked, store, 20_000)
+        val newer = repository(accounts, FixedCatalogApi(success("New")), store, 30_000)
+        val states = mutableListOf<CatalogState<CatalogCategory>>()
+
+        val pending = async { older.categories(CatalogSection.Live, true, states::add) }
+        blocked.started.await()
+        try {
+            assertTrue(newer.clearAccount("shared-clear"))
+            newer.categories(CatalogSection.Live, true) { }
+        } finally {
+            blocked.release.complete(Unit)
+        }
+        pending.await()
+
+        assertEquals("New", store.categories.getValue("shared-clear" to CatalogSection.Live).records.single().name)
+        assertEquals(listOf(CatalogState.Loading), states)
+    }
+
     private fun repository(
         accountStore: FakeAccountStore,
         api: XtreamCatalogApi,
