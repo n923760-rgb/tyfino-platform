@@ -84,6 +84,8 @@ import dev.tyfino.foundation.playback.PlaybackSelection
 import dev.tyfino.foundation.playback.PlaybackTrackLabel
 import dev.tyfino.foundation.playback.SecretPlaybackReference
 import dev.tyfino.foundation.playback.XtreamPlaybackReferenceBuilder
+import dev.tyfino.foundation.ui.components.ProductHeader
+import dev.tyfino.foundation.ui.components.ProductPanel
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.FocusIconButton
 import dev.tyfino.foundation.xtream.CatalogSection
@@ -832,7 +834,7 @@ internal fun TrackPickerDialog(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(title, style = MaterialTheme.typography.headlineSmall)
+                ProductHeader(title = title, eyebrow = stringResource(R.string.product_player_options))
                 LazyColumn(
                     modifier = Modifier.heightIn(max = 360.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -1034,13 +1036,13 @@ private fun PlaybackFailure(
     modifier: Modifier = Modifier,
 ) {
     BackHandler(onBack = onBack)
-    Column(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f))
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ProductPanel(
+        modifier = modifier.padding(16.dp).widthIn(max = 520.dp),
     ) {
+        ProductHeader(
+            title = stringResource(R.string.product_player_recovery),
+            eyebrow = "",
+        )
         Text(
             text = stringResource(message),
             color = MaterialTheme.colorScheme.onSurface,

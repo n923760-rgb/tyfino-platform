@@ -171,3 +171,12 @@ Selecting a Movie opens an explicit details destination instead of starting play
 ## Deferred contracts
 
 Full physical-device/TV qualification, release identity/signing, provider-wide search, and other deferred playback capabilities require their own approved work. Movie details and Series episode playback, history, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.
+
+
+## Commercial experience presentation (2026-10-01)
+
+The native app uses shared headers, panels, readable typography and visible focus across activation, account entry, Home, catalog, details, Settings and playback recovery. Home shortcuts open the existing Live/Movies/Series destinations. Account entry adds an explicit password visibility toggle, IME actions and safe-drawing/keyboard insets; pending HTTP consent still uses its existing explicit callback.
+
+The owner selected paid licensing per device. The activation screen presents existing annual/lifetime codes and the separately chosen seven-day trial. Settings receives only license kind, server-provided expiry and offline state; no session token or installation identifier is passed to its presentation. Application licensing does not include an IPTV subscription. Existing licensing, offline policy, provider ownership, Media3 lifecycle, package identity, minimum API, ABIs and signing policy remain authoritative.
+
+See [commercial experience report](../../ENGINEERING/REPORTS/ANDROID_COMMERCIAL_EXPERIENCE_2026-10-01.md). Exact-source CI and configured owner APK evidence belong to the task PR. A debug owner-test APK is a development artifact, not a signed commercial release. Physical TV/LG Velvet, TalkBack, real-provider/media and performance qualification remain separate.

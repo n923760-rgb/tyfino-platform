@@ -42,6 +42,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
+import dev.tyfino.foundation.ui.components.MediaDetailsHero
+import dev.tyfino.foundation.ui.components.ProductPanel
+import dev.tyfino.foundation.ui.components.ProductSectionHeading
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.xtream.CatalogItem
@@ -161,23 +164,22 @@ internal fun SeriesDetailsContent(
             }
         }
         item(key = "summary") {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = details?.let { SeriesPresentation.displayName(it, selection.item.name) }
-                        ?: selection.item.name,
-                    style = MaterialTheme.typography.headlineMedium,
-                    maxLines = 2,
-                )
-                val overview = details?.summary?.plot
-                if (!overview.isNullOrBlank()) {
-                    Text(overview, style = MaterialTheme.typography.bodyMedium, maxLines = 4)
-                }
-                val supporting = listOfNotNull(
+            MediaDetailsHero(
+                title = details?.let { SeriesPresentation.displayName(it, selection.item.name) }
+                    ?: selection.item.name,
+                facts = listOfNotNull(
                     details?.summary?.releaseDate ?: selection.item.releaseYear,
                     details?.summary?.rating ?: selection.item.rating,
-                ).joinToString(" • ")
-                if (supporting.isNotBlank()) {
-                    Text(supporting, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                ).filter(String::isNotBlank).joinToString(" • "),
+                artwork = selection.item.artworkUrl,
+                modifier = Modifier.widthIn(max = 1040.dp),
+            )
+        }
+        details?.summary?.plot?.takeIf(String::isNotBlank)?.let { overview ->
+            item(key = "story") {
+                ProductPanel(modifier = Modifier.fillMaxWidth().widthIn(max = 1040.dp)) {
+                    ProductSectionHeading(stringResource(R.string.product_series_story))
+                    Text(overview, style = MaterialTheme.typography.bodyMedium, maxLines = 4)
                 }
             }
         }
@@ -218,7 +220,7 @@ internal fun SeriesDetailsContent(
                     StatusText(R.string.series_no_episodes)
                 } else {
                     item(key = "season-heading") {
-                        Text(stringResource(R.string.series_seasons), style = MaterialTheme.typography.titleLarge)
+                        ProductSectionHeading(stringResource(R.string.series_seasons))
                     }
                     item(key = "season-selector") {
                         LazyRow(

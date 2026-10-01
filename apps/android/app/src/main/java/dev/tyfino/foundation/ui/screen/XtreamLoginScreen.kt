@@ -1,5 +1,9 @@
 package dev.tyfino.foundation.ui.screen
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,16 +27,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import dev.tyfino.foundation.R
+import dev.tyfino.foundation.ui.components.FocusIconButton
+import dev.tyfino.foundation.ui.components.ProductHeader
+import dev.tyfino.foundation.ui.components.ProductPanel
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.xtream.XtreamFailure
 import dev.tyfino.foundation.xtream.XtreamInput
@@ -48,6 +60,8 @@ internal fun XtreamLoginScreen(
     var host by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember(state) { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -57,7 +71,8 @@ internal fun XtreamLoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 32.dp)
+                .windowInsetsPadding(WindowInsets.safeDrawing).imePadding()
+                .padding(horizontal = 16.dp, vertical = 16.dp)
                 .testTag("xtream-gate"),
             contentAlignment = Alignment.Center,
         ) {
@@ -68,17 +83,15 @@ internal fun XtreamLoginScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.xtream_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onBackground,
+                ProductHeader(
+                    title = stringResource(R.string.xtream_title),
+                    subtitle = stringResource(R.string.xtream_description),
+                    eyebrow = stringResource(R.string.product_login_eyebrow),
                 )
-                Text(
-                    text = stringResource(R.string.xtream_description),
-                    style = MaterialTheme.typography.bodyMedium,
+                ProductPanel(Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.product_login_help),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
+                    style = MaterialTheme.typography.bodyMedium)
                 when (state) {
                     XtreamUiState.Loading, XtreamUiState.Working -> {
                         CircularProgressIndicator(
@@ -123,7 +136,8 @@ internal fun XtreamLoginScreen(
                                 placeholder = { Text(stringResource(R.string.xtream_host_hint), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 textStyle = inputStyle,
                                 singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
+                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .testTag("xtream-host"),
@@ -135,6 +149,8 @@ internal fun XtreamLoginScreen(
                                     if (state is XtreamUiState.ConfirmCleartext) onCancelCleartext()
                                 },
                                 label = { Text(stringResource(R.string.xtream_username), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                                 textStyle = inputStyle,
                                 singleLine = true,
                                 modifier = Modifier
@@ -150,8 +166,20 @@ internal fun XtreamLoginScreen(
                                 label = { Text(stringResource(R.string.xtream_password), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 textStyle = inputStyle,
                                 singleLine = true,
-                                visualTransformation = PasswordVisualTransformation(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                trailingIcon = {
+                                    FocusIconButton(
+                                        icon = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility,
+                                        description = stringResource(if (passwordVisible) R.string.product_hide_password else R.string.product_show_password),
+                                        onClick = { passwordVisible = !passwordVisible },
+                                        modifier = Modifier.testTag("xtream-password-visibility"),
+                                    )
+                                },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(onDone = {
+                                    if (state is XtreamUiState.ConfirmCleartext) onConfirmCleartext()
+                                    else onSignIn(XtreamInput(host, username, password))
+                                }),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .testTag("xtream-password"),
@@ -212,6 +240,7 @@ internal fun XtreamLoginScreen(
                         )
                     }
                     is XtreamUiState.SignedIn -> Unit
+                }
                 }
             }
         }

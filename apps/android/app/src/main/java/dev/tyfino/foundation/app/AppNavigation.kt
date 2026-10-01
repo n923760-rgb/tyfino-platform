@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import dev.tyfino.foundation.ui.components.ProductHeader
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -107,14 +109,25 @@ internal fun AppNavigationRail(
                 WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical + WindowInsetsSides.Start),
             ),
         ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = if (expanded) MaterialTheme.typography.titleLarge else MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 20.dp),
-                textAlign = if (expanded) TextAlign.Start else TextAlign.Center,
-                maxLines = 1,
-            )
+            if (expanded) {
+                Row(modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(painterResource(R.drawable.ic_app_tyfino), contentDescription = null,
+                        tint = Color.Unspecified, modifier = Modifier.size(40.dp))
+                    ProductHeader(
+                        title = stringResource(R.string.app_name),
+                        eyebrow = "",
+                        subtitle = stringResource(R.string.product_navigation_caption),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            } else {
+                Box(Modifier.fillMaxWidth().padding(vertical = 20.dp), contentAlignment = Alignment.Center) {
+                    Icon(painterResource(R.drawable.ic_app_tyfino), contentDescription = null,
+                        tint = Color.Unspecified, modifier = Modifier.size(40.dp))
+                }
+            }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             // Scrollable even in a short landscape/multi-window pane; settings stays reachable.
             LazyColumn(

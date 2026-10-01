@@ -39,6 +39,7 @@ class HomeScreenNavigationTest {
         for (route in listOf("live", "movies", "series")) {
             composeRule.onNodeWithTag("home-$route").assertDoesNotExist()
         }
+        composeRule.onNodeWithTag("home-screen").performScrollToNode(hasTestTag("open-account-switcher"))
         composeRule.onNodeWithTag("open-account-switcher").assertIsDisplayed()
         composeRule.onNodeWithTag("home-open-settings").assertIsDisplayed()
         composeRule.onNodeWithTag("home-screen").performScrollToNode(hasTestTag("open-account-switcher"))
