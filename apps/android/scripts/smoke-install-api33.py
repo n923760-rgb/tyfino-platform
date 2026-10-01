@@ -101,8 +101,15 @@ with (runtime / "tyfino-api33-emulator.log").open("w") as emulator_log:
         result = device("install", str(apk), timeout=120)  # No -t, -r, bypass or grant flags.
         assert re.search(r"^Success$", result.stdout, re.MULTILINE), "APK installer did not report Success"
         assert "base.apk" in device("shell", "pm", "path", "com.tyfino.player").stdout
+        resolved = device("shell", "cmd", "package", "resolve-activity", "--brief",
+                          "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER",
+                          "-p", "com.tyfino.player").stdout
+        launcher_components = [line.strip() for line in resolved.splitlines()
+                               if re.fullmatch(r"com\.tyfino\.player/[A-Za-z0-9_.$]+", line.strip())]
+        assert len(launcher_components) == 1, "Installed package has no unique phone launcher"
+        launcher_component = launcher_components[0]
         launched = device("shell", "am", "start", "-W", "-a", "android.intent.action.MAIN",
-                          "-c", "android.intent.category.LAUNCHER", "-p", "com.tyfino.player", timeout=60)
+                          "-c", "android.intent.category.LAUNCHER", "-n", launcher_component, timeout=60)
         if not re.search(r"^Status: ok$", launched.stdout, re.MULTILINE):
             prefixes = ("Status:", "Error:", "Warning:", "Activity:", "LaunchState:", "TotalTime:", "WaitTime:")
             selected = [line for line in (launched.stdout + "\n" + launched.stderr).splitlines()
@@ -129,7 +136,8 @@ with (runtime / "tyfino-api33-emulator.log").open("w") as emulator_log:
             "signing_certificate_sha256": metadata["signing_certificate_sha256"],
             "android_api": 33, "emulator_abi": abi, "profile": "Pixel 2",
             "clean_install": "PASS", "install_test_only_flag": False,
-            "launcher_start": "PASS", "process_alive_after_seconds": 5,
+            "launcher_start": "PASS", "launcher_component": launcher_component,
+            "process_alive_after_seconds": 5,
             "resumed_activity": "PASS", "network": "airplane-mode",
             "physical_device": "NOT RUN", "provider_media": "NOT RUN",
         }
