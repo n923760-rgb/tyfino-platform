@@ -31,7 +31,6 @@
     <string name="playback_restore_orientation">العودة للعرض المعتاد</string>
     <string name="settings_title">الإعدادات</string>
     <string name="settings_accounts_title">الحسابات</string>
-    <string name="settings_description">إدارة حسابات IPTV المحفوظة على هذا الجهاز.</string>
     <string name="settings_user_agent_title">توافق المزوّد</string>
     <string name="settings_user_agent_description">اختر معرّف التطبيق المرسل إلى مزوّد IPTV. يسري التغيير على الطلبات الجديدة وجلسة التشغيل التالية.</string>
     <string name="settings_user_agent_tyfino">TYFINO (الافتراضي)</string>

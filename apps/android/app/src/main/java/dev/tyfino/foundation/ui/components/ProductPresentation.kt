@@ -78,8 +78,8 @@ internal fun MediaDetailsHero(
     title: String,
     facts: String,
     artwork: String?,
-    landscape: Boolean = false,
     modifier: Modifier = Modifier,
+    landscape: Boolean = false,
 ) {
     ProductPanel(modifier.fillMaxWidth()) {
         BoxWithConstraints(Modifier.fillMaxWidth()) {

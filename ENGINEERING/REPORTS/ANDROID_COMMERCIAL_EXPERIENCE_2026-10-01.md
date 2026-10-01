@@ -34,6 +34,8 @@ Head `e41e388f1c6c6c28b9c62497e256d9b93effdc77`, Validate 36939268237, Android j
 
 The existing lint step now prints the full generated text report on failure while preserving the original nonzero exit status, job dependencies and exact-source workflow. This exposes remaining diagnostic errors instead of hiding them; subsequent exact-head results are recorded on the PR.
 
+Second head `9da0b739dbaad906b22b1cf8ac32623785ea71ac`, Validate 36942172233, Android job 110635972690: builds/unit and other four jobs PASS; lint FAIL with two remaining errors, now fully visible. Corrected shared MediaDetailsHero modifier order (first optional parameter; call sites named) and removed the obsolete settings_description resource in both languages, replaced by the new license-aware settings description. No validation rule is disabled. Existing primitive-state autoboxing hint is outside presentation scope.
+
 ## Release limits and next gate
 
 The owner's trial is feedback, not formal physical/provider PASS. Physical LG Velvet/TV/API24/16KB/foldable/low-RAM, TalkBack/real-provider/media and performance: NOT RUN. Generic earlier LG installer cause remains UNKNOWN.
