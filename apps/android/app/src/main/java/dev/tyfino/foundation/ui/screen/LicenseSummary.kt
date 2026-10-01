@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import dev.tyfino.foundation.R
@@ -26,7 +26,7 @@ internal data class LicenseSummary(
 
 @Composable
 internal fun LicenseSummaryPanel(summary: LicenseSummary) {
-    val locale = LocalResources.current.configuration.locales[0] ?: Locale.getDefault()
+    val locale = Locale.forLanguageTag(LocalLocale.current.toLanguageTag())
     val expiry = remember(summary.expiresAtMillis, locale) {
         summary.expiresAtMillis?.let { DateFormat.getDateInstance(DateFormat.MEDIUM, locale).format(Date(it)) }
     }

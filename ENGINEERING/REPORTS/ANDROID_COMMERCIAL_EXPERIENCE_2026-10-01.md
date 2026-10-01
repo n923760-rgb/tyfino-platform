@@ -28,6 +28,12 @@ Local shell/SDK/browser/physical tests: NOT RUN (session exposes GitHub API and 
 Required exact-head and official-main proof: debug/unsigned-release build, unit tests/lint, seven jobs, nine Chromium scenarios, 71 cases per managed device with zero failures/skips, four ABIs/package16KB/signatureAPI24–37/optional features and same-run configured APK clean API33 install/launch.
 Actual failures/corrections, final SHA/run/artifact/hash/certificate and review/merge evidence belong to the task PR, avoiding a second mutation merely to record its own commit SHA.
 
+## First exact-head failure and correction
+
+Head `e41e388f1c6c6c28b9c62497e256d9b93effdc77`, Validate 36939268237, Android job 110626712297: debug/unsigned-release builds and unit tests PASS; Android lint FAIL with three errors, only the first included by the standard Gradle summary. First confirmed error is non-observable Locale.getDefault fallback in the license expiry renderer. Corrected to Compose LocalLocale and explicit language-tag conversion. No suppressions or baseline introduced.
+
+The existing lint step now prints the full generated text report on failure while preserving the original nonzero exit status, job dependencies and exact-source workflow. This exposes remaining diagnostic errors instead of hiding them; subsequent exact-head results are recorded on the PR.
+
 ## Release limits and next gate
 
 The owner's trial is feedback, not formal physical/provider PASS. Physical LG Velvet/TV/API24/16KB/foldable/low-RAM, TalkBack/real-provider/media and performance: NOT RUN. Generic earlier LG installer cause remains UNKNOWN.
