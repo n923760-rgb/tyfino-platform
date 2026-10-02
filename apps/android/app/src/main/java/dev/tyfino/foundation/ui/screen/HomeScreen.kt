@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -49,6 +50,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -84,6 +86,8 @@ import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.NumberFormat
+import java.util.Locale
 
 private data class HomeHistory(
     val latestMovies: List<CatalogItem> = emptyList(),
@@ -399,6 +403,15 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
     val request = remember(context, featured.artworkUrl) {
         featured.artworkUrl?.let { ImageRequest.Builder(context).data(it).crossfade(150).build() }
     }
+    val metadata = remember(featured) { HomePresentation.metadata(when (featured) {
+        is HomeFeatured.NewMovie -> featured.item
+        is HomeFeatured.NewSeries -> featured.item
+    }) }
+    val locale = Locale.forLanguageTag(LocalLocale.current.toLanguageTag())
+    val numbers = remember(locale) { NumberFormat.getNumberInstance(locale).apply {
+        isGroupingUsed = false
+        maximumFractionDigits = 1
+    } }
     BoxWithConstraints(Modifier.fillMaxWidth().testTag("home-featured")) {
         Box(
             modifier = Modifier.fillMaxWidth()
@@ -426,6 +439,17 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
                 )
                 Text(featured.title, style = MaterialTheme.typography.headlineSmall, color = Color.White,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
+                if (metadata.rating != null || metadata.releaseYear != null) FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth().testTag("home-featured-metadata"),
+                ) {
+                    metadata.rating?.let { rating -> HomeMetadataBadge(
+                        stringResource(R.string.home_showcase_rating, numbers.format(rating), numbers.format(10)),
+                        "home-featured-rating") }
+                    metadata.releaseYear?.let { year -> HomeMetadataBadge(
+                        stringResource(R.string.home_showcase_year, numbers.format(year)), "home-featured-year") }
+                }
                 FocusVisibleButton(
                     label = stringResource(R.string.home_featured_details),
                     onClick = onClick,
@@ -433,6 +457,15 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun HomeMetadataBadge(label: String, tag: String) {
+    Surface(color = Color.Black.copy(alpha = 0.55f), contentColor = Color.White,
+        shape = RoundedCornerShape(8.dp), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f))) {
+        Text(label, style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp).testTag(tag))
     }
 }
 
