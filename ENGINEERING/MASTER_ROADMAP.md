@@ -84,6 +84,12 @@ Official base: `e1b2ba9ee5baad712f48e068d5852c87c427838e`; #178 is merged, no op
 
 Bounded implementation: cached manually selectable showcase, dedicated progress/resume rail and provider-only subscription metadata with account/generation/request/lifecycle checks. No provider-wide discovery, licensing/backend, package, signing or release-policy change. [Report](REPORTS/HOME_SHOWCASE_PLAYLIST_2026-10-02.md). Local Gradle provisioning is BLOCKED by the restricted network; exact-head native qualification uses existing Actions. Physical/provider/performance proof remains separate. Protected merge/release/deployment requires current exact-action authorization.
 
+### 2026-10-02 Home/playlist integrated qualification checkpoint
+
+Owner explicitly authorized #179 merge and continued work. #179 is squash-merged at official `main@f8534011a15d1167383995abd6a42b8f58fbc4fd`; its tree `4cbe83e9127272d12666baff92199ca4659da0a9` equals the qualified PR head `25b8b18a996fc1ef0b770ce46f6a0e75d990b80f`. PR [Validate 37040552329](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37040552329) and official-main [Validate 37043350131](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37043350131) passed all seven jobs. Each managed device ran 76 cases with zero failures/skips; phone also clean-installed/launched the exact configured owner APK offline on API33 without test-only flags. The configured development APK was provided for owner feedback; production signing/release/deployment were not performed.
+
+Current bounded continuation is test-only qualification of showcase directional input, episode resume identity/progress and playlist pause/resume/destination disposal. All existing scenarios and production behavior are retained. [Report](REPORTS/HOME_PLAYLIST_INPUT_LIFECYCLE_2026-10-02.md). Native local execution remains BLOCKED by unavailable Gradle distribution/network/Android SDK; exact new-source runtime evidence belongs to the isolated PR. Physical TV/LG Velvet/provider/TalkBack/performance qualification remains separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -205,8 +211,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the Home showcase/Continue watching and Settings playlist subscription implementation on its exact PR head, review the diff and seven-job CI, and provide its owner-test artifact for interface feedback. Protected merge remains an owner decision for this exact action.
-Required: paired Arabic/English resources; all existing 71 managed-device scenarios retained; focused mixed showcase selection, progress/resume, Arabic/large-font reachability and provider expiry/privacy/ownership tests; all seven jobs, package checks and exact-artifact API33 installation/launch.
+Task: qualify focused Home/playlist input and lifecycle regression tests on a branch from integrated `main@f8534011a15d1167383995abd6a42b8f58fbc4fd`. The feature and owner APK delivery are complete in #179. A future test-only PR merge remains an exact owner decision.
+Required: all existing 76 managed-device scenarios retained, four new focused showcase directional-input, episode resume identity/progress, paused/resumed playlist and disposed destination scenarios; all seven jobs, package checks and exact-artifact API33 installation/launch. No production behavior, dependencies, workflows, credentials or release policy changes.
 Stop: conflicting source, secrets, required failures, unauthorized production/signing/identity changes or unproved device/release claims.
 Following gate: owner interface trial and physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance qualification; owner-controlled commercial signing and operations evidence before sale.
 
