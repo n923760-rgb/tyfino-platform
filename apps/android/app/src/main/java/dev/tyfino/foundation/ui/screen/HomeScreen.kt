@@ -31,6 +31,7 @@ import dev.tyfino.foundation.ui.components.ProductHeader
 import dev.tyfino.foundation.ui.components.ProductPanel
 import dev.tyfino.foundation.ui.components.ProductSectionHeading
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -69,6 +70,7 @@ import dev.tyfino.foundation.playback.EpisodeHistoryListResult
 import dev.tyfino.foundation.playback.EpisodeHistoryRepository
 import dev.tyfino.foundation.playback.MovieResumeListResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
+import dev.tyfino.foundation.playback.ContinueWatchingItem
 import dev.tyfino.foundation.playback.MovieResumeRepository
 import dev.tyfino.foundation.playback.SeriesContinueWatchingItem
 import dev.tyfino.foundation.playback.SeriesHistoryItem
@@ -88,7 +90,7 @@ private data class HomeHistory(
     val latestSeries: List<CatalogItem> = emptyList(),
     val live: List<CatalogItem> = emptyList(),
     val movies: List<CatalogItem> = emptyList(),
-    val resumeMovies: List<CatalogItem> = emptyList(),
+    val resumeMovies: List<ContinueWatchingItem> = emptyList(),
     val seriesResume: List<SeriesContinueWatchingItem> = emptyList(),
     val seriesHistory: List<SeriesHistoryItem> = emptyList(),
 )
@@ -97,14 +99,6 @@ private sealed interface HomeFeatured {
     val title: String
     val artworkUrl: String?
 
-    data class ResumeMovie(val item: CatalogItem) : HomeFeatured {
-        override val title = item.name
-        override val artworkUrl = item.artworkUrl
-    }
-    data class ResumeSeries(val item: SeriesContinueWatchingItem) : HomeFeatured {
-        override val title = item.seriesTitle
-        override val artworkUrl = item.seriesArtworkUrl
-    }
     data class NewMovie(val item: CatalogItem) : HomeFeatured {
         override val title = item.name
         override val artworkUrl = item.artworkUrl
@@ -114,12 +108,6 @@ private sealed interface HomeFeatured {
         override val artworkUrl = item.artworkUrl
     }
 }
-
-private fun HomeHistory.featured(): HomeFeatured? =
-    resumeMovies.firstOrNull()?.let { HomeFeatured.ResumeMovie(it) }
-        ?: seriesResume.firstOrNull()?.let { HomeFeatured.ResumeSeries(it) }
-        ?: latestMovies.firstOrNull()?.let { HomeFeatured.NewMovie(it) }
-        ?: latestSeries.firstOrNull()?.let { HomeFeatured.NewSeries(it) }
 
 @Composable
 internal fun HomeScreen(
@@ -187,7 +175,7 @@ internal fun HomeScreen(
                         latestSeries = latestSeries,
                         live = live.take(8),
                         movies = (movies + movieResume.map { it.catalogItem }).distinctBy { it.providerId }.take(8),
-                        resumeMovies = movieResume.map { it.catalogItem }.take(8),
+                        resumeMovies = movieResume.take(8),
                         seriesResume = series.take(8),
                         seriesHistory = seriesHistory.distinctBy { it.episode.providerSeriesId }.take(8),
                     )
@@ -200,7 +188,9 @@ internal fun HomeScreen(
         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) refresh()
         onDispose { generation++; lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-    val featured = history.featured()
+    val highlights = remember(history.latestMovies, history.latestSeries) {
+        HomePresentation.highlights(history.latestMovies, history.latestSeries)
+    }
     BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         val expanded = maxWidth >= 840.dp
         val posterWidth = if (expanded) 180.dp else 128.dp
@@ -247,7 +237,7 @@ internal fun HomeScreen(
                             prominent = false,
                             onClick = onOpenAccountSwitcher,
                             modifier = Modifier.weight(1f)
-                                .then(if (featured == null) Modifier.focusRequester(initialFocus) else Modifier)
+                                .then(if (highlights.isEmpty()) Modifier.focusRequester(initialFocus) else Modifier)
                                 .testTag("open-account-switcher"),
                         )
                         FocusVisibleButton(
@@ -259,22 +249,15 @@ internal fun HomeScreen(
                     }
                 }
             }
-            if (featured != null) item(contentType = "featured") {
-                HomeHero(
-                    featured = featured,
-                    onClick = {
-                        when (featured) {
-                            is HomeFeatured.ResumeMovie -> onResumeMovie(featured.item)
-                            is HomeFeatured.ResumeSeries -> onResumeSeries(featured.item)
-                            is HomeFeatured.NewMovie -> onOpenMovie(featured.item)
-                            is HomeFeatured.NewSeries -> onOpenSeries(featured.item)
-                        }
-                    },
-                    modifier = Modifier.focusRequester(initialFocus),
+            if (highlights.isNotEmpty()) item(contentType = "featured") {
+                HomeShowcase(
+                    highlights, onOpenMovie, onOpenSeries,
+                    Modifier.focusRequester(initialFocus),
                 )
             }
-            item(contentType = "browse") {
-                HomeBrowseSections(expanded = maxWidth >= 600.dp, onOpenCatalog = onOpenCatalog)
+            if (history.resumeMovies.isNotEmpty() || history.seriesResume.isNotEmpty()) item(contentType = "continue") {
+                HomeContinueWatching(history.resumeMovies, history.seriesResume,
+                    onResumeMovie, onResumeSeries, posterWidth)
             }
             if (historyLoaded && history.latestMovies.isEmpty() && history.latestSeries.isEmpty() &&
                 history.live.isEmpty() && history.movies.isEmpty() &&
@@ -285,6 +268,17 @@ internal fun HomeScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+            }
+            if (history.latestMovies.isNotEmpty()) item(contentType = "latest-movies") {
+                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie,
+                    "home-latest-movies", posterWidth)
+            }
+            if (history.latestSeries.isNotEmpty()) item(contentType = "latest-series") {
+                HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries,
+                    "home-latest-series", posterWidth)
+            }
+            item(contentType = "browse") {
+                HomeBrowseSections(expanded = maxWidth >= 600.dp, onOpenCatalog = onOpenCatalog)
             }
             if (history.live.isNotEmpty()) item(contentType = "recent-live") {
                 HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive,
@@ -321,15 +315,81 @@ internal fun HomeScreen(
                         }
                     }
             }
-            if (history.latestMovies.isNotEmpty()) item(contentType = "latest-movies") {
-                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie,
-                    "home-latest-movies", posterWidth)
+        }
+    }
+}
+
+@Composable
+internal fun HomeShowcase(
+    highlights: List<HomeHighlight>,
+    onOpenMovie: (CatalogItem) -> Unit,
+    onOpenSeries: (CatalogItem) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (highlights.isEmpty()) return
+    var selected by remember(highlights) { mutableStateOf(0) }
+    val current = highlights[selected.coerceIn(highlights.indices)]
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.testTag("home-showcase")) {
+        ProductSectionHeading(stringResource(R.string.home_showcase_title))
+        HomeHero(
+            if (current.section == CatalogSection.Movies) HomeFeatured.NewMovie(current.item)
+            else HomeFeatured.NewSeries(current.item),
+            onClick = {
+                if (current.section == CatalogSection.Movies) onOpenMovie(current.item) else onOpenSeries(current.item)
+            },
+            modifier = modifier,
+        )
+        if (highlights.size > 1) Row(
+            Modifier.fillMaxWidth().focusGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            FocusVisibleButton(stringResource(R.string.home_showcase_previous),
+                { selected = (selected - 1 + highlights.size) % highlights.size },
+                prominent = false, modifier = Modifier.weight(1f).testTag("home-showcase-previous"))
+            Text(stringResource(R.string.home_showcase_position, selected + 1, highlights.size),
+                style = MaterialTheme.typography.labelLarge)
+            FocusVisibleButton(stringResource(R.string.home_showcase_next),
+                { selected = (selected + 1) % highlights.size },
+                prominent = false, modifier = Modifier.weight(1f).testTag("home-showcase-next"))
+        }
+        Text(stringResource(R.string.home_showcase_cached), style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+internal fun HomeContinueWatching(
+    movies: List<ContinueWatchingItem>,
+    series: List<SeriesContinueWatchingItem>,
+    onMovie: (CatalogItem) -> Unit,
+    onSeries: (SeriesContinueWatchingItem) -> Unit,
+    tileWidth: Dp,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.testTag("home-continue-watching")) {
+        ProductSectionHeading(stringResource(R.string.home_continue_title))
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.focusGroup()) {
+            rowItems(movies, key = { "movie:${it.catalogItem.providerId}" }) { record ->
+                HomeResumeCard(record.catalogItem.name, record.catalogItem.artworkUrl, record.progressPercent,
+                    tileWidth, "home-resume-movie-${record.catalogItem.providerId}") { onMovie(record.catalogItem) }
             }
-            if (history.latestSeries.isNotEmpty()) item(contentType = "latest-series") {
-                HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries,
-                    "home-latest-series", posterWidth)
+            rowItems(series, key = { "episode:${it.episode.providerSeriesId}:${it.episode.providerEpisodeId}" }) { record ->
+                HomeResumeCard(listOfNotNull(record.seriesTitle, record.episode.title).filter(String::isNotBlank).joinToString(" • "),
+                    record.seriesArtworkUrl, record.progressPercent, tileWidth,
+                    "home-resume-series-${record.episode.providerEpisodeId}") { onSeries(record) }
             }
         }
+    }
+}
+
+@Composable
+private fun HomeResumeCard(title: String, artwork: String?, progress: Int?, width: Dp, tag: String, onClick: () -> Unit) {
+    Column(Modifier.width(width), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        CatalogTile(label = title, selected = false, onClick = onClick,
+            supporting = progress?.let { stringResource(R.string.continue_watching_progress, it) }
+                ?: stringResource(R.string.continue_watching_resume),
+            modifier = Modifier.fillMaxWidth().testTag(tag), showArtwork = true,
+            artworkUrl = artwork, artworkAspectRatio = 2f / 3f)
+        progress?.let { LinearProgressIndicator(progress = { it.coerceIn(0, 100) / 100f }, modifier = Modifier.fillMaxWidth()) }
     }
 }
 
@@ -342,7 +402,7 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
     BoxWithConstraints(Modifier.fillMaxWidth().testTag("home-featured")) {
         Box(
             modifier = Modifier.fillMaxWidth()
-                .heightIn(min = if (maxWidth < 600.dp) 180.dp else 300.dp)
+                .heightIn(min = if (maxWidth < 600.dp) 240.dp else 340.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant),
         ) {
@@ -360,16 +420,14 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    stringResource(if (featured is HomeFeatured.ResumeMovie || featured is HomeFeatured.ResumeSeries)
-                        R.string.home_featured_continue else R.string.home_featured_new),
+                    stringResource(if (featured is HomeFeatured.NewSeries) R.string.destination_series else R.string.destination_movies),
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White,
                 )
                 Text(featured.title, style = MaterialTheme.typography.headlineSmall, color = Color.White,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 FocusVisibleButton(
-                    label = stringResource(if (featured is HomeFeatured.ResumeMovie || featured is HomeFeatured.ResumeSeries)
-                        R.string.continue_watching_resume else R.string.home_featured_details),
+                    label = stringResource(R.string.home_featured_details),
                     onClick = onClick,
                     modifier = modifier.testTag("home-featured-action"),
                 )
