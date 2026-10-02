@@ -36,6 +36,12 @@ The existing lint step now prints the full generated text report on failure whil
 
 Second head `9da0b739dbaad906b22b1cf8ac32623785ea71ac`, Validate 36942172233, Android job 110635972690: builds/unit and other four jobs PASS; lint FAIL with two remaining errors, now fully visible. Corrected shared MediaDetailsHero modifier order (first optional parameter; call sites named) and removed the obsolete settings_description resource in both languages, replaced by the new license-aware settings description. No validation rule is disabled. Existing primitive-state autoboxing hint is outside presentation scope.
 
+## Focused input runtime failure and correction
+
+Head `9711bf5dee9747e387ebe46f1af806071c2553ee`, Validate 36942816865: Android build/unsigned release/unit/lint/package checks and four non-Android jobs PASS. Phone API27 job 110639861345 executed 71 cases, two failures, zero skips: both new password-focus scenarios crash with IllegalArgumentException "Cannot perform operation for Em and Sp". All original 64 cases and five other new cases pass. Tablet was still running at the correction checkpoint; no complete-run PASS is claimed.
+
+The new global body typography used em line heights, while Material text-field label animations interpolate with sp-based styles. Corrected bodyLarge/bodyMedium to the same 1.55 font-size ratio expressed in sp via each default style's fontSize multiplication, preserving font scaling and untrimmed Arabic leading. Existing static artwork-card typography is untouched. Both password tests and all original assertions remain unchanged; no retry/suppression/baseline masks the product crash.
+
 ## Release limits and next gate
 
 The owner's trial is feedback, not formal physical/provider PASS. Physical LG Velvet/TV/API24/16KB/foldable/low-RAM, TalkBack/real-provider/media and performance: NOT RUN. Generic earlier LG installer cause remains UNKNOWN.
