@@ -71,6 +71,13 @@ Official source inspected: `28df1d451281d82aba8f2d3c0a51bc5490db4d1b`; #175/#176
 Owner now requests a version across Android devices. Current bounded scope strengthens universal package/16KB/optional-feature/signature checks and adds an actual exact-artifact clean install/launch on API33. Existing minimum remains Android7/API24; Android5/6 requires a separate dependency/security/API compatibility decision, not an unsupported minSdk edit. [Report](REPORTS/ANDROID_UNIVERSAL_COMPATIBILITY_2026-10-01.md).
 Physical OEM/TV/16KB/provider behavior remains independent; generic LG Velvet installer cause UNKNOWN.
 
+
+### 2026-10-01 commercial experience checkpoint
+
+Official base: `8f80fb8fb0c8846fc5e164d7755f7831c4ead024`; #166–#177 are merged. [Official-main Validate 36868608118](https://github.com/n923760-rgb/tyfino-platform/actions/runs/36868608118) passed all seven jobs. #177 provides all-four-ABI/16KB/optional-feature/signatureAPI24–37 checks and a same-source, hash/certificate-bound clean API33 installation and launch. This is emulator/package evidence, not all-device qualification.
+
+The owner tried the development build and now requests a comprehensive professional interface with paid licensing per device, continuing existing implementation and reviewed-merge authority. Current coherent task: shared native presentation across activation, account entry, Home, navigation, catalog, movie/series details, Settings license metadata and playback recovery/track selection. Existing one-device activation-code backend is reused; no price, store billing, new device identity or subscription is invented. [Report](REPORTS/ANDROID_COMMERCIAL_EXPERIENCE_2026-10-01.md). Exact implementation source and CI results are recorded on the task PR. Commercial signing, physical/provider/performance and operations gates remain open.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -192,10 +199,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify/review universal APK checks and exact-source API33 installation/launch in the existing seven-job pipeline; merge under owner authority and inspect official-main package/install evidence.
-Required: eight-file diff, all four ABIs and matching libraries, ELF/ZIP16KB alignment, optional phone/TV features, signatureAPI24–37, source/hash-bound clean API33 install/launch without bypass flags, preserved64 cases per managed device and all seven jobs.
-Stop: source movement, secrets, speculative SDK/dependency/signing changes, bypass flags or unproved all-device/physical claims.
-Following gate: owner LG Velvet retry, explicit Android5/6 scope if requested, and physical TV/older/16KB/provider qualification. Series ownership diagnosis remains a separate future task.
+Task: complete and qualify the coherent Android commercial presentation round, review its exact diff and seven-job CI, merge under existing owner authority and inspect the new official-main configured APK and API33 installation evidence.
+Required: paired Arabic/English resources; original 64 managed-device scenarios retained; focused compact Arabic/large-font licensing and Home, per-device license metadata, password visibility/reset and pending HTTP consent tests; all seven jobs, package checks and exact-artifact API33 installation/launch.
+Stop: conflicting source, secrets, required failures, unauthorized production/signing/identity changes or unproved device/release claims.
+Following gate: owner interface trial and physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance qualification; owner-controlled commercial signing and operations evidence before sale.
 
 ## Linked Reports
 

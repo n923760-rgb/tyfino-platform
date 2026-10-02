@@ -54,6 +54,7 @@ import dev.tyfino.foundation.ui.screen.EpisodePlaybackScreen
 import dev.tyfino.foundation.ui.screen.PlaybackScreen
 import dev.tyfino.foundation.ui.screen.CatalogScreen
 import dev.tyfino.foundation.ui.screen.HomeScreen
+import dev.tyfino.foundation.ui.screen.LicenseSummary
 import dev.tyfino.foundation.ui.screen.LicensingScreen
 import dev.tyfino.foundation.ui.screen.MovieDetailsScreen
 import dev.tyfino.foundation.ui.screen.MovieSelection
@@ -188,8 +189,10 @@ internal fun TyfinoApp() {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    if (licensingState is LicensingUiState.Active) {
+    val activeLicense = licensingState as? LicensingUiState.Active
+    if (activeLicense != null) {
         XtreamGate(
+            licenseSummary = LicenseSummary(activeLicense.entitlement.kind, activeLicense.entitlement.expiresAtMillis, activeLicense.offline),
             controller = xtreamController,
             repository = xtreamRepository,
             catalogRepository = catalogRepository,
@@ -221,6 +224,7 @@ internal fun TyfinoApp() {
 
 @Composable
 private fun XtreamGate(
+    licenseSummary: LicenseSummary,
     controller: XtreamController,
     repository: XtreamRepository,
     catalogRepository: CatalogRepository,
@@ -275,6 +279,7 @@ private fun XtreamGate(
     if (signedIn != null && !addingAccount) {
         key(shellEpoch, signedIn.account.accountId) {
             LicensedAppShell(
+                licenseSummary = licenseSummary,
                 catalogRepository = catalogRepository,
                 favoritesRepository = favoritesRepository,
                 historyRepository = historyRepository,
@@ -418,6 +423,7 @@ private fun XtreamGate(
 
 @Composable
 private fun LicensedAppShell(
+    licenseSummary: LicenseSummary,
     catalogRepository: CatalogRepository,
     favoritesRepository: CatalogFavoritesRepository,
     historyRepository: CatalogHistoryRepository,
@@ -569,6 +575,7 @@ private fun LicensedAppShell(
     }
     val navHost: @Composable (Modifier) -> Unit = { modifier ->
         AppNavHost(
+            licenseSummary = licenseSummary,
             navController = navController,
             modifier = modifier,
             catalogRepository = catalogRepository,
@@ -595,6 +602,13 @@ private fun LicensedAppShell(
             onResumeEpisode = resumeEpisode,
             onPlayHistoryEpisode = playHistoryEpisode,
             onPreviousLive = playPreviousLive,
+            onOpenCatalog = { section ->
+                navigateTo(when (section) {
+                    CatalogSection.Live -> AppDestination.Live
+                    CatalogSection.Movies -> AppDestination.Movies
+                    CatalogSection.Series -> AppDestination.Series
+                })
+            },
             onOpenSettings = { navigateTo(AppDestination.Settings) },
             onOpenAccountSwitcher = {
                 accountSurfaceEpoch++
@@ -736,6 +750,7 @@ private fun LicensedAppShell(
 
 @Composable
 private fun AppNavHost(
+    licenseSummary: LicenseSummary,
     navController: NavHostController,
     modifier: Modifier,
     catalogRepository: CatalogRepository,
@@ -762,6 +777,7 @@ private fun AppNavHost(
     onResumeEpisode: (SeriesContinueWatchingItem) -> Unit,
     onPlayHistoryEpisode: (SeriesHistoryItem) -> Unit,
     onPreviousLive: (PlaybackSelection) -> Unit,
+    onOpenCatalog: (CatalogSection) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenAccountSwitcher: () -> Unit,
     onPlaybackClosed: () -> Unit,
@@ -789,6 +805,7 @@ private fun AppNavHost(
                 onOpenSeries = onOpenSeries,
                 onResumeSeries = onResumeEpisode,
                 onPlaySeriesHistory = onPlayHistoryEpisode,
+                onOpenCatalog = onOpenCatalog,
             )
         }
         composable(AppDestination.Live.route) {
@@ -853,6 +870,7 @@ private fun AppNavHost(
         }
         composable(AppDestination.Settings.route) {
             SettingsScreen(
+                licenseSummary = licenseSummary,
                 onOpenAccountSwitcher = onOpenAccountSwitcher,
                 onManageAccounts = onManageAccounts,
             )

@@ -8,6 +8,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 
 // Keep TYFINO's cyan/violet identity across cards, menus, fields and dialogs.
@@ -54,13 +55,22 @@ private val TyfinoTypography = Typography(
     headlineSmall = DefaultTypography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
     titleLarge = DefaultTypography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
     titleMedium = DefaultTypography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+    bodyLarge = DefaultTypography.bodyLarge.copy(
+        // Material text-field label transitions interpolate with sp-based styles.
+        lineHeight = DefaultTypography.bodyLarge.fontSize * 1.55f,
+        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
+    ),
+    bodyMedium = DefaultTypography.bodyMedium.copy(
+        lineHeight = DefaultTypography.bodyMedium.fontSize * 1.55f,
+        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
+    ),
 )
 
 private val TyfinoShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(20.dp),
+    large = RoundedCornerShape(24.dp),
     extraLarge = RoundedCornerShape(28.dp),
 )
 

@@ -78,6 +78,8 @@ import dev.tyfino.foundation.playback.SeriesContinueWatchingItem
 import dev.tyfino.foundation.playback.MovieResumeListResult
 import dev.tyfino.foundation.playback.MovieResumePresentation
 import dev.tyfino.foundation.playback.MovieResumeRepository
+import dev.tyfino.foundation.ui.components.ProductHeader
+import dev.tyfino.foundation.ui.components.ProductPanel
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.FocusIconButton
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
@@ -254,9 +256,8 @@ internal fun CatalogScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = stringResource(section.titleResource()),
-                style = MaterialTheme.typography.headlineMedium,
+            ProductHeader(
+                title = stringResource(section.titleResource()),
                 modifier = Modifier.weight(1f),
             )
             FocusIconButton(
@@ -822,7 +823,7 @@ internal fun CatalogTile(
                 else -> MaterialTheme.colorScheme.outlineVariant
             },
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
             containerColor = if (selected) {
                 MaterialTheme.colorScheme.primaryContainer
@@ -832,7 +833,7 @@ internal fun CatalogTile(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(if (showArtwork) 6.dp else if (compact) 10.dp else 12.dp),
+            modifier = Modifier.padding(if (showArtwork) 0.dp else if (compact) 10.dp else 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             if (showArtwork) {
@@ -864,6 +865,7 @@ internal fun CatalogTile(
             }
             Text(
                 text = label,
+                modifier = if (showArtwork) Modifier.padding(horizontal = 12.dp, vertical = 4.dp) else Modifier,
                 style = titleStyle,
                 minLines = if (showArtwork) 2 else 1,
                 maxLines = 2,
@@ -872,6 +874,7 @@ internal fun CatalogTile(
             if (supporting.isNotEmpty() || showArtwork) {
                 Text(
                     text = supporting.ifEmpty { " " },
+                    modifier = if (showArtwork) Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp) else Modifier,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -892,7 +895,8 @@ internal fun CatalogFilterButton(
     var focused by remember { mutableStateOf(false) }
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.onFocusChanged { focused = it.isFocused }.semantics { this.selected = selected },
+        modifier = modifier.heightIn(min = 48.dp).onFocusChanged { focused = it.isFocused }.semantics { this.selected = selected },
+        shape = MaterialTheme.shapes.medium,
         border = BorderStroke(
             if (focused) 2.dp else 1.dp,
             if (focused || selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
@@ -937,16 +941,18 @@ internal fun CatalogLoadingState() {
 
 @Composable
 private fun EmptyState(@StringRes message: Int) {
-    Text(
-        text = stringResource(message),
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    ProductPanel(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(message),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable
 internal fun CatalogErrorState(failure: CatalogFailure, onRetry: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    ProductPanel(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(failure.messageResource()),
             color = MaterialTheme.colorScheme.error,

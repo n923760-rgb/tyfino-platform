@@ -30,7 +30,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import dev.tyfino.foundation.ui.components.MediaDetailsHero
+import dev.tyfino.foundation.ui.components.ProductPanel
+import dev.tyfino.foundation.ui.components.ProductSectionHeading
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.MovieResumeLoadResult
 import dev.tyfino.foundation.playback.MovieResumeRepository
@@ -148,35 +150,26 @@ internal fun MovieDetailsContent(
                 )
             }
         }
-        item("artwork") {
-            val artwork = details?.backdropUrl ?: details?.posterUrl ?: selection.item.artworkUrl
-            val landscape = details?.backdropUrl != null
-            if (artwork != null) {
-                Box(
-                    Modifier
-                        .fillMaxWidth(if (landscape) 1f else 0.55f)
-                        .widthIn(max = if (landscape) 900.dp else 320.dp)
-                        .heightIn(max = 420.dp),
-                ) {
-                    AsyncImage(
-                        model = artwork,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxWidth().aspectRatio(if (landscape) 16f / 9f else 2f / 3f),
-                        contentScale = ContentScale.Crop,
-                    )
-                }
-            }
-        }
         item("summary") {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.widthIn(max = 900.dp)) {
-                Text(details?.name ?: selection.item.name, style = MaterialTheme.typography.headlineMedium, maxLines = 2)
-                val facts = listOfNotNull(
-                    details?.releaseDate ?: selection.item.releaseYear,
-                    details?.rating ?: selection.item.rating,
-                    details?.duration,
-                    details?.genre,
-                ).filter(String::isNotBlank).joinToString(" • ")
-                if (facts.isNotBlank()) Text(facts, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val facts = listOfNotNull(
+                details?.releaseDate ?: selection.item.releaseYear,
+                details?.rating ?: selection.item.rating,
+                details?.duration,
+                details?.genre,
+            ).filter(String::isNotBlank).joinToString(" • ")
+            MediaDetailsHero(
+                title = details?.name ?: selection.item.name,
+                facts = facts,
+                artwork = details?.backdropUrl ?: details?.posterUrl ?: selection.item.artworkUrl,
+                landscape = details?.backdropUrl != null,
+                modifier = Modifier.widthIn(max = 1040.dp),
+            )
+        }
+        if (details?.plot?.isNotBlank() == true || details?.cast?.isNotBlank() == true ||
+            details?.director?.isNotBlank() == true
+        ) item("story") {
+            ProductPanel(modifier = Modifier.fillMaxWidth().widthIn(max = 1040.dp)) {
+                ProductSectionHeading(stringResource(R.string.product_movie_story))
                 details?.plot?.takeIf(String::isNotBlank)?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
                 details?.cast?.takeIf(String::isNotBlank)?.let {
                     Text(stringResource(R.string.movie_cast, it), style = MaterialTheme.typography.bodyMedium)
