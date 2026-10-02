@@ -871,6 +871,7 @@ private fun AppNavHost(
         composable(AppDestination.Settings.route) {
             SettingsScreen(
                 licenseSummary = licenseSummary,
+                accountStore = accountStore,
                 onOpenAccountSwitcher = onOpenAccountSwitcher,
                 onManageAccounts = onManageAccounts,
             )
@@ -913,4 +914,3 @@ private fun AppNavHost(
 private const val PLAYBACK_ROUTE = "playback"
 private const val SERIES_DETAILS_ROUTE = "series-details"
 private const val MOVIE_DETAILS_ROUTE = "movie-details"
-

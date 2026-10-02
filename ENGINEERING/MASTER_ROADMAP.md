@@ -78,6 +78,12 @@ Official base: `8f80fb8fb0c8846fc5e164d7755f7831c4ead024`; #166–#177 are merge
 
 The owner tried the development build and now requests a comprehensive professional interface with paid licensing per device, continuing existing implementation and reviewed-merge authority. Current coherent task: shared native presentation across activation, account entry, Home, navigation, catalog, movie/series details, Settings license metadata and playback recovery/track selection. Existing one-device activation-code backend is reused; no price, store billing, new device identity or subscription is invented. [Report](REPORTS/ANDROID_COMMERCIAL_EXPERIENCE_2026-10-01.md). Exact implementation source and CI results are recorded on the task PR. Commercial signing, physical/provider/performance and operations gates remain open.
 
+### 2026-10-02 Home showcase and playlist checkpoint
+
+Official base: `e1b2ba9ee5baad712f48e068d5852c87c427838e`; #178 is merged, no open PRs at the live gate. Official-main Validate 36965457394 passed all seven jobs with 71 cases per managed device. Current owner explicitly requests a better Home with Movies/Series highlights above Continue watching, and playlist subscription/expiry in Settings.
+
+Bounded implementation: cached manually selectable showcase, dedicated progress/resume rail and provider-only subscription metadata with account/generation/request/lifecycle checks. No provider-wide discovery, licensing/backend, package, signing or release-policy change. [Report](REPORTS/HOME_SHOWCASE_PLAYLIST_2026-10-02.md). Local Gradle provisioning is BLOCKED by the restricted network; exact-head native qualification uses existing Actions. Physical/provider/performance proof remains separate. Protected merge/release/deployment requires current exact-action authorization.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -199,8 +205,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: complete and qualify the coherent Android commercial presentation round, review its exact diff and seven-job CI, merge under existing owner authority and inspect the new official-main configured APK and API33 installation evidence.
-Required: paired Arabic/English resources; original 64 managed-device scenarios retained; focused compact Arabic/large-font licensing and Home, per-device license metadata, password visibility/reset and pending HTTP consent tests; all seven jobs, package checks and exact-artifact API33 installation/launch.
+Task: qualify the Home showcase/Continue watching and Settings playlist subscription implementation on its exact PR head, review the diff and seven-job CI, and provide its owner-test artifact for interface feedback. Protected merge remains an owner decision for this exact action.
+Required: paired Arabic/English resources; all existing 71 managed-device scenarios retained; focused mixed showcase selection, progress/resume, Arabic/large-font reachability and provider expiry/privacy/ownership tests; all seven jobs, package checks and exact-artifact API33 installation/launch.
 Stop: conflicting source, secrets, required failures, unauthorized production/signing/identity changes or unproved device/release claims.
 Following gate: owner interface trial and physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance qualification; owner-controlled commercial signing and operations evidence before sale.
 

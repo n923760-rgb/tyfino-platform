@@ -33,16 +33,21 @@ import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.xtream.ProviderUserAgent
 import dev.tyfino.foundation.xtream.ProviderUserAgentPreset
+import dev.tyfino.foundation.xtream.XtreamAccountStore
+import dev.tyfino.foundation.xtream.PlaylistRepository
+import dev.tyfino.foundation.xtream.HttpPlaylistApi
 
 @Composable
 internal fun SettingsScreen(
     onOpenAccountSwitcher: () -> Unit,
     onManageAccounts: () -> Unit,
     licenseSummary: LicenseSummary? = null,
+    accountStore: XtreamAccountStore? = null,
 ) {
     val initialFocus = rememberInitialFocusRequester()
     val context = LocalContext.current
     val userAgent = remember(context) { ProviderUserAgent(context) }
+    val playlist = remember(accountStore, context) { accountStore?.let { PlaylistRepository(it, HttpPlaylistApi(context)) } }
     var preset by remember(userAgent) { mutableStateOf(userAgent.selected()) }
     BoxWithConstraints(Modifier.fillMaxSize().testTag("settings-screen")) {
         val horizontalPadding = if (maxWidth < 600.dp) 16.dp else 24.dp
@@ -86,6 +91,7 @@ internal fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                playlist?.let { PlaylistSummary(it) }
                 licenseSummary?.let { LicenseSummaryPanel(it) }
                 SettingsSection(
                     title = stringResource(R.string.settings_user_agent_title),
