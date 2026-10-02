@@ -42,6 +42,12 @@ Head `9711bf5dee9747e387ebe46f1af806071c2553ee`, Validate 36942816865: Android b
 
 The new global body typography used em line heights, while Material text-field label animations interpolate with sp-based styles. Corrected bodyLarge/bodyMedium to the same 1.55 font-size ratio expressed in sp via each default style's fontSize multiplication, preserving font scaling and untrimmed Arabic leading. Existing static artwork-card typography is untouched. Both password tests and all original assertions remain unchanged; no retry/suppression/baseline masks the product crash.
 
+## Visibility test diagnosis
+
+Head `5d689a9f8c505af629dffc8aa59ecb01ebb5d0e6`, Validate 36963011269: Android build/unit/lint/package and four non-Android jobs PASS. Phone API27 job 110701940027 executes 71 cases, one failure/zero skips. The em/sp crash is gone and pending-consent IME test passes. Remaining visibility test incorrectly infers visible text from removal of the internal Password semantics flag; runtime retains that flag after the toggle.
+
+Framework source inspection of CoreTextFieldSemanticsModifier explains why an existing node can retain its isPassword field during updates. This is supporting framework context, not an exact dependency artifact proof. The corrected test checks the actual TextLayoutResult: bullets initially, exact synthetic fixture after explicit reveal, bullets after gate-state reset; it also checks localized show/hide button descriptions and retains hidden/reset Password assertions. This increases observable user-flow proof instead of changing input keyboard/privacy behavior or removing the visibility/reset requirement. Original 64 cases remain intact; test count remains 71. Actual corrected result is recorded on the PR.
+
 ## Release limits and next gate
 
 The owner's trial is feedback, not formal physical/provider PASS. Physical LG Velvet/TV/API24/16KB/foldable/low-RAM, TalkBack/real-provider/media and performance: NOT RUN. Generic earlier LG installer cause remains UNKNOWN.

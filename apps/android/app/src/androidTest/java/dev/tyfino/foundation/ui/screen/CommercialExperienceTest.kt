@@ -13,12 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -42,6 +45,7 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -111,12 +115,27 @@ class CommercialExperienceTest {
             XtreamLoginScreen(state, onSignIn = {}, onConfirmCleartext = {}, onCancelCleartext = {})
         } }
         val password = compose.onNodeWithTag("xtream-password")
-        password.performScrollTo().performTextInput("fixture-password")
+        val fixture = "fixture-password"
+        val masked = "\u2022".repeat(fixture.length)
+        fun assertDisplayedText(expected: String) {
+            password.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { action ->
+                val results = mutableListOf<TextLayoutResult>()
+                assertTrue(action(results))
+                assertEquals(expected, results.single().layoutInput.text.text)
+            }
+        }
+        password.performScrollTo().performTextInput(fixture)
         password.assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
+        assertDisplayedText(masked)
         compose.onNodeWithTag("xtream-password-visibility").performScrollTo().performClick()
-        password.assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.Password))
+        compose.onNodeWithTag("xtream-password-visibility")
+            .assertContentDescriptionEquals(context.getString(R.string.product_hide_password))
+        assertDisplayedText(fixture)
         compose.runOnIdle { state = XtreamUiState.ConfirmCleartext("http://provider.example") }
         password.assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
+        compose.onNodeWithTag("xtream-password-visibility")
+            .assertContentDescriptionEquals(context.getString(R.string.product_show_password))
+        assertDisplayedText(masked)
     }
 
     @Test fun passwordImeRespectsPendingCleartextConsent() {
