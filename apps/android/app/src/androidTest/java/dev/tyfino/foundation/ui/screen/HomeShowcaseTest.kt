@@ -32,6 +32,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import java.util.Locale
+import android.view.View
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.pressKey
+import dev.tyfino.foundation.playback.SeriesContinueWatchingItem
+import dev.tyfino.foundation.xtream.SeriesEpisode
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 class HomeShowcaseTest {
@@ -99,6 +114,61 @@ class HomeShowcaseTest {
         compose.onNodeWithTag("home-showcase-next").performScrollTo().assertIsDisplayed().performClick()
         compose.onNodeWithTag("home-featured-action").performScrollTo().assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals("series", opened) }
+    }
+
+    @Test fun showcaseDirectionalInputSelectsAndOpensDetails() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        instrumentation.setInTouchMode(false)
+        try {
+            var host: View? = null
+            var input: InputModeManager? = null
+            var opened = ""
+            compose.setContent {
+                host = LocalView.current
+                input = LocalInputModeManager.current
+                TyfinoTheme {
+                    HomeShowcase(listOf(HomeHighlight(CatalogSection.Movies, item("movie")),
+                        HomeHighlight(CatalogSection.Series, item("series"))),
+                        onOpenMovie = { opened = it.providerId }, onOpenSeries = { opened = it.providerId })
+                }
+            }
+            compose.waitUntil(5_000) { compose.runOnIdle { host?.hasWindowFocus() == true } }
+            compose.runOnIdle { assertTrue(input!!.requestInputMode(InputMode.Keyboard)) }
+            compose.waitUntil(5_000) { compose.runOnIdle { input?.inputMode == InputMode.Keyboard } }
+            compose.onNodeWithTag("home-showcase-previous")
+                .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+                .assertIsFocused().performKeyInput { pressKey(Key.DirectionRight) }
+            compose.onNodeWithTag("home-showcase-next").assertIsFocused()
+                .performKeyInput { pressKey(Key.Enter) }
+            compose.onNodeWithText("Title series").assertIsDisplayed()
+            compose.runOnIdle { assertEquals("", opened) }
+            compose.onNodeWithTag("home-showcase-next")
+                .performKeyInput { pressKey(Key.DirectionUp) }
+            compose.onNodeWithTag("home-featured-action").assertIsFocused()
+                .performKeyInput { pressKey(Key.Enter) }
+            compose.runOnIdle { assertEquals("series", opened) }
+        } finally {
+            instrumentation.setInTouchMode(true)
+        }
+    }
+
+    @Test fun episodeResumePreservesIdentityGenerationsAndProgressBesideMatchingMovieId() {
+        val record = SeriesContinueWatchingItem(
+            SeriesEpisode("fixture-account", "fixture-series", "shared", 2, 3, "Episode title",
+                "mp4", 0, null, null, null, null), "Series title", 7, 11, 120_000, 300_000)
+        var resumed: SeriesContinueWatchingItem? = null
+        var movies = 0
+        compose.setContent { TyfinoTheme {
+            HomeContinueWatching(listOf(ContinueWatchingItem(item("shared"), 42)), listOf(record),
+                onMovie = { movies++ }, onSeries = { resumed = it }, tileWidth = 128.dp)
+        } }
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        compose.onNodeWithTag("home-resume-series-shared").assertContentDescriptionEquals(
+            "Series title • Episode title, ${context.getString(R.string.continue_watching_progress, 40)}")
+            .performClick()
+        compose.runOnIdle { assertSame(record, resumed); assertEquals(0, movies) }
+        compose.onNodeWithTag("home-resume-movie-shared").performClick()
+        compose.runOnIdle { assertEquals(1, movies); assertSame(record, resumed) }
     }
 
     private fun item(id: String) = CatalogItem(id, "category", "Title $id", 0,
