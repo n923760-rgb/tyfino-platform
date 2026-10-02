@@ -40,6 +40,13 @@ PASS: full staged diff/source fixture consistency review and final whitespace ch
 
 ## Evidence boundary and next action
 
+### First native result and test-oracle correction
+
+FAIL: initial head `fc5595480b061748f92107bb9b372ac9bbd1d399`, [Validate 37074530554](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37074530554), phone job 111061742412: 80 cases, one failure, zero skips; all five non-native jobs passed. Tablet results belong to the same run record. Full causal build/test logs and report artifact 11256199646 were inspected; XML failure is at `PlaylistLifecycleTest.kt:57`, the first Active assertion.
+
+FACT: the actual semantics text is `Provider status: Active`, correct for the fixture. The test used `assertTextContains("Active")` without `substring = true`; this Compose assertion defaults to comparing a complete text entry, not a substring. Thus the new test oracle failed before exercising the subsequent lifecycle steps. This is a test defect, not evidence of a product subscription defect.
+Correction uses `assertTextEquals(targetContext.getString(R.string.playlist_active))` for all three Active checks, matching the complete localized resource. No production fix, weakened substring oracle, test removal/skip, or workflow change was made. All four new cases and lifecycle barriers remain. Corrected exact-head outcomes are retained on the PR; initial FAIL is not replaced with PASS.
+
 These tests qualify only synthetic phone/tablet Compose input and destination lifecycle behavior. Non-cancellable fixture work models delayed completion; it does not prove that a real blocked socket immediately disconnects on cancellation. Cancellation plus repository/UI ownership remain production safeguards; this round does not independently bypass cancellation to test a UI generation guard in isolation.
 Physical LG Velvet/TV/older/16KB hardware, actual provider/media, TalkBack, RTL traversal, memory/performance and production operations are NOT RUN. Source-only tests do not change that status.
 Next: review exact-head CI and request owner authorization for this test-only PR merge when qualified. Continue owner interface trial/physical qualification on the already delivered configured #179 development APK; production signing and release remain separate gates.

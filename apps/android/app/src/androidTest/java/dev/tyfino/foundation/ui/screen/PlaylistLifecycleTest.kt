@@ -6,7 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -15,6 +15,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.theme.TyfinoTheme
 import dev.tyfino.foundation.xtream.PlaylistInfo
 import dev.tyfino.foundation.xtream.PlaylistRepository
@@ -37,6 +39,7 @@ class PlaylistLifecycleTest {
     @get:Rule val compose = createComposeRule()
 
     @Test fun pauseClearsMetadataAndLateResultCannotReplaceResumedRequest() {
+        val activeText = InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.playlist_active)
         val owner = owner()
         val calls = AtomicInteger()
         val release = CompletableDeferred<Unit>()
@@ -54,7 +57,7 @@ class PlaylistLifecycleTest {
             } }
             compose.runOnIdle { assertEquals(0, calls.get()); owner.registry.currentState = Lifecycle.State.RESUMED }
             awaitStatus()
-            compose.onNodeWithTag("playlist-status").assertTextContains("Active")
+            compose.onNodeWithTag("playlist-status").assertTextEquals(activeText)
             compose.runOnIdle { owner.registry.currentState = Lifecycle.State.STARTED }
             compose.waitForIdle()
             compose.onNodeWithTag("playlist-status").assertDoesNotExist()
@@ -64,11 +67,11 @@ class PlaylistLifecycleTest {
             compose.runOnIdle { owner.registry.currentState = Lifecycle.State.STARTED }
             compose.runOnIdle { owner.registry.currentState = Lifecycle.State.RESUMED }
             awaitStatus()
-            compose.onNodeWithTag("playlist-status").assertTextContains("Active")
+            compose.onNodeWithTag("playlist-status").assertTextEquals(activeText)
             release.complete(Unit)
             compose.waitUntil(5_000) { finished.isCompleted }
             compose.waitForIdle()
-            compose.onNodeWithTag("playlist-status").assertTextContains("Active")
+            compose.onNodeWithTag("playlist-status").assertTextEquals(activeText)
             compose.runOnIdle { assertEquals(3, calls.get()) }
         } finally {
             release.complete(Unit)
