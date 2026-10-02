@@ -49,13 +49,13 @@ class HomeShowcaseTest {
         }
         compose.onNodeWithText("Title movie").assertIsDisplayed()
         compose.onNodeWithTag("home-featured-action").performClick()
-        compose.onNodeWithTag("home-showcase-next").performClick()
+        compose.onNodeWithTag("home-showcase-next").assertIsDisplayed().performClick()
         compose.onNodeWithText("Title series").assertIsDisplayed()
         compose.onNodeWithTag("home-featured-action").performClick()
         compose.runOnIdle { assertEquals("movie", movie); assertEquals("series", series) }
-        compose.onNodeWithTag("home-showcase-next").performClick()
+        compose.onNodeWithTag("home-showcase-next").assertIsDisplayed().performClick()
         compose.onNodeWithText("Title movie").assertIsDisplayed()
-        compose.onNodeWithTag("home-showcase-previous").performClick()
+        compose.onNodeWithTag("home-showcase-previous").assertIsDisplayed().performClick()
         compose.onNodeWithText("Title series").assertIsDisplayed()
     }
 

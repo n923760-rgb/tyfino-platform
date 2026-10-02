@@ -410,9 +410,9 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
                 model = request,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.matchParentSize(),
             )
-            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+            Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(
                 Color.Black.copy(alpha = 0.32f), Color.Black.copy(alpha = 0.94f),
             ))))
             Column(

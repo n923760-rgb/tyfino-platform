@@ -31,6 +31,12 @@ Preparation source checks, exact tested head, all seven jobs, Debug/unsigned Rel
 
 Physical LG Velvet/TV/API24/16KB/foldable/low-RAM, TalkBack, real-provider subscription/media compatibility and measured performance: NOT RUN. Owner-test APK remains a debug development artifact, not a signed commercial release. Earlier OEM/Google protection installation cause remains UNKNOWN; this presentation task does not bypass device protection or claim to fix it.
 
+## First exact-head UI failure and correction
+
+Head `d807824cb23dd9f660bb32de13d300352258fbd2`, Validate 37038931937: all five non-instrumentation jobs PASS, including Debug/unsigned Release/unit/lint and configured package inspection. Phone job 110946761684 executed 76 cases, one failure, zero skips: `HomeShowcaseTest.spotlightMovesBetweenMovieAndSeriesWithoutStartingPlayback` cannot display the Series title after Next. Other 75 cases, including the original 71, pass. Tablet result was still pending at the correction checkpoint; no all-job PASS is claimed.
+
+Source measurement review identifies the hero's decorative `fillMaxSize` children participating in the parent's size, consuming bounded vertical space and allowing intrinsic artwork sizing in unbounded rails. Corrected the image and gradient to Box-scoped `matchParentSize`: foreground content and adaptive minimum height determine the hero, not its decorations. Android's official Compose modifier guidance documents this exact distinction: https://developer.android.com/develop/ui/compose/modifiers#matchparentsize-in-box. The same standalone user-flow test is retained and strengthened to require Previous/Next actually displayed before clicking. No assertion is removed, scrolling workaround added, screenshot assumption or physical PASS invented. Corrected exact-head qualification is recorded on the PR; the first APK is not delivered as qualified.
+
 ## Next gate
 
 Complete exact-head CI/review and request owner interface feedback with the configured test APK. Merge/release/signing/production deployment remain separately authorized; real-provider expiry and physical/input/accessibility qualification require their own evidence.
