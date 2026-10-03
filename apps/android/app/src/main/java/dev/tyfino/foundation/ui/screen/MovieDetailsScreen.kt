@@ -168,7 +168,7 @@ internal fun MovieDetailsContent(
         if (details?.plot?.isNotBlank() == true || details?.cast?.isNotBlank() == true ||
             details?.director?.isNotBlank() == true
         ) item("story") {
-            ProductPanel(modifier = Modifier.fillMaxWidth().widthIn(max = 1040.dp)) {
+            ProductPanel(modifier = Modifier.widthIn(max = 1040.dp).fillMaxWidth()) {
                 ProductSectionHeading(stringResource(R.string.product_movie_story))
                 details?.plot?.takeIf(String::isNotBlank)?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
                 details?.cast?.takeIf(String::isNotBlank)?.let {
