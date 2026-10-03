@@ -108,6 +108,12 @@ Live official source: main@354ae15063c27217e35a9865a02f99e0019dbfec; #182 is mer
 
 The owner reports misplaced category-selection guidance in Live/Movies/Series and requests continued review/improvement. Current bounded correction centers and constrains states in the available content pane, shows selection guidance only when categories exist, retains valid retry callbacks, and moves grid notices out of overlays. [Report](REPORTS/CATALOG_STATUS_PLACEMENT_2026-10-03.md). Six new native scenarios join all previous 84. Local native execution is BLOCKED by absent shell/SDK/Gradle tools; exact-source Actions qualifies the new task. Physical/provider/visual/accessibility/performance and production signing/operations remain separate.
 
+### 2026-10-03 details width continuation
+
+Catalog placement #183 is squash-merged at main@d4e3204a5d3700878a9a6f374c6d4e08d448387b; its tree 7e60ee5a6b2b0d87fb291d3a167ed552a3507868 equals qualified head 1344edd23c5ac1aaddd8b4d56ef8679937ef7ff1. [PR Validate37157049507](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37157049507) passed all seven jobs, 90 cases per managed device with zero failures/skips and exact configured owner APK API33 installation/launch. No retries or new-source failures. Official-main [Validate37158569337](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37158569337) is tracked separately on #183.
+
+The additional source review found fillMaxWidth before widthIn at Movie/Series story and episode-card sites, preventing the existing maximums from narrowing wider-window content. Current separate follow-up reverses only those three modifier pairs; existing caps, callbacks, ownership, resources and all 90 scenarios remain. [Report](REPORTS/DETAILS_WIDTH_BOUNDS_2026-10-03.md). Local native tools remain BLOCKED; exact-source qualification belongs to this PR. Physical wide-screen acceptance and production gates remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -229,10 +235,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify catalog guidance/status placement from integrated main@354ae15063c27217e35a9865a02f99e0019dbfec and review its bounded exact-source diff/CI. Continuing owner improvement and reviewed-merge authority applies; production signing/release/deployment remain separate.
-Required: centered compact/expanded/Arabic/large-font guidance, correct unavailable-category states, reachable short-pane retry/keyboard action, non-overlapping grid notices and preserved callbacks. All previous 84 cases remain plus six focused native cases (90 expected per managed device); all seven jobs, package checks and exact-artifact API33 install/launch.
-Stop: changed baseline/conflicting source, secrets, required failures, unauthorized policy/production/signing/identity changes or unproved device/release claims.
-Following gate: owner UI trial and physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance qualification; separately measure whole-screen short-height/IME reachability before any further adaptive change. Owner-controlled commercial signing custody and operations evidence remain required before sale.
+Task: qualify the three-site details maximum-width correction from integrated main@d4e3204a5d3700878a9a6f374c6d4e08d448387b; preserve existing 1040dp story and 760dp episode limits and all current state/callback/focus behavior. Continuing owner implementation/reviewed-merge authority applies; production actions remain separate.
+Required: complete scoped source review, untouched current 90 native cases, all seven exact-source jobs, Android build/unit/lint, API27/API35 and exact configured APK API33 installation/launch. No new redundant tests, UI abstraction, dimensions, network/ownership/persistence/dependency/identity/version/signing/workflow change.
+Stop: changed baseline/conflicting source, secrets, required failures, unapproved policy/production actions or unproved runtime claims.
+Following gate: owner UI trial; separately measured short-height/IME controls, physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance, signing custody/recovery and production operations before sale.
 
 ## Linked Reports
 

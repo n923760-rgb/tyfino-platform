@@ -176,6 +176,8 @@ Artwork networking has bounded concurrency and timeouts, rejects redirects, limi
 
 Selecting a Movie opens an explicit details destination instead of starting playback. The client requests only that Movie through `get_vod_info`, with an 8 MiB response ceiling, bounded timeouts, no redirects, defensive scalar parsing, safe artwork validation, account/generation ownership checks, and a six-hour account-scoped cache. Catalog metadata remains the fallback when optional provider details are absent. The Play action uses the original validated catalog item; provider detail metadata never rewrites playback authority. Existing eligible progress changes the action label to Resume, and account removal clears the details partition.
 
+Movie/Series story panels apply their existing 1040dp maximum before filling available width; Series episode cards similarly apply their existing 760dp maximum first. This keeps the intended bounds effective on wider windows while compact panes follow available space. Source scope and validation limits are recorded in [details width report](../../ENGINEERING/REPORTS/DETAILS_WIDTH_BOUNDS_2026-10-03.md); physical wide-screen qualification remains separate.
+
 ## Deferred contracts
 
 Full physical-device/TV qualification, release identity/signing, provider-wide search, and other deferred playback capabilities require their own approved work. Movie details and Series episode playback, history, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.

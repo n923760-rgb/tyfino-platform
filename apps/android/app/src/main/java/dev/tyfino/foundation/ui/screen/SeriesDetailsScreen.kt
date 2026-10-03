@@ -177,7 +177,7 @@ internal fun SeriesDetailsContent(
         }
         details?.summary?.plot?.takeIf(String::isNotBlank)?.let { overview ->
             item(key = "story") {
-                ProductPanel(modifier = Modifier.fillMaxWidth().widthIn(max = 1040.dp)) {
+                ProductPanel(modifier = Modifier.widthIn(max = 1040.dp).fillMaxWidth()) {
                     ProductSectionHeading(stringResource(R.string.product_series_story))
                     Text(overview, style = MaterialTheme.typography.bodyMedium, maxLines = 4)
                 }
@@ -300,8 +300,8 @@ private fun EpisodeRow(episode: SeriesEpisode, hasPublishedGeneration: Boolean, 
         onClick = onClick,
         enabled = playable,
         modifier = Modifier
-            .fillMaxWidth()
             .widthIn(max = 760.dp)
+            .fillMaxWidth()
             .heightIn(min = 88.dp)
             .onFocusChanged { focused = it.isFocused }
             .focusable()
