@@ -102,6 +102,12 @@ Owner confirmed #181 merge and continued work. #181 is squash-merged at official
 
 Current bounded enhancement makes provider-reported playlist status and expiry prominent tonal facts and uses the active resource locale for dates/connection counts. Missing fields remain unknown; no inferred license, expiry/countdown, provider access or ownership change. [Report](REPORTS/PLAYLIST_SUMMARY_PRESENTATION_2026-10-03.md). All 82 previous cases retained, two new compact-Arabic/state-replacement scenarios (84 expected). Exact-head qualification belongs to its PR; local native provisioning remains BLOCKED. Future protected actions and physical/provider/accessibility/performance acceptance remain separate.
 
+### 2026-10-03 catalog presentation continuation
+
+Live official source: main@354ae15063c27217e35a9865a02f99e0019dbfec; #182 is merged and there are no open PRs at this gate. [Official-main Validate37122045133](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37122045133) passed all seven jobs, 84 cases per managed device with zero failures/skips and the exact configured owner APK API33 clean-install/launch. Earlier pending checkpoint/next-round notes are historical; the live source and run establish their completion.
+
+The owner reports misplaced category-selection guidance in Live/Movies/Series and requests continued review/improvement. Current bounded correction centers and constrains states in the available content pane, shows selection guidance only when categories exist, retains valid retry callbacks, and moves grid notices out of overlays. [Report](REPORTS/CATALOG_STATUS_PLACEMENT_2026-10-03.md). Six new native scenarios join all previous 84. Local native execution is BLOCKED by absent shell/SDK/Gradle tools; exact-source Actions qualifies the new task. Physical/provider/visual/accessibility/performance and production signing/operations remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -223,10 +229,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify playlist status/expiry presentation from integrated `main@8c1918a7d567a8be4d75ee12796d519e3a21370d`, review its bounded diff and exact-source CI. A future PR merge remains an exact owner decision.
-Required: paired Arabic/English connection placeholders, resource-locale date/count formatting, compact Arabic/font1.6 facts/refresh reachability and state-replacement cases (84 managed-device cases expected), all existing 82 scenarios retained; seven jobs, package checks and exact-artifact API33 install/launch. No provider request, persistence, licensing, dependencies, workflows, identity or release-policy change.
-Stop: conflicting source, secrets, required failures, unauthorized production/signing/identity changes or unproved device/release claims.
-Following gate: owner interface trial and physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance qualification; owner-controlled commercial signing and operations evidence before sale.
+Task: qualify catalog guidance/status placement from integrated main@354ae15063c27217e35a9865a02f99e0019dbfec and review its bounded exact-source diff/CI. Continuing owner improvement and reviewed-merge authority applies; production signing/release/deployment remain separate.
+Required: centered compact/expanded/Arabic/large-font guidance, correct unavailable-category states, reachable short-pane retry/keyboard action, non-overlapping grid notices and preserved callbacks. All previous 84 cases remain plus six focused native cases (90 expected per managed device); all seven jobs, package checks and exact-artifact API33 install/launch.
+Stop: changed baseline/conflicting source, secrets, required failures, unauthorized policy/production/signing/identity changes or unproved device/release claims.
+Following gate: owner UI trial and physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance qualification; separately measure whole-screen short-height/IME reachability before any further adaptive change. Owner-controlled commercial signing custody and operations evidence remain required before sale.
 
 ## Linked Reports
 
