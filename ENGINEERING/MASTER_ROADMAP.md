@@ -90,6 +90,12 @@ Owner explicitly authorized #179 merge and continued work. #179 is squash-merged
 
 Current bounded continuation is test-only qualification of showcase directional input, episode resume identity/progress and playlist pause/resume/destination disposal. All existing scenarios and production behavior are retained. [Report](REPORTS/HOME_PLAYLIST_INPUT_LIFECYCLE_2026-10-02.md). Native local execution remains BLOCKED by unavailable Gradle distribution/network/Android SDK; exact new-source runtime evidence belongs to the isolated PR. Physical TV/LG Velvet/provider/TalkBack/performance qualification remains separate.
 
+### 2026-10-02 cached showcase metadata continuation
+
+Owner explicitly authorized #180 merge and continued app improvements. #180 is squash-merged at official `main@75efab30b0fff61c3fce931715226a5afd6346f6`, tree `7d5eb748b3026f5e23ebc5e665654ad91d927a11`, identical to qualified PR head `88a3a9b1aed3f90dee22c452ebdc0a19c95e32a1`. [PR Validate 37075277135](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37075277135) passed all seven jobs, 80 cases per managed device, zero failures/skips, and exact configured APK API33 install/launch. Initial test-oracle FAIL remains recorded. Official-main push [Validate 37076738964](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37076738964) was in progress at this source checkpoint; its final evidence belongs to #180.
+
+Current bounded UI enhancement: optional localized provider-rating and release-year badges for the selected Home showcase item, using existing cached metadata only. Invalid fields are omitted independently; wrapping badges add no input targets, network calls or inferred values. [Report](REPORTS/HOME_SHOWCASE_METADATA_2026-10-02.md). Local Android provisioning remains BLOCKED; exact-head build/managed-device proof belongs to this new isolated PR. Protected future merge/release/signing/deployment and physical/provider/performance qualification remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -211,8 +217,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify focused Home/playlist input and lifecycle regression tests on a branch from integrated `main@f8534011a15d1167383995abd6a42b8f58fbc4fd`. The feature and owner APK delivery are complete in #179. A future test-only PR merge remains an exact owner decision.
-Required: all existing 76 managed-device scenarios retained, four new focused showcase directional-input, episode resume identity/progress, paused/resumed playlist and disposed destination scenarios; all seven jobs, package checks and exact-artifact API33 installation/launch. No production behavior, dependencies, workflows, credentials or release policy changes.
+Task: qualify cached showcase rating/year presentation from integrated `main@75efab30b0fff61c3fce931715226a5afd6346f6`, review its bounded diff and exact-source CI. A future PR merge remains an exact owner decision.
+Required: paired Arabic/English metadata labels, pure valid/invalid/missing-value tests, two new selection/omission cases (82 managed-device cases expected), all existing 80 scenarios retained including compact Arabic/large-font metadata/action reachability and directional input; seven jobs, package checks and exact-artifact API33 install/launch. No provider request, persistence, licensing, dependencies, workflows, identity or release-policy change.
 Stop: conflicting source, secrets, required failures, unauthorized production/signing/identity changes or unproved device/release claims.
 Following gate: owner interface trial and physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance qualification; owner-controlled commercial signing and operations evidence before sale.
 

@@ -3,6 +3,7 @@ package dev.tyfino.foundation.ui.screen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import android.content.res.Configuration
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import java.util.Locale
+import java.text.NumberFormat
 import android.view.View
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.InputModeManager
@@ -111,6 +113,8 @@ class HomeShowcaseTest {
                 }
             }
         }
+        compose.onNodeWithTag("home-featured-rating").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("home-featured-year").performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("home-showcase-next").performScrollTo().assertIsDisplayed().performClick()
         compose.onNodeWithTag("home-featured-action").performScrollTo().assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals("series", opened) }
@@ -150,6 +154,46 @@ class HomeShowcaseTest {
         } finally {
             instrumentation.setInTouchMode(true)
         }
+    }
+
+    @Test fun optionalMetadataFollowsSelectedMovieAndSeries() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val numbers = NumberFormat.getNumberInstance(context.resources.configuration.locales[0]).apply {
+            isGroupingUsed = false
+            maximumFractionDigits = 1
+        }
+        compose.setContent { TyfinoTheme {
+            HomeShowcase(listOf(HomeHighlight(CatalogSection.Movies, item("movie")),
+                HomeHighlight(CatalogSection.Series, item("series").copy(rating = "3.5", releaseYear = "1999"))),
+                onOpenMovie = {}, onOpenSeries = {})
+        } }
+        compose.onNodeWithTag("home-featured-rating").assertTextEquals(
+            context.getString(R.string.home_showcase_rating, numbers.format(8), numbers.format(10)))
+        compose.onNodeWithTag("home-featured-year").assertTextEquals(
+            context.getString(R.string.home_showcase_year, numbers.format(2026)))
+        compose.onNodeWithTag("home-showcase-next").performClick()
+        compose.onNodeWithTag("home-featured-rating").assertTextEquals(
+            context.getString(R.string.home_showcase_rating, numbers.format(3.5), numbers.format(10)))
+        compose.onNodeWithTag("home-featured-year").assertTextEquals(
+            context.getString(R.string.home_showcase_year, numbers.format(1999)))
+    }
+
+    @Test fun invalidOrMissingMetadataIsHiddenWithoutBlockingDetails() {
+        var opened = ""
+        compose.setContent { TyfinoTheme {
+            HomeShowcase(listOf(HomeHighlight(CatalogSection.Movies,
+                item("invalid").copy(rating = "NaN", releaseYear = "unknown")),
+                HomeHighlight(CatalogSection.Series, item("partial").copy(rating = null))),
+                onOpenMovie = { opened = it.providerId }, onOpenSeries = { opened = it.providerId })
+        } }
+        compose.onNodeWithTag("home-featured-metadata").assertDoesNotExist()
+        compose.onNodeWithTag("home-featured-action").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals("invalid", opened) }
+        compose.onNodeWithTag("home-showcase-next").performClick()
+        compose.onNodeWithTag("home-featured-rating").assertDoesNotExist()
+        compose.onNodeWithTag("home-featured-year").assertIsDisplayed()
+        compose.onNodeWithTag("home-featured-action").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals("partial", opened) }
     }
 
     @Test fun episodeResumePreservesIdentityGenerationsAndProgressBesideMatchingMovieId() {

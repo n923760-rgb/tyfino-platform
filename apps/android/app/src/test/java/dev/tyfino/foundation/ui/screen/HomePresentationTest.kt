@@ -3,9 +3,29 @@ package dev.tyfino.foundation.ui.screen
 import dev.tyfino.foundation.xtream.CatalogItem
 import dev.tyfino.foundation.xtream.CatalogSection
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class HomePresentationTest {
+    @Test fun metadataKeepsValidProviderValuesWithoutGuessingMissingFields() {
+        assertEquals(HomeShowcaseMetadata(8.75, 2026), HomePresentation.metadata(item("movie", "8.75")))
+        assertEquals(HomeShowcaseMetadata(0.0, 1999), HomePresentation.metadata(
+            item("zero", "-0.0").copy(releaseYear = " 1999 ")))
+        assertEquals(HomeShowcaseMetadata(10.0, null), HomePresentation.metadata(
+            item("maximum", "10").copy(releaseYear = null)))
+        assertEquals(HomeShowcaseMetadata(null, null), HomePresentation.metadata(
+            item("missing", null).copy(releaseYear = null)))
+    }
+
+    @Test fun metadataRejectsNonFiniteRatingsAndNonYearProviderText() {
+        for (rating in listOf("NaN", "Infinity", "-1", "10.1", "", "unknown", "1e999")) {
+            assertNull(HomePresentation.metadata(item("movie", rating)).rating)
+        }
+        for (year in listOf("", "0", "0000", "999", "10000", "2026-10-02", "year 2026", "２０２６")) {
+            assertNull(HomePresentation.metadata(item("movie", "8").copy(releaseYear = year)).releaseYear)
+        }
+    }
+
     @Test fun highlightsMixSectionsAndRankAvailableRatingsWithoutIdCollisions() {
         val picks = HomePresentation.highlights(listOf(item("same", "3"), item("best", "9")),
             listOf(item("same", "8")))

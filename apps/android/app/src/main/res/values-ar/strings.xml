@@ -18,6 +18,8 @@
     <string name="home_showcase_next">التالي</string>
     <string name="home_showcase_position">%1$d / %2$d</string>
     <string name="home_showcase_cached">مختارات من التصنيفات التي فتحتها، مرتبة حسب التقييم المتاح.</string>
+    <string name="home_showcase_rating">تقييم المزوّد: %1$s / %2$s</string>
+    <string name="home_showcase_year">سنة الإنتاج: %1$s</string>
     <string name="home_continue_title">أكمل المشاهدة</string>
     <string name="playlist_title">اشتراك IPTV · Playlist</string>
     <string name="playlist_boundary">اشتراك مزوّد المحتوى منفصل عن ترخيص تطبيق TYFINO.</string>

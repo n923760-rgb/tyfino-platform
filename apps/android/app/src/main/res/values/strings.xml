@@ -18,6 +18,8 @@
     <string name="home_showcase_next">Next</string>
     <string name="home_showcase_position">%1$d / %2$d</string>
     <string name="home_showcase_cached">Picks from your opened categories, ranked by available ratings.</string>
+    <string name="home_showcase_rating">Provider rating: %1$s / %2$s</string>
+    <string name="home_showcase_year">Year: %1$s</string>
     <string name="home_continue_title">Continue watching</string>
     <string name="playlist_title">IPTV subscription · Playlist</string>
     <string name="playlist_boundary">Your provider subscription is separate from your TYFINO app license.</string>
