@@ -96,6 +96,12 @@ Owner explicitly authorized #180 merge and continued app improvements. #180 is s
 
 Current bounded UI enhancement: optional localized provider-rating and release-year badges for the selected Home showcase item, using existing cached metadata only. Invalid fields are omitted independently; wrapping badges add no input targets, network calls or inferred values. [Report](REPORTS/HOME_SHOWCASE_METADATA_2026-10-02.md). Local Android provisioning remains BLOCKED; exact-head build/managed-device proof belongs to this new isolated PR. Protected future merge/release/signing/deployment and physical/provider/performance qualification remain separate.
 
+### 2026-10-03 playlist presentation continuation
+
+Owner confirmed #181 merge and continued work. #181 is squash-merged at official `main@8c1918a7d567a8be4d75ee12796d519e3a21370d`, tree `04baeaea143a92ccbda3434c5d153f2b93858dfc`, identical to qualified head `e1b0f89a76c12070becd45513ea7ce836a15fb3b`. [PR Validate37077618687](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37077618687) passed all seven jobs, 82 cases per managed device, zero failures/skips and exact configured APK API33 install/launch. #180 official-main Validate37076738964 also passed all seven jobs/80 cases per device. #181 official-main [Validate37092878214](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37092878214) is tracked separately on #181.
+
+Current bounded enhancement makes provider-reported playlist status and expiry prominent tonal facts and uses the active resource locale for dates/connection counts. Missing fields remain unknown; no inferred license, expiry/countdown, provider access or ownership change. [Report](REPORTS/PLAYLIST_SUMMARY_PRESENTATION_2026-10-03.md). All 82 previous cases retained, two new compact-Arabic/state-replacement scenarios (84 expected). Exact-head qualification belongs to its PR; local native provisioning remains BLOCKED. Future protected actions and physical/provider/accessibility/performance acceptance remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -217,8 +223,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify cached showcase rating/year presentation from integrated `main@75efab30b0fff61c3fce931715226a5afd6346f6`, review its bounded diff and exact-source CI. A future PR merge remains an exact owner decision.
-Required: paired Arabic/English metadata labels, pure valid/invalid/missing-value tests, two new selection/omission cases (82 managed-device cases expected), all existing 80 scenarios retained including compact Arabic/large-font metadata/action reachability and directional input; seven jobs, package checks and exact-artifact API33 install/launch. No provider request, persistence, licensing, dependencies, workflows, identity or release-policy change.
+Task: qualify playlist status/expiry presentation from integrated `main@8c1918a7d567a8be4d75ee12796d519e3a21370d`, review its bounded diff and exact-source CI. A future PR merge remains an exact owner decision.
+Required: paired Arabic/English connection placeholders, resource-locale date/count formatting, compact Arabic/font1.6 facts/refresh reachability and state-replacement cases (84 managed-device cases expected), all existing 82 scenarios retained; seven jobs, package checks and exact-artifact API33 install/launch. No provider request, persistence, licensing, dependencies, workflows, identity or release-policy change.
 Stop: conflicting source, secrets, required failures, unauthorized production/signing/identity changes or unproved device/release claims.
 Following gate: owner interface trial and physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance qualification; owner-controlled commercial signing and operations evidence before sale.
 
