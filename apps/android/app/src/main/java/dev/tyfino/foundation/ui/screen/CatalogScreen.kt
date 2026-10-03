@@ -320,7 +320,7 @@ internal fun CatalogScreen(
         if (searchActive) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 when (val result = searchResult) {
-                    null -> CatalogLoadingState()
+                    null -> CatalogStatusPane { CatalogLoadingState() }
                     is CatalogSearchResult.Ready -> {
                         val visible = when {
                             favoritesOnly -> result.records.filter { it.providerId in favoriteIds }
@@ -328,38 +328,37 @@ internal fun CatalogScreen(
                             else -> result.records
                         }
                         if (visible.isEmpty()) {
-                            EmptyState(R.string.catalog_search_empty)
+                            CatalogEmptyState(R.string.catalog_search_empty)
                         } else {
-                            ItemGrid(visible, section, onPlay, favoriteIds,
-                                if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
-                                if (section == CatalogSection.Live || favoritesOnly || historyOnly) null else sortOrder)
-                            if (result.limited) {
-                                Text(
-                                    stringResource(R.string.catalog_search_limit),
-                                    modifier = Modifier.align(Alignment.TopCenter),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
+                            CatalogSearchGrid(
+                                records = visible,
+                                section = section,
+                                onPlay = onPlay,
+                                limited = result.limited,
+                                favoriteIds = favoriteIds,
+                                onToggleFavorite = if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
+                                sortOrder = if (section == CatalogSection.Live || favoritesOnly || historyOnly) null else sortOrder,
+                            )
                         }
                     }
-                    CatalogSearchResult.InvalidQuery -> EmptyState(R.string.catalog_search_minimum)
-                    CatalogSearchResult.StaleOwner -> EmptyState(R.string.catalog_error_authentication)
-                    CatalogSearchResult.LocalStorage -> EmptyState(R.string.catalog_error_storage)
+                    CatalogSearchResult.InvalidQuery -> CatalogEmptyState(R.string.catalog_search_minimum)
+                    CatalogSearchResult.StaleOwner -> CatalogEmptyState(R.string.catalog_error_authentication)
+                    CatalogSearchResult.LocalStorage -> CatalogEmptyState(R.string.catalog_error_storage)
                 }
             }
         } else if (historyOnly) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 if (section == CatalogSection.Series) {
-                    if (seriesHistory.isEmpty()) EmptyState(R.string.catalog_history_empty)
+                    if (seriesHistory.isEmpty()) CatalogEmptyState(R.string.catalog_history_empty)
                     else SeriesHistoryGrid(seriesHistory, onPlayHistoryEpisode)
-                } else if (recentItems.isEmpty()) EmptyState(R.string.catalog_history_empty)
+                } else if (recentItems.isEmpty()) CatalogEmptyState(R.string.catalog_history_empty)
                 else ItemGrid(recentItems, section, onPlay, favoriteIds,
                     if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null)
             }
         } else if (favoritesOnly) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                if (favoritesState == FavoritesListResult.Failure) EmptyState(R.string.catalog_favorite_error)
-                else if (favoriteItems.isEmpty()) EmptyState(R.string.catalog_favorites_empty)
+                if (favoritesState == FavoritesListResult.Failure) CatalogEmptyState(R.string.catalog_favorite_error)
+                else if (favoriteItems.isEmpty()) CatalogEmptyState(R.string.catalog_favorites_empty)
                 else ItemGrid(favoriteItems, section, onPlay, favoriteIds, toggleFavorite)
             }
         } else {
@@ -369,74 +368,152 @@ internal fun CatalogScreen(
         if (seriesContinueWatching.isNotEmpty()) {
             SeriesContinueWatchingStrip(seriesContinueWatching, onResumeEpisode)
         }
-        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+        CatalogBrowsePane(
+            categories = categories,
+            selectedCategoryId = selectedCategoryId,
+            selectedCategoryName = selectedCategoryName,
+            items = catalogItems,
+            section = section,
+            onSelect = { category ->
+                selectedCategoryId = category.providerId
+                selectedCategoryName = category.name
+            },
+            onRefreshCategories = {
+                scope.launch { repository.categories(section, forceRefresh = true) { categories = it } }
+            },
+            onRefreshItems = {
+                val categoryId = selectedCategoryId
+                if (categoryId != null) {
+                    scope.launch { repository.items(section, categoryId, forceRefresh = true) { catalogItems = it } }
+                }
+            },
+            onPlay = onPlay,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            favoriteIds = favoriteIds,
+            onToggleFavorite = if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
+            sortOrder = if (section == CatalogSection.Live) null else sortOrder,
+        )
+        }
+    }
+}
+
+/** Pure rendering of the current category/item snapshots; requests remain owned by CatalogScreen. */
+@Composable
+internal fun CatalogBrowsePane(
+    categories: CatalogState<CatalogCategory>,
+    selectedCategoryId: String?,
+    selectedCategoryName: String?,
+    items: CatalogState<CatalogItem>,
+    section: CatalogSection,
+    onSelect: (CatalogCategory) -> Unit,
+    onRefreshCategories: () -> Unit,
+    onRefreshItems: () -> Unit,
+    onPlay: (CatalogItem) -> Unit,
+    modifier: Modifier = Modifier,
+    favoriteIds: Set<String> = emptySet(),
+    onToggleFavorite: ((CatalogItem) -> Unit)? = null,
+    sortOrder: CatalogSort? = null,
+) {
+    val hasCategories = when (categories) {
+        is CatalogState.Content -> categories.records.isNotEmpty()
+        is CatalogState.StaleContent -> categories.records.isNotEmpty()
+        else -> false
+    }
+    BoxWithConstraints(modifier.fillMaxSize().testTag("catalog-browse-pane")) {
+        // The selection hint is useful only when there is actually a category to select.
+        if (selectedCategoryId == null && !hasCategories) {
+            when (categories) {
+                CatalogState.Empty, CatalogState.Loading -> CatalogStatusPane { CatalogLoadingState() }
+                is CatalogState.Error -> CatalogErrorState(categories.failure, onRefreshCategories)
+                is CatalogState.EmptyContent -> if (categories.isRefreshing) {
+                    CatalogStatusPane { CatalogLoadingState() }
+                } else {
+                    CatalogEmptyState(R.string.catalog_no_categories, onRetry = onRefreshCategories)
+                }
+                is CatalogState.Content -> if (categories.isRefreshing) {
+                    CatalogStatusPane { CatalogLoadingState() }
+                } else {
+                    CatalogEmptyState(R.string.catalog_no_categories, onRetry = onRefreshCategories)
+                }
+                is CatalogState.StaleContent -> CatalogErrorState(categories.failure, onRefreshCategories)
+            }
+        } else {
             val sidebar = maxWidth >= CATEGORY_SIDEBAR_MIN_WIDTH
-            Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (sidebar) CategoryStrip(
                     state = categories,
                     selectedCategoryId = selectedCategoryId,
-                    onSelect = { category ->
-                        selectedCategoryId = category.providerId
-                        selectedCategoryName = category.name
-                    },
-                    onRetry = { scope.launch { repository.categories(section, forceRefresh = true) { categories = it } } },
+                    onSelect = onSelect,
+                    onRetry = onRefreshCategories,
                     modifier = Modifier.width(200.dp).fillMaxHeight(),
                     vertical = true,
                 )
-                Column(modifier = Modifier.weight(1f)) {
+                Column(Modifier.weight(1f)) {
                     if (!sidebar) CategoryStrip(
                         state = categories,
                         selectedCategoryId = selectedCategoryId,
-                        onSelect = { category ->
-                            selectedCategoryId = category.providerId
-                            selectedCategoryName = category.name
-                        },
-                        onRetry = { scope.launch { repository.categories(section, forceRefresh = true) { categories = it } } },
+                        onSelect = onSelect,
+                        onRetry = onRefreshCategories,
                     )
                     selectedCategoryName?.let { name ->
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = name,
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.weight(1f),
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                            Text(name, style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
                             FocusIconButton(
                                 icon = R.drawable.ic_refresh,
                                 description = stringResource(R.string.catalog_refresh_items),
-                                onClick = {
-                                    val categoryId = selectedCategoryId ?: return@FocusIconButton
-                                    scope.launch {
-                                        repository.items(section, categoryId, forceRefresh = true) { catalogItems = it }
-                                    }
-                                },
+                                onClick = onRefreshItems,
+                                modifier = Modifier.testTag("catalog-refresh-content"),
                             )
                         }
                     }
-                    ItemContent(
-                        state = catalogItems,
+                    CatalogItemContent(
+                        state = items,
                         section = section,
                         hasSelection = selectedCategoryId != null,
                         onPlay = onPlay,
-                        onRetry = {
-                            val categoryId = selectedCategoryId ?: return@ItemContent
-                            scope.launch { repository.items(section, categoryId, forceRefresh = true) { catalogItems = it } }
-                        },
-                        modifier = Modifier.weight(1f),
+                        onRetry = onRefreshItems,
+                        modifier = Modifier.weight(1f).testTag("catalog-item-pane"),
                         favoriteIds = favoriteIds,
-                        onToggleFavorite = if (favoritesRepository != null && favoritesState is FavoritesListResult.Ready) toggleFavorite else null,
-                        sortOrder = if (section == CatalogSection.Live) null else sortOrder,
+                        onToggleFavorite = onToggleFavorite,
+                        sortOrder = sortOrder,
                     )
                 }
             }
         }
-        }
     }
+}
+
+@Composable
+internal fun CatalogSearchGrid(
+    records: List<CatalogItem>,
+    section: CatalogSection,
+    onPlay: (CatalogItem) -> Unit,
+    limited: Boolean,
+    modifier: Modifier = Modifier,
+    favoriteIds: Set<String> = emptySet(),
+    onToggleFavorite: ((CatalogItem) -> Unit)? = null,
+    sortOrder: CatalogSort? = null,
+) {
+    Column(modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (limited) Text(
+            stringResource(R.string.catalog_search_limit),
+            modifier = Modifier.fillMaxWidth().testTag("catalog-search-limit"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ItemGrid(records, section, onPlay, favoriteIds, onToggleFavorite, sortOrder)
+    }
+}
+
+private fun CatalogSection.guidanceIcon(): Int = when (this) {
+    CatalogSection.Live -> R.drawable.ic_nav_live
+    CatalogSection.Movies -> R.drawable.ic_nav_movies
+    CatalogSection.Series -> R.drawable.ic_nav_series
 }
 
 @Composable
@@ -589,8 +666,13 @@ private fun CategoryStrip(
         )
         when (state) {
             CatalogState.Empty, CatalogState.Loading -> CatalogLoadingState()
-            is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
-            is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_categories)
+            is CatalogState.Error -> CatalogErrorPanel(state.failure, onRetry)
+            is CatalogState.EmptyContent -> {
+                Text(stringResource(R.string.catalog_no_categories),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (state.isRefreshing) CatalogRefreshingNotice()
+                else FocusVisibleButton(stringResource(R.string.retry), onRetry)
+            }
             is CatalogState.Content -> {
                 if (state.isRefreshing) CatalogRefreshingNotice()
                 Categories(state.records, selectedCategoryId, onSelect,
@@ -651,32 +733,38 @@ private fun Categories(
 private val CATEGORY_SIDEBAR_MIN_WIDTH = 800.dp
 
 @Composable
-private fun ItemContent(
+internal fun CatalogItemContent(
     state: CatalogState<CatalogItem>,
     section: CatalogSection,
     hasSelection: Boolean,
     onPlay: (CatalogItem) -> Unit,
     onRetry: () -> Unit,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     favoriteIds: Set<String> = emptySet(),
     onToggleFavorite: ((CatalogItem) -> Unit)? = null,
     sortOrder: CatalogSort? = null,
 ) {
-    Box(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         when (state) {
-            CatalogState.Empty -> EmptyState(
-                if (hasSelection) R.string.catalog_loading else R.string.catalog_choose_category,
-            )
-            CatalogState.Loading -> CatalogLoadingState()
+            CatalogState.Empty -> if (hasSelection) {
+                CatalogStatusPane { CatalogLoadingState() }
+            } else {
+                CatalogEmptyState(R.string.catalog_choose_category, icon = section.guidanceIcon())
+            }
+            CatalogState.Loading -> CatalogStatusPane { CatalogLoadingState() }
             is CatalogState.Error -> CatalogErrorState(state.failure, onRetry)
-            is CatalogState.EmptyContent -> EmptyState(R.string.catalog_no_items)
+            is CatalogState.EmptyContent -> if (state.isRefreshing) {
+                CatalogStatusPane { CatalogLoadingState() }
+            } else {
+                CatalogEmptyState(R.string.catalog_no_items, onRetry = onRetry)
+            }
             is CatalogState.Content -> {
+                if (state.isRefreshing) CatalogRefreshingNotice()
                 ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite, sortOrder)
-                if (state.isRefreshing) CatalogRefreshingNotice(Modifier.align(Alignment.TopCenter))
             }
             is CatalogState.StaleContent -> {
+                CatalogStaleNotice(state.failure)
                 ItemGrid(state.records, section, onPlay, favoriteIds, onToggleFavorite, sortOrder)
-                CatalogStaleNotice(state.failure, Modifier.align(Alignment.TopCenter))
             }
         }
     }
@@ -701,7 +789,7 @@ private fun ItemGrid(
     }
     val sorted = visibleRecords
     if (sorted == null) {
-        CatalogLoadingState()
+        CatalogStatusPane { CatalogLoadingState() }
         return
     }
     CatalogGrid {
@@ -940,18 +1028,12 @@ internal fun CatalogLoadingState() {
 }
 
 @Composable
-private fun EmptyState(@StringRes message: Int) {
-    ProductPanel(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(message),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+internal fun CatalogErrorState(failure: CatalogFailure, onRetry: () -> Unit) {
+    CatalogStatusPane { CatalogErrorPanel(failure, onRetry) }
 }
 
 @Composable
-internal fun CatalogErrorState(failure: CatalogFailure, onRetry: () -> Unit) {
+private fun CatalogErrorPanel(failure: CatalogFailure, onRetry: () -> Unit) {
     ProductPanel(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(failure.messageResource()),
@@ -960,7 +1042,11 @@ internal fun CatalogErrorState(failure: CatalogFailure, onRetry: () -> Unit) {
                 .semantics { liveRegion = LiveRegionMode.Assertive }
                 .testTag("catalog-error"),
         )
-        FocusVisibleButton(label = stringResource(R.string.retry), onClick = onRetry)
+        FocusVisibleButton(
+            label = stringResource(R.string.retry),
+            onClick = onRetry,
+            modifier = Modifier.fillMaxWidth().testTag("catalog-status-retry"),
+        )
     }
 }
 
