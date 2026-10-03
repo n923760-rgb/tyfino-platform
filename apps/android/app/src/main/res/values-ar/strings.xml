@@ -32,7 +32,7 @@
     <string name="playlist_not_provided">غير متاح من المزوّد</string>
     <string name="playlist_trial">خطة المزوّد: تجريبية</string>
     <string name="playlist_paid">خطة المزوّد: غير تجريبية</string>
-    <string name="playlist_connections">الاتصالات المستخدمة: %1$s / %2$d</string>
+    <string name="playlist_connections">الاتصالات المستخدمة: %1$s / %2$s</string>
     <string name="playlist_provider_report">المعلومات كما أرسلها المزوّد عند آخر فحص. التوقيت حسب المنطقة الزمنية للجهاز.</string>
     <string name="playlist_loading">جارٍ التحقق من معلومات اشتراك المزوّد…</string>
     <string name="playlist_unavailable">معلومات الاشتراك غير متاحة. تحقق من الاتصال ثم أعد التحديث.</string>

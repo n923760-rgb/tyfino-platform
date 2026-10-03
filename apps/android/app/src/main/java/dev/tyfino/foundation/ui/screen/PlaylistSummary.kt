@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -14,7 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -30,8 +31,8 @@ import dev.tyfino.foundation.xtream.PlaylistState
 import dev.tyfino.foundation.xtream.PlaylistStatus
 import dev.tyfino.foundation.xtream.XtreamFailure
 import java.text.DateFormat
+import java.text.NumberFormat
 import java.util.Date
-import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -66,7 +67,8 @@ internal fun PlaylistSummary(repository: PlaylistRepository) {
 
 @Composable
 internal fun PlaylistSummaryPanel(state: PlaylistState, onRefresh: () -> Unit) {
-    val locale = Locale.forLanguageTag(LocalLocale.current.toLanguageTag())
+    val locale = LocalResources.current.configuration.locales[0]
+    val numbers = remember(locale) { NumberFormat.getIntegerInstance(locale).apply { isGroupingUsed = false } }
     ProductPanel(Modifier.fillMaxWidth().testTag("playlist-summary")) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             ProductSectionHeading(stringResource(R.string.playlist_title))
@@ -88,21 +90,32 @@ internal fun PlaylistSummaryPanel(state: PlaylistState, onRefresh: () -> Unit) {
                     Text(stringResource(R.string.playlist_connection), style = MaterialTheme.typography.labelLarge)
                     Text(state.providerOrigin, modifier = Modifier.testTag("playlist-provider"))
                     Text(stringResource(R.string.playlist_username, state.username), modifier = Modifier.testTag("playlist-username"))
-                    Text(stringResource(when (state.info.status) {
-                        PlaylistStatus.Active -> R.string.playlist_active
-                        PlaylistStatus.Expired -> R.string.playlist_expired
-                        PlaylistStatus.Disabled -> R.string.playlist_disabled
-                    }), modifier = Modifier.testTag("playlist-status"))
+                    val active = state.info.status == PlaylistStatus.Active
+                    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium,
+                        color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
+                        contentColor = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer) {
+                        Text(stringResource(when (state.info.status) {
+                            PlaylistStatus.Active -> R.string.playlist_active
+                            PlaylistStatus.Expired -> R.string.playlist_expired
+                            PlaylistStatus.Disabled -> R.string.playlist_disabled
+                        }), style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(12.dp).testTag("playlist-status"))
+                    }
                     val expiry = remember(state.info.expiresAtMillis, locale) {
                         state.info.expiresAtMillis?.let {
                             DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale).format(Date(it))
                         }
                     } ?: stringResource(R.string.playlist_not_provided)
-                    Text(stringResource(R.string.playlist_expiry, expiry), modifier = Modifier.testTag("playlist-expiry"))
+                    Surface(Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+                        Text(stringResource(R.string.playlist_expiry, expiry), style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(12.dp).testTag("playlist-expiry"))
+                    }
                     state.info.trial?.let { Text(stringResource(if (it) R.string.playlist_trial else R.string.playlist_paid)) }
                     state.info.maxConnections?.let { maximum ->
                         Text(stringResource(R.string.playlist_connections,
-                            state.info.activeConnections?.toString() ?: stringResource(R.string.playlist_not_provided), maximum))
+                            state.info.activeConnections?.let { numbers.format(it) } ?: stringResource(R.string.playlist_not_provided),
+                            numbers.format(maximum)), modifier = Modifier.testTag("playlist-connections"))
                     }
                     Text(stringResource(R.string.playlist_provider_report), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)

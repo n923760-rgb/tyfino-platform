@@ -32,7 +32,7 @@
     <string name="playlist_not_provided">Not provided</string>
     <string name="playlist_trial">Provider plan: Trial</string>
     <string name="playlist_paid">Provider plan: Non-trial</string>
-    <string name="playlist_connections">Connections in use: %1$s / %2$d</string>
+    <string name="playlist_connections">Connections in use: %1$s / %2$s</string>
     <string name="playlist_provider_report">Reported by your provider at the last check. Times use this device’s time zone.</string>
     <string name="playlist_loading">Checking your provider subscription…</string>
     <string name="playlist_unavailable">Subscription information is unavailable. Check your connection and refresh.</string>
