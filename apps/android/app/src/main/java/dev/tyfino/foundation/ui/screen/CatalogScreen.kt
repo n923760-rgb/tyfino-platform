@@ -24,6 +24,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import dev.tyfino.foundation.ui.components.productTextFieldColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -290,6 +293,9 @@ internal fun CatalogScreen(
                 }
             },
             label = { Text(stringResource(R.string.catalog_search_label)) },
+            leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
+            shape = MaterialTheme.shapes.medium,
+            colors = productTextFieldColors(),
             singleLine = true,
             modifier = Modifier.fillMaxWidth().testTag("catalog-search"),
         )
@@ -916,7 +922,7 @@ internal fun CatalogTile(
             containerColor = if (selected) {
                 MaterialTheme.colorScheme.primaryContainer
             } else {
-                MaterialTheme.colorScheme.surfaceContainer
+                MaterialTheme.colorScheme.surfaceContainerLow
             },
         ),
     ) {
@@ -929,7 +935,7 @@ internal fun CatalogTile(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(artworkAspectRatio)
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                         .background(Brush.linearGradient(listOf(tint, MaterialTheme.colorScheme.surfaceVariant)))
                         .testTag("catalog-artwork-placeholder"),
                     contentAlignment = Alignment.Center,
@@ -990,8 +996,8 @@ internal fun CatalogFilterButton(
             if (focused || selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
         ),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            containerColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
         ),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
     ) { Text(label, style = MaterialTheme.typography.bodyMedium, maxLines = 1) }

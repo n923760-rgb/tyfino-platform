@@ -45,6 +45,7 @@ import dev.tyfino.foundation.licensing.normalizeActivationCode
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.ProductHeader
 import dev.tyfino.foundation.ui.components.ProductPanel
+import dev.tyfino.foundation.ui.components.productTextFieldColors
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 
 @Composable
@@ -122,6 +123,8 @@ private fun ActivationContent(onBack: () -> Unit, onActivate: (String) -> Unit) 
     Text(stringResource(R.string.product_activation_help), color = MaterialTheme.colorScheme.onSurfaceVariant)
     CompositionLocalProvider(LocalLayoutDirection provides Ltr) {
         OutlinedTextField(
+            shape = MaterialTheme.shapes.medium,
+            colors = productTextFieldColors(),
             value = code,
             onValueChange = { value -> code = value.take(64); invalid = false },
             modifier = Modifier.fillMaxWidth().testTag("activation-code"),

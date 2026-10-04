@@ -4,6 +4,12 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -172,6 +178,7 @@ internal fun SeriesDetailsContent(
                     details?.summary?.rating ?: selection.item.rating,
                 ).filter(String::isNotBlank).joinToString(" • "),
                 artwork = selection.item.artworkUrl,
+                icon = R.drawable.ic_nav_series,
                 modifier = Modifier.widthIn(max = 1040.dp),
             )
         }
@@ -314,12 +321,25 @@ private fun EpisodeRow(episode: SeriesEpisode, hasPublishedGeneration: Boolean, 
             if (focused) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
         ),
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(label, style = MaterialTheme.typography.titleMedium, maxLines = 2)
-            if (numberLabel != null && numberLabel != label) {
-                Text(numberLabel, style = MaterialTheme.typography.bodySmall)
+        Row(Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.size(36.dp).background(
+                if (playable) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
+                contentAlignment = Alignment.Center) {
+                Icon(painterResource(R.drawable.ic_play), contentDescription = null,
+                    tint = if (playable) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp))
             }
-            Text(reason, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(label, style = MaterialTheme.typography.titleMedium, maxLines = 2)
+                if (numberLabel != null && numberLabel != label) {
+                    Text(numberLabel, style = MaterialTheme.typography.bodySmall)
+                }
+                Text(reason, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }

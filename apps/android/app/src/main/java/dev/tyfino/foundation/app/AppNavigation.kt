@@ -2,6 +2,7 @@ package dev.tyfino.foundation.app
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,8 +59,11 @@ internal fun AppBottomBar(
     onDestinationSelected: (AppDestination) -> Unit,
 ) {
     NavigationBar(
-        modifier = Modifier.focusGroup().testTag("app-bottom-menu"),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.focusGroup().testTag("app-bottom-menu")
+            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant,
+                RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         tonalElevation = 0.dp,
     ) {
         AppDestination.entries.forEach { destination ->
@@ -102,7 +106,8 @@ internal fun AppNavigationRail(
     Surface(
         modifier = Modifier.width(if (expanded) 232.dp else 96.dp).fillMaxHeight()
             .testTag(if (expanded) "app-expanded-menu" else "app-compact-menu"),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(
             modifier = Modifier.windowInsetsPadding(
@@ -173,7 +178,7 @@ private fun SideNavigationItem(
     expanded: Boolean,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val contentColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
     Surface(
         modifier = Modifier.fillMaxWidth().heightIn(min = if (expanded) 56.dp else 76.dp)
             .testTag("destination-${destination.route}")

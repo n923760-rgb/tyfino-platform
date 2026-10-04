@@ -1,5 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
+import androidx.compose.foundation.BorderStroke
+import dev.tyfino.foundation.ui.components.ProductHeader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,7 +60,9 @@ internal fun XtreamAccountSwitcher(
                 .heightIn(max = 720.dp)
                 .testTag("xtream-account-switcher"),
             shape = MaterialTheme.shapes.large,
-            tonalElevation = 8.dp,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            tonalElevation = 0.dp,
         ) {
             Column(
                 modifier = Modifier
@@ -66,14 +70,9 @@ internal fun XtreamAccountSwitcher(
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.xtream_accounts_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-                Text(
-                    text = stringResource(R.string.xtream_accounts_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                ProductHeader(
+                    title = stringResource(R.string.xtream_accounts_title),
+                    subtitle = stringResource(R.string.xtream_accounts_description),
                 )
                 if (snapshot == null) {
                     if (!storageError) {

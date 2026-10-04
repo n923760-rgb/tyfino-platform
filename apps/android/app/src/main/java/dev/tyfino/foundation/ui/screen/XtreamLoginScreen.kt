@@ -44,6 +44,7 @@ import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusIconButton
 import dev.tyfino.foundation.ui.components.ProductHeader
 import dev.tyfino.foundation.ui.components.ProductPanel
+import dev.tyfino.foundation.ui.components.productTextFieldColors
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.xtream.XtreamFailure
 import dev.tyfino.foundation.xtream.XtreamInput
@@ -127,6 +128,8 @@ internal fun XtreamLoginScreen(
                         )
                         run {
                             OutlinedTextField(
+                                shape = MaterialTheme.shapes.medium,
+                                colors = productTextFieldColors(),
                                 value = host,
                                 onValueChange = {
                                     host = it
@@ -143,6 +146,8 @@ internal fun XtreamLoginScreen(
                                     .testTag("xtream-host"),
                             )
                             OutlinedTextField(
+                                shape = MaterialTheme.shapes.medium,
+                                colors = productTextFieldColors(),
                                 value = username,
                                 onValueChange = {
                                     username = it
@@ -158,6 +163,8 @@ internal fun XtreamLoginScreen(
                                     .testTag("xtream-username"),
                             )
                             OutlinedTextField(
+                                shape = MaterialTheme.shapes.medium,
+                                colors = productTextFieldColors(),
                                 value = password,
                                 onValueChange = {
                                     password = it

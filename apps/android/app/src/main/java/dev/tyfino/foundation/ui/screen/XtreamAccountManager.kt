@@ -1,5 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
+import androidx.compose.foundation.BorderStroke
+import dev.tyfino.foundation.ui.components.ProductHeader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,16 +54,17 @@ internal fun XtreamAccountManager(
         Surface(
             modifier = Modifier.fillMaxWidth().heightIn(max = 720.dp).testTag("xtream-account-manager"),
             shape = MaterialTheme.shapes.large,
-            tonalElevation = 8.dp,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            tonalElevation = 0.dp,
         ) {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()).padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(stringResource(R.string.xtream_manage_accounts), style = MaterialTheme.typography.headlineSmall)
-                Text(
-                    stringResource(R.string.xtream_manage_accounts_description),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                ProductHeader(
+                    title = stringResource(R.string.xtream_manage_accounts),
+                    subtitle = stringResource(R.string.xtream_manage_accounts_description),
                 )
                 if (snapshot == null && !storageError) {
                     CircularProgressIndicator(
