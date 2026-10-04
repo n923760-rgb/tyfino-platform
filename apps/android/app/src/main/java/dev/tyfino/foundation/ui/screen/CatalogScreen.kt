@@ -594,10 +594,8 @@ internal fun ContinueWatchingStrip(
                     } ?: stringResource(R.string.continue_watching_resume),
                     selected = false,
                     onClick = { onPlay(record.catalogItem) },
-                    modifier = Modifier.widthIn(min = 136.dp, max = 180.dp),
-                    showArtwork = true,
-                    artworkUrl = record.catalogItem.artworkUrl,
-                    artworkAspectRatio = POSTER_ASPECT_RATIO,
+                    modifier = Modifier.width(240.dp),
+                    compact = true,
                 )
             }
         }
@@ -625,10 +623,8 @@ private fun SeriesContinueWatchingStrip(
                         ?: stringResource(R.string.continue_watching_resume),
                     selected = false,
                     onClick = { onPlay(item) },
-                    modifier = Modifier.widthIn(min = 136.dp, max = 180.dp),
-                    showArtwork = true,
-                    artworkUrl = item.seriesArtworkUrl,
-                    artworkAspectRatio = POSTER_ASPECT_RATIO,
+                    modifier = Modifier.width(240.dp),
+                    compact = true,
                 )
             }
         }

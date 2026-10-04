@@ -37,3 +37,13 @@ Android presentation only, one decorative vector, paired resource label, focused
 No device/account removal, data wipe or license reset. Temporary development signing can reject an update over an earlier differently signed test build; preserve account data before any owner-chosen uninstall. Production signing/release/operations and full physical qualification remain separate gates before sale.
 
 Smallest next action: qualify the exact implementation and official-main artifact, then owner visual/input trial on LG Velvet with saved account credentials. This source checkpoint contains no generated runtime screenshot or commercial readiness claim.
+
+## First exact-source qualification and causal correction
+
+Initial head 80a94712a17f745c35b4cb6fc111c7906dc9e947, [Validate37226945567](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37226945567): Android debug/optimized release/unit/lint and the other four service/governance jobs PASS; API27 phone job 111509850894 and API35 tablet job 111509850866 each ran 96 cases, failed 3, skipped 0. The failed cases were the three new cases; all 93 previous cases passed. The exact APK installer check was SKIPPED after the phone native failure.
+
+1. Clear-button Down did not focus the result tile. The trailing button sits within an editable field whose keyboard/geometry behavior can retain focus. Only vertical key-downs on the focused clear action now explicitly traverse logical next/previous focus before bubbling; text editing, horizontal keys, Enter, touch and other controls retain their existing behavior. The same directional-result assertion remains.
+2. Supporting-text assertions used the merged semantics tree; logs explicitly identified the existing tagged message in the unmerged tree. The test now reads that existing child tree, retaining exact Arabic text/code-point and callback assertions. No production label is weakened or removed.
+3. Poster-sized resume cards did not display in the bounded controls region. Movies and Series catalog-only rails now use existing compact 240dp text cards with current title/progress, stable keys and exact resume callbacks. Home cinematic artwork and main catalog artwork stay unchanged. The same full-card visibility/touch/resize assertion remains; no scroll/oracle relaxation.
+
+No blind rerun or reduced test coverage. Corrected exact source must separately qualify; the initial native FAIL remains bound to its original SHA. Physical/OEM IME and production gates remain separate.

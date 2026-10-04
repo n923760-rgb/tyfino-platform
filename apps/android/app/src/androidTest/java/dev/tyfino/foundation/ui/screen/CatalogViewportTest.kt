@@ -140,10 +140,10 @@ class CatalogViewportTest {
         } }
         compose.onNodeWithTag("catalog-clear-search").assertDoesNotExist()
         compose.onNodeWithTag("catalog-search").performTextInput("🎬")
-        compose.onNodeWithTag("catalog-search-guidance")
+        compose.onNodeWithTag("catalog-search-guidance", useUnmergedTree = true)
             .assertTextEquals(arabicResources.getString(R.string.catalog_search_minimum))
         compose.onNodeWithTag("catalog-search").performTextInput("ا")
-        compose.onNodeWithTag("catalog-search-guidance")
+        compose.onNodeWithTag("catalog-search-guidance", useUnmergedTree = true)
             .assertTextEquals(arabicResources.getString(R.string.catalog_search_scope))
         compose.onNodeWithTag("catalog-search").performImeAction()
         compose.runOnIdle { assertEquals(1, hides); assertEquals(listOf("🎬", "🎬ا"), changes) }
@@ -151,9 +151,9 @@ class CatalogViewportTest {
             .assertContentDescriptionEquals(arabicResources.getString(R.string.catalog_clear_search))
             .assertIsDisplayed().performClick()
         compose.onNodeWithTag("catalog-clear-search").assertDoesNotExist()
-        compose.onNodeWithTag("catalog-search-guidance").assertDoesNotExist()
+        compose.onNodeWithTag("catalog-search-guidance", useUnmergedTree = true).assertDoesNotExist()
         compose.runOnIdle { assertEquals(listOf("🎬", "🎬ا", ""), changes); query = "  " }
-        compose.onNodeWithTag("catalog-search-guidance").assertDoesNotExist()
+        compose.onNodeWithTag("catalog-search-guidance", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithTag("catalog-clear-search").performClick()
         compose.runOnIdle { assertEquals("", query); assertEquals(listOf("🎬", "🎬ا", "", ""), changes) }
     }

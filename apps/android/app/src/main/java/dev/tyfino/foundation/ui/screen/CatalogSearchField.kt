@@ -9,6 +9,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -26,6 +33,7 @@ internal fun CatalogSearchField(
     modifier: Modifier = Modifier,
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
+    val focus = LocalFocusManager.current
     val query = value.trim()
     OutlinedTextField(
         value = value,
@@ -38,7 +46,14 @@ internal fun CatalogSearchField(
                     icon = R.drawable.ic_clear_search,
                     description = stringResource(R.string.catalog_clear_search),
                     onClick = { onValueChange("") },
-                    modifier = Modifier.testTag("catalog-clear-search"),
+                    modifier = Modifier.testTag("catalog-clear-search").onPreviewKeyEvent { event ->
+                        // Prevent a vertical key from bubbling into the editable field around this button.
+                        if (event.type != KeyEventType.KeyDown) false else when (event.key) {
+                            Key.DirectionDown -> focus.moveFocus(FocusDirection.Next)
+                            Key.DirectionUp -> focus.moveFocus(FocusDirection.Previous)
+                            else -> false
+                        }
+                    },
                 )
             }
         } else null,
