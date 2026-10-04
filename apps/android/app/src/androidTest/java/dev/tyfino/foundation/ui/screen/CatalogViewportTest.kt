@@ -26,18 +26,18 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performKeyInput
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
@@ -113,7 +113,11 @@ class CatalogViewportTest {
         }
         val description = resume.name + ", " + arabicResources.getString(R.string.continue_watching_progress, 35)
         compose.runOnIdle { section = CatalogSection.Movies }
-        compose.onNodeWithTag("catalog-controls").performScrollToNode(hasContentDescription(description))
+        // Scroll the rail through its vertical parent before targeting its horizontal child card.
+        compose.onNodeWithTag("continue-watching").performScrollTo().assertIsDisplayed()
+        val verticalScroll = compose.onNodeWithTag("catalog-controls").fetchSemanticsNode()
+            .config[SemanticsProperties.VerticalScrollAxisRange]
+        assertTrue("The controls must actually scroll vertically", verticalScroll.value() > 0f)
         compose.onNodeWithContentDescription(description).assertIsDisplayed().performClick()
         compose.runOnIdle {
             assertEquals(listOf(item, item, item, resume), played)

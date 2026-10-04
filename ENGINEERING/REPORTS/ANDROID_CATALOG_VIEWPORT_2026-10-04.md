@@ -47,3 +47,15 @@ Initial head 80a94712a17f745c35b4cb6fc111c7906dc9e947, [Validate37226945567](htt
 3. Poster-sized resume cards did not display in the bounded controls region. Movies and Series catalog-only rails now use existing compact 240dp text cards with current title/progress, stable keys and exact resume callbacks. Home cinematic artwork and main catalog artwork stay unchanged. The same full-card visibility/touch/resize assertion remains; no scroll/oracle relaxation.
 
 No blind rerun or reduced test coverage. Corrected exact source must separately qualify; the initial native FAIL remains bound to its original SHA. Physical/OEM IME and production gates remain separate.
+
+## Nested-scroll test-driver diagnosis
+
+Corrected production head 90e711e8d56b267e3d4aa7215fa7654b42a454be, [Validate37244422005](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37244422005): all five build/service jobs PASS; phone job 111560730782 ran 96 cases, failed 1, skipped 0. The directional and query/IME cases now PASS; only resume visibility remains failed. Tablet job 111560730774 is recorded separately in the PR when complete. Installation after the failed phone suite is SKIPPED.
+
+The generic resume-card scroll action encounters the card's closest scrollable ancestor, the horizontal LazyRow. AndroidX's scrollToNode implementation computes deltas against that closest ancestor and only dispatches axes it supports; it does not advance the outer vertical controls. [Reference implementation](https://github.com/androidx/androidx/blob/androidx-main/compose/ui/ui-test/src/commonMain/kotlin/androidx/compose/ui/test/Actions.kt) is explanatory context, not exact dependency/source qualification.
+
+The test now scrolls the actual tagged resume Column, whose closest scroll ancestor is the vertical controls, then requires positive vertical scroll offset, visible rail/card, ordinary touch activation, exact payload/callback count and resize bounds. This strengthens the scroll evidence; no visibility/callback assertion is removed. Production geometry is unchanged in this correction.
+
+The earlier poster-height diagnosis was an inference, not a proven cause of the test failure. Compact catalog resume controls remain the scoped short-window presentation refinement; this nested-scroll driver issue explains why reducing card height alone did not fix the failed assertion. Also, assertIsDisplayed establishes at least partial visible bounds after clipping, not full-card physical screenshot acceptance; the earlier wording must not be read as stronger evidence.
+
+All 96 cases and all seven exact-source jobs remain required. Earlier native FAILs remain tied to their SHAs; no blind rerun or hidden failure. Local/physical/OEM/provider/accessibility/performance gates remain unchanged.
