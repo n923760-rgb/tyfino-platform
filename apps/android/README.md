@@ -190,3 +190,11 @@ The native app uses shared headers, panels, readable typography and visible focu
 The owner selected paid licensing per device. The activation screen presents existing annual/lifetime codes and the separately chosen seven-day trial. Settings receives only license kind, server-provided expiry and offline state; no session token or installation identifier is passed to its presentation. Application licensing does not include an IPTV subscription. Existing licensing, offline policy, provider ownership, Media3 lifecycle, package identity, minimum API, ABIs and signing policy remain authoritative.
 
 See [commercial experience report](../../ENGINEERING/REPORTS/ANDROID_COMMERCIAL_EXPERIENCE_2026-10-01.md). Exact-source CI and configured owner APK evidence belong to the task PR. A debug owner-test APK is a development artifact, not a signed commercial release. Physical TV/LG Velvet, TalkBack, real-provider/media and performance qualification remain separate.
+
+## Cinematic presentation (2026-10-04)
+
+The owner-approved native design uses navy surfaces and turquoise primary actions with cyan/violet accents. Shared brand headers, tonal panels, fields, menus and artwork frames apply to Home, all three catalog sections/search/favorites/history, details/episodes, account entry/dialogs, activation, Settings and shared player recovery/options.
+
+Home presents its existing owned showcase, section shortcuts and Continue Watching. Shortcut cards share a row only when readable widths fit after font scaling, and become full-width rows otherwise. Resume cards use landscape artwork and existing progress/actions. Decorative symbols add no focus stops, optional/missing artwork never gates navigation, and current account/lifecycle/request owners remain unchanged. Search retains its existing per-section downloaded-cache scope; no new global library, provider scan or invented popular-content feed is added.
+
+The conceptual board illustrates the design direction; exact screenshots and physical acceptance remain separate from source/managed-device proof. Source scope, targeted regressions and qualification boundaries: [cinematic design report](../../ENGINEERING/REPORTS/ANDROID_CINEMATIC_DESIGN_2026-10-04.md).

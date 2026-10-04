@@ -19,6 +19,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items as rowItems
@@ -199,6 +203,7 @@ internal fun HomeScreen(
         val expanded = maxWidth >= 840.dp
         val posterWidth = if (expanded) 180.dp else 128.dp
         val channelWidth = if (expanded) 236.dp else 176.dp
+        val resumeWidth = if (expanded) 300.dp else 240.dp
         LazyColumn(
             modifier = Modifier
                 .width(minOf(maxWidth, 1280.dp))
@@ -259,9 +264,12 @@ internal fun HomeScreen(
                     Modifier.focusRequester(initialFocus),
                 )
             }
+            item(contentType = "browse") {
+                HomeBrowseSections(onOpenCatalog = onOpenCatalog)
+            }
             if (history.resumeMovies.isNotEmpty() || history.seriesResume.isNotEmpty()) item(contentType = "continue") {
                 HomeContinueWatching(history.resumeMovies, history.seriesResume,
-                    onResumeMovie, onResumeSeries, posterWidth)
+                    onResumeMovie, onResumeSeries, resumeWidth)
             }
             if (historyLoaded && history.latestMovies.isEmpty() && history.latestSeries.isEmpty() &&
                 history.live.isEmpty() && history.movies.isEmpty() &&
@@ -280,9 +288,6 @@ internal fun HomeScreen(
             if (history.latestSeries.isNotEmpty()) item(contentType = "latest-series") {
                 HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries,
                     "home-latest-series", posterWidth)
-            }
-            item(contentType = "browse") {
-                HomeBrowseSections(expanded = maxWidth >= 600.dp, onOpenCatalog = onOpenCatalog)
             }
             if (history.live.isNotEmpty()) item(contentType = "recent-live") {
                 HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive,
@@ -392,7 +397,7 @@ private fun HomeResumeCard(title: String, artwork: String?, progress: Int?, widt
             supporting = progress?.let { stringResource(R.string.continue_watching_progress, it) }
                 ?: stringResource(R.string.continue_watching_resume),
             modifier = Modifier.fillMaxWidth().testTag(tag), showArtwork = true,
-            artworkUrl = artwork, artworkAspectRatio = 2f / 3f)
+            artworkUrl = artwork, artworkAspectRatio = 16f / 9f)
         progress?.let { LinearProgressIndicator(progress = { it.coerceIn(0, 100) / 100f }, modifier = Modifier.fillMaxWidth()) }
     }
 }
@@ -412,12 +417,18 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
         isGroupingUsed = false
         maximumFractionDigits = 1
     } }
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     BoxWithConstraints(Modifier.fillMaxWidth().testTag("home-featured")) {
+        val spacious = maxWidth >= 600.dp
         Box(
             modifier = Modifier.fillMaxWidth()
-                .heightIn(min = if (maxWidth < 600.dp) 240.dp else 340.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .heightIn(min = if (spacious) 360.dp else 280.dp)
+                .clip(MaterialTheme.shapes.large)
+                .background(Brush.linearGradient(listOf(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    MaterialTheme.colorScheme.secondaryContainer,
+                    MaterialTheme.colorScheme.background,
+                ))),
         ) {
             if (request != null) AsyncImage(
                 model = request,
@@ -425,19 +436,31 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize(),
             )
-            Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(
-                Color.Black.copy(alpha = 0.32f), Color.Black.copy(alpha = 0.94f),
-            ))))
+            val backdrop = MaterialTheme.colorScheme.background
+            val shades = listOf(backdrop.copy(alpha = 0.98f), backdrop.copy(alpha = 0.72f),
+                backdrop.copy(alpha = 0.5f))
+            Box(Modifier.matchParentSize().background(
+                if (spacious) Brush.horizontalGradient(if (rtl) shades.reversed() else shades)
+                else Brush.verticalGradient(shades.reversed()),
+            ))
             Column(
-                modifier = Modifier.align(Alignment.BottomStart).padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.align(Alignment.BottomStart).widthIn(max = 560.dp).padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    stringResource(if (featured is HomeFeatured.NewSeries) R.string.destination_series else R.string.destination_movies),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color.White,
-                )
-                Text(featured.title, style = MaterialTheme.typography.headlineSmall, color = Color.White,
+                Surface(color = Color.Black.copy(alpha = 0.45f), contentColor = Color.White,
+                    shape = RoundedCornerShape(50), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))) {
+                    Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(painterResource(if (featured is HomeFeatured.NewSeries) R.drawable.ic_nav_series
+                            else R.drawable.ic_nav_movies), contentDescription = null,
+                            modifier = Modifier.size(18.dp))
+                        Text(stringResource(if (featured is HomeFeatured.NewSeries) R.string.destination_series
+                            else R.string.destination_movies), style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+                Text(featured.title, style = if (spacious) MaterialTheme.typography.headlineMedium
+                    else MaterialTheme.typography.headlineSmall, color = Color.White,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (metadata.rating != null || metadata.releaseYear != null) FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -496,20 +519,25 @@ private fun HomeRecentStrip(
     }
 }
 
+/** Pure adaptive shortcuts; only explicit touch or directional activation emits a destination. */
 @Composable
-private fun HomeBrowseSections(expanded: Boolean, onOpenCatalog: (CatalogSection) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+internal fun HomeBrowseSections(onOpenCatalog: (CatalogSection) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.testTag("home-browse")) {
         ProductSectionHeading(stringResource(R.string.product_browse_title))
-        if (expanded) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth().focusGroup()) {
-                CatalogSection.entries.forEach { section ->
-                    HomeBrowseCard(section, { onOpenCatalog(section) }, Modifier.weight(1f))
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val readableWidth = 96.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
+            if (maxWidth >= readableWidth * 3f + 24.dp) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth().focusGroup()) {
+                    CatalogSection.entries.forEach { section ->
+                        HomeBrowseCard(section, { onOpenCatalog(section) }, Modifier.weight(1f), stacked = true)
+                    }
                 }
-            }
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
-                CatalogSection.entries.forEach { section ->
-                    HomeBrowseCard(section, { onOpenCatalog(section) }, Modifier.fillMaxWidth())
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.focusGroup()) {
+                    CatalogSection.entries.forEach { section ->
+                        HomeBrowseCard(section, { onOpenCatalog(section) }, Modifier.fillMaxWidth(), stacked = false)
+                    }
                 }
             }
         }
@@ -517,7 +545,7 @@ private fun HomeBrowseSections(expanded: Boolean, onOpenCatalog: (CatalogSection
 }
 
 @Composable
-private fun HomeBrowseCard(section: CatalogSection, onClick: () -> Unit, modifier: Modifier) {
+private fun HomeBrowseCard(section: CatalogSection, onClick: () -> Unit, modifier: Modifier, stacked: Boolean) {
     var focused by remember { mutableStateOf(false) }
     val label = when (section) {
         CatalogSection.Live -> R.string.destination_live
@@ -529,9 +557,14 @@ private fun HomeBrowseCard(section: CatalogSection, onClick: () -> Unit, modifie
         CatalogSection.Movies -> R.drawable.ic_nav_movies
         CatalogSection.Series -> R.drawable.ic_nav_series
     }
+    val accent = when (section) {
+        CatalogSection.Live -> MaterialTheme.colorScheme.primary
+        CatalogSection.Movies -> MaterialTheme.colorScheme.tertiary
+        CatalogSection.Series -> MaterialTheme.colorScheme.onSecondaryContainer
+    }
     Surface(
         onClick = onClick,
-        modifier = modifier.heightIn(min = 64.dp)
+        modifier = modifier.heightIn(min = if (stacked) 132.dp else 72.dp)
             .onFocusChanged { focused = it.isFocused }
             .testTag("home-browse-${section.name.lowercase()}"),
         shape = MaterialTheme.shapes.medium,
@@ -539,12 +572,23 @@ private fun HomeBrowseCard(section: CatalogSection, onClick: () -> Unit, modifie
         border = BorderStroke(if (focused) 3.dp else 1.dp,
             if (focused) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Row(modifier = Modifier.padding(16.dp),
+        if (stacked) Column(
+            Modifier.background(Brush.verticalGradient(listOf(accent.copy(alpha = 0.08f),
+                MaterialTheme.colorScheme.surfaceContainer))).padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(Modifier.size(44.dp).clip(MaterialTheme.shapes.small).background(accent.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center) {
+                Icon(painterResource(icon), contentDescription = null, tint = accent, modifier = Modifier.size(26.dp))
+            }
+            Text(stringResource(label), style = MaterialTheme.typography.titleSmall,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center, minLines = 2, maxLines = 3)
+        } else Row(Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Icon(painterResource(icon), contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
-            Text(stringResource(label), style = MaterialTheme.typography.titleMedium)
+            Icon(painterResource(icon), contentDescription = null, tint = accent, modifier = Modifier.size(28.dp))
+            Text(stringResource(label), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
         }
     }
 }

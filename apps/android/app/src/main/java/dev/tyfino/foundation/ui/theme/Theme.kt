@@ -11,20 +11,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 
-// Keep TYFINO's cyan/violet identity across cards, menus, fields and dialogs.
+// The approved cinematic presentation uses navy, turquoise and restrained violet accents.
 private val TyfinoColors = darkColorScheme(
-    primary = Color(0xFF38BDF8),
-    onPrimary = Color(0xFF031525),
-    primaryContainer = Color(0xFF123449),
-    onPrimaryContainer = Color(0xFFBAE6FD),
+    primary = Color(0xFF5EEAD4),
+    onPrimary = Color(0xFF00382F),
+    primaryContainer = Color(0xFF123B3A),
+    onPrimaryContainer = Color(0xFFA5F3E5),
     secondary = Color(0xFF8B5CF6),
     onSecondary = Color(0xFF0F0624),
     secondaryContainer = Color(0xFF292148),
     onSecondaryContainer = Color(0xFFE4DCFF),
-    tertiary = Color(0xFF5EEAD4),
-    onTertiary = Color(0xFF00382F),
-    tertiaryContainer = Color(0xFF123B3A),
-    onTertiaryContainer = Color(0xFFA5F3E5),
+    tertiary = Color(0xFF38BDF8),
+    onTertiary = Color(0xFF031525),
+    tertiaryContainer = Color(0xFF123449),
+    onTertiaryContainer = Color(0xFFBAE6FD),
     background = Color(0xFF07111F),
     onBackground = Color(0xFFF3F8FC),
     surface = Color(0xFF0D1B2A),
@@ -36,7 +36,7 @@ private val TyfinoColors = darkColorScheme(
     surfaceContainer = Color(0xFF102033),
     surfaceContainerHigh = Color(0xFF172B40),
     surfaceContainerHighest = Color(0xFF1E354D),
-    surfaceTint = Color(0xFF38BDF8),
+    surfaceTint = Color(0xFF5EEAD4),
     outline = Color(0xFF66849C),
     outlineVariant = Color(0xFF294057),
     inverseSurface = Color(0xFFDBE9F2),

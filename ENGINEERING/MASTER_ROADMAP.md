@@ -114,6 +114,12 @@ Catalog placement #183 is squash-merged at main@d4e3204a5d3700878a9a6f374c6d4e08
 
 The additional source review found fillMaxWidth before widthIn at Movie/Series story and episode-card sites, preventing the existing maximums from narrowing wider-window content. Current separate follow-up reverses only those three modifier pairs; existing caps, callbacks, ownership, resources and all 90 scenarios remain. [Report](REPORTS/DETAILS_WIDTH_BOUNDS_2026-10-03.md). Local native tools remain BLOCKED; exact-source qualification belongs to this PR. Physical wide-screen acceptance and production gates remain separate.
 
+### 2026-10-04 cinematic Android design
+
+Details width #184 is squash-merged at official main@56fcccb86693451a93056fa67b30711b3e07336c; tree 6f485adb63f1c6b64d4ef4293899591291948aab equals qualified PR head dff93abaddeb1bbd94f1635501bc879b44bfb0af. [Official-main Validate37159631461](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37159631461) passed all seven jobs, 90 cases each managed device with zero failures/skips and exact configured APK offline API33 install/launch. #183 official-main Validate37158569337 also passed. No open PRs at the new source gate.
+
+The owner approves the proposed cinematic/navy/turquoise Home and requests the remaining sections. One coherent presentation round updates shared components, menus, responsive Home discovery/shortcuts/resume, catalog search/cards/filters, details/episodes and account forms/dialogs. Existing snapshots, owners, callbacks, transport and protected identity/release policy remain authoritative. Three focused adaptive/input/fallback cases join the unchanged 90. [Report](REPORTS/ANDROID_CINEMATIC_DESIGN_2026-10-04.md). Native local execution is BLOCKED; exact-head qualification belongs to this PR. Generated visual board is a concept, not a runtime screenshot. Physical/provider/TalkBack/performance, production signing and operations remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -235,10 +241,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the three-site details maximum-width correction from integrated main@d4e3204a5d3700878a9a6f374c6d4e08d448387b; preserve existing 1040dp story and 760dp episode limits and all current state/callback/focus behavior. Continuing owner implementation/reviewed-merge authority applies; production actions remain separate.
-Required: complete scoped source review, untouched current 90 native cases, all seven exact-source jobs, Android build/unit/lint, API27/API35 and exact configured APK API33 installation/launch. No new redundant tests, UI abstraction, dimensions, network/ownership/persistence/dependency/identity/version/signing/workflow change.
-Stop: changed baseline/conflicting source, secrets, required failures, unapproved policy/production actions or unproved runtime claims.
-Following gate: owner UI trial; separately measured short-height/IME controls, physical LG Velvet/TV/older/16KB/provider/RTL/TalkBack/performance, signing custody/recovery and production operations before sale.
+Task: qualify the owner-approved coherent cinematic Android presentation from main@56fcccb86693451a93056fa67b30711b3e07336c, with existing Home/account/catalog/details/play actions and ownership retained. Continued owner implementation and reviewed-merge authority applies.
+Required: full scoped source/diff/color/resource review, all 90 existing native cases untouched plus three targeted reflow/input/fallback cases (93 expected each), seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch.
+Stop: changed baseline/conflicting source, secrets, causal required failures, policy/production scope expansion or unproved runtime claims.
+Following gate: owner visual/device trial on LG Velvet and TV, separately qualified short-height/IME/older/16KB/provider/RTL/TalkBack/performance; signing custody/recovery and production operations before sale.
 
 ## Linked Reports
 
