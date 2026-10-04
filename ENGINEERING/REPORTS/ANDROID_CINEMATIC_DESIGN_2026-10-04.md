@@ -47,3 +47,9 @@ Original 90 native cases are retained without edits. Three new cases cover conse
 Runtime screenshot/visual acceptance on representative hardware remains open. Whole-screen catalog short-height/IME control-space behavior was previously an unmeasured inference and is not claimed resolved by this presentation round.
 The configured owner APK uses temporary development signing; a different installed test signature can block an update. Uninstall erases local data and may require device-license reactivation; no uninstall/reset is performed here.
 After exact-head qualification, reviewed merge and official-main confirmation, deliver the same verified owner artifact for physical owner review. A commercial release still needs its signing, device/provider/accessibility/performance and production-operation gates.
+
+## First qualification correction
+
+FAIL: [Validate37174137385](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37174137385) on head 6b78a96c8101b50cd484469e87898e45d73b3820, Android job111353104977, stopped in compileDebugKotlin. The first causal diagnostic at ProductPresentation.kt:117 was that maxWidth could not be accessed through an implicit BoxWithConstraints receiver inside a nested Column scope. API/Admin/database/governance passed; downstream release/unit/lint/native/API33 tasks did not run and cannot be counted as PASS.
+
+Correction: compute the same backdrop height in the immediate BoxWithConstraints scope and pass the local value into Column. No dimensions, policy or ownership change. The full causal log was read; this is a source correction, not a blind rerun. New exact-source qualification remains required and is recorded on the PR.

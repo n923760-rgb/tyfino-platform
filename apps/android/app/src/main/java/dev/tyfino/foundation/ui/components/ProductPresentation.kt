@@ -111,10 +111,11 @@ internal fun MediaDetailsHero(
     ProductPanel(modifier.fillMaxWidth()) {
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val posterWidth = if (maxWidth >= 600.dp) 176.dp else 88.dp
+            val backdropHeight = minOf(maxWidth * (9f / 16f), 320.dp)
             if (landscape) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     DetailsArtwork(artwork, icon,
-                        Modifier.fillMaxWidth().height(minOf(maxWidth * (9f / 16f), 320.dp)))
+                        Modifier.fillMaxWidth().height(backdropHeight))
                     DetailsHeading(title, facts)
                 }
             } else {
