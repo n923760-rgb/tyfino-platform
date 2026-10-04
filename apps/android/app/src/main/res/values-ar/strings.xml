@@ -244,4 +244,5 @@
     <string name="product_navigation_caption">مساحة المشاهدة</string>
     <string name="product_show_password">إظهار كلمة المرور</string>
     <string name="product_hide_password">إخفاء كلمة المرور</string>
+    <string name="catalog_clear_search">مسح البحث</string>
 </resources>

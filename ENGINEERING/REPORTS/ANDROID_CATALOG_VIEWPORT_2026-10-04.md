@@ -1,0 +1,39 @@
+# Android catalog viewport and search controls — 2026-10-04
+
+Task: android-catalog-viewport-2026-10-04. Repository: n923760-rgb/tyfino-platform.
+Verified source: main@1269935f6b77813b5da7fda005c37bd97c1cc8b9; tree 80aa390fb580422bbf0c4ae9a6bfc592a3c1785d.
+Owner: continued professional app refinement and earlier explicit reviewed-merge authority.
+
+## Live baseline and capability
+
+No open PRs; only root AGENTS.md applies. Official-main Validate37176003196 completed all seven jobs successfully on this source. Its source-bound phone/tablet suites report 93 cases each, zero failures/skips, and configured owner APK installation/launch on API33. This round uses authenticated GitHub MCP plus JavaScript source review; no local shell/SDK/Gradle or physical device is available. New-head checks belong to this PR, not this frozen source checkpoint.
+
+## Requirement and causal boundary
+
+The original whole-screen Column measures title/filter/search/sort/error/scope and optional poster-sized resume rows before weighted search/browse results. Those unweighted controls can consume the available height; the weighted child receives only the remainder. The earlier short-height/IME concern was an unmeasured inference, and this report does not claim an observed failure on physical LG hardware or a baseline native reproduction.
+
+The owner requests further professional refinement. One bounded catalog usability feature separates controls from results: controls retain their natural height when they fit, otherwise scroll within half the usable viewport (after a 12dp separation); the results region receives the remaining height. Existing category/status/grid scrolling remains authoritative inside the results region. The controls scroll state is keyed by section. Horizontal filters/categories/resume rails remain horizontal, with stable IDs and focus; no automatic request, category choice or play action is introduced.
+
+Optional Movies/Series Continue Watching stays available in the controls region only in the original browse branch. Search, favorites and history keep their existing eligibility and ordering. No resume record is synthesized or fetched differently. The Movie rail becomes internal solely to exercise the actual renderer in native regression coverage.
+
+## Search interaction
+
+The shared existing query field now exposes a 48dp visible-focus clear control with paired English/Arabic labels, only when input is nonempty (including whitespace). Clearing invokes the same existing empty-query callback. The owning screen still enforces 80 Unicode code points and resets the result. Search eligibility (two trimmed code points), 250ms debounce, cache scope and asynchronous lifecycle/account owners are unchanged.
+
+A one-code-point query shows the existing minimum-length message; longer nonblank queries retain the existing downloaded-category scope message as supporting text. An emoji counts as one code point. Search IME only requests keyboard dismissal; it does not dispatch a provider request, choose a result or alter focus/ownership. This is not proof of a physical OEM IME.
+
+## Validation and evidence
+
+- Prepared source review: scoped diff/resource/import/whitespace/delimiter checks, controller prefix guard, exact existing query callback and request/play callbacks.
+- All93 prior native test cases remain untouched. Three focused native cases cover actual shared controls/Movies resume plus browse selection/play in short Arabic/font1.6 windows and resize; code-point guidance/empty and whitespace clearing/IME dismissal callback; keyboard Down from controls to results and explicit Enter activation.
+- Expected:96 native cases on each existing API27/API35 managed device, all seven existing jobs, Android debug/optimized unsigned release/unit/lint, configured exact artifact offline API33 install/launch.
+- Local native execution BLOCKED. Exact new-head results are recorded in the PR; pending checks are not PASS.
+- Physical LG Velvet/TV, actual OEM IME/insets, TalkBack, provider/media and performance NOT RUN.
+
+## Scope and residual risks
+
+Android presentation only, one decorative vector, paired resource label, focused new native test file and canonical engineering records. Application identity/name/version/SDK/ABI/signing/origin, licensing/provider contracts, repository owners, persistence, dependencies/workflows and backend/Admin/infra are unchanged.
+
+No device/account removal, data wipe or license reset. Temporary development signing can reject an update over an earlier differently signed test build; preserve account data before any owner-chosen uninstall. Production signing/release/operations and full physical qualification remain separate gates before sale.
+
+Smallest next action: qualify the exact implementation and official-main artifact, then owner visual/input trial on LG Velvet with saved account credentials. This source checkpoint contains no generated runtime screenshot or commercial readiness claim.

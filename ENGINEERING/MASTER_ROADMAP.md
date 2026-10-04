@@ -120,6 +120,12 @@ Details width #184 is squash-merged at official main@56fcccb86693451a93056fa67b3
 
 The owner approves the proposed cinematic/navy/turquoise Home and requests the remaining sections. One coherent presentation round updates shared components, menus, responsive Home discovery/shortcuts/resume, catalog search/cards/filters, details/episodes and account forms/dialogs. Existing snapshots, owners, callbacks, transport and protected identity/release policy remain authoritative. Three focused adaptive/input/fallback cases join the unchanged 90. [Report](REPORTS/ANDROID_CINEMATIC_DESIGN_2026-10-04.md). Native local execution is BLOCKED; exact-head qualification belongs to this PR. Generated visual board is a concept, not a runtime screenshot. Physical/provider/TalkBack/performance, production signing and operations remain separate.
 
+### 2026-10-04 catalog viewport and search continuation
+
+Cinematic design #185 is squash-merged at official main@1269935f6b77813b5da7fda005c37bd97c1cc8b9; tree 80aa390fb580422bbf0c4ae9a6bfc592a3c1785d equals qualified PR head eb2cf724bbacd99c7cbceb34b539d21ffe9d8b32. [Official-main Validate37176003196](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37176003196) passed all seven jobs, 93 cases per managed device with zero failures/skips and the same configured owner APK offline API33 installation/launch. No open PRs at this new gate.
+
+The owner requests continued professional refinement. One bounded catalog viewport/search round keeps overflowing title/filter/query/resume controls independently scrollable and reserves a positive results region on controlled short windows; clear-search and Search IME remain explicit local actions. Existing controller/state owners and all 93 previous cases are retained, with three targeted scenarios (96 expected each). [Report](REPORTS/ANDROID_CATALOG_VIEWPORT_2026-10-04.md). The original short-height/IME concern was an unmeasured inference; no physical baseline failure or actual OEM IME resolution is asserted. Exact-source CI belongs to this task PR; physical/provider/accessibility/performance and production gates remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -241,10 +247,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the owner-approved coherent cinematic Android presentation from main@56fcccb86693451a93056fa67b30711b3e07336c, with existing Home/account/catalog/details/play actions and ownership retained. Continued owner implementation and reviewed-merge authority applies.
-Required: full scoped source/diff/color/resource review, all 90 existing native cases untouched plus three targeted reflow/input/fallback cases (93 expected each), seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch.
+Task: qualify the bounded catalog viewport/search refinement from main@1269935f6b77813b5da7fda005c37bd97c1cc8b9, following merged cinematic design #185. Continued owner implementation and reviewed-merge authority applies.
+Required: complete scoped source/callback/resource review, all 93 existing native cases untouched plus three targeted viewport/search/input cases (96 expected each), seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch.
 Stop: changed baseline/conflicting source, secrets, causal required failures, policy/production scope expansion or unproved runtime claims.
-Following gate: owner visual/device trial on LG Velvet and TV, separately qualified short-height/IME/older/16KB/provider/RTL/TalkBack/performance; signing custody/recovery and production operations before sale.
+Following gate: owner visual/device trial on LG Velvet and TV; separately qualify real IME/insets/older/16KB/provider/TalkBack/performance, signing custody/recovery and production operations before sale.
 
 ## Linked Reports
 
