@@ -2,6 +2,7 @@ package dev.tyfino.foundation.ui.screen
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,13 +27,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
-import dev.tyfino.foundation.ui.components.productTextFieldColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -247,13 +246,12 @@ internal fun CatalogScreen(
         }
     }
 
-    Column(
+    CatalogViewport(
+        controlsScrollState = remember(section) { ScrollState(0) },
         modifier = Modifier
-            .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 16.dp)
             .testTag("catalog-${section.name.lowercase()}"),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
+        controls = {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -284,7 +282,7 @@ internal fun CatalogScreen(
             onFavorites = { favoritesOnly = true; historyOnly = false },
             onHistory = { historyOnly = true; favoritesOnly = false },
         )
-        OutlinedTextField(
+        CatalogSearchField(
             value = searchText,
             onValueChange = { next ->
                 if (next.codePointCount(0, next.length) <= 80) {
@@ -292,12 +290,7 @@ internal fun CatalogScreen(
                     searchResult = null
                 }
             },
-            label = { Text(stringResource(R.string.catalog_search_label)) },
-            leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
-            shape = MaterialTheme.shapes.medium,
-            colors = productTextFieldColors(),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().testTag("catalog-search"),
+            modifier = Modifier.fillMaxWidth(),
         )
         if (section != CatalogSection.Live && !favoritesOnly && !historyOnly) {
             CatalogSortTabs(sortOrder, onSelect = { sortOrder = it })
@@ -316,13 +309,12 @@ internal fun CatalogScreen(
                 )
             }
         }
-        if (searchText.isNotBlank()) {
-            Text(
-                stringResource(R.string.catalog_search_scope),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        if (!searchActive && !historyOnly && !favoritesOnly) {
+            if (continueWatching.isNotEmpty()) ContinueWatchingStrip(continueWatching, onPlay)
+            if (seriesContinueWatching.isNotEmpty()) SeriesContinueWatchingStrip(seriesContinueWatching, onResumeEpisode)
         }
+        },
+        content = {
         if (searchActive) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 when (val result = searchResult) {
@@ -368,12 +360,6 @@ internal fun CatalogScreen(
                 else ItemGrid(favoriteItems, section, onPlay, favoriteIds, toggleFavorite)
             }
         } else {
-        if (continueWatching.isNotEmpty()) {
-            ContinueWatchingStrip(continueWatching, onPlay)
-        }
-        if (seriesContinueWatching.isNotEmpty()) {
-            SeriesContinueWatchingStrip(seriesContinueWatching, onResumeEpisode)
-        }
         CatalogBrowsePane(
             categories = categories,
             selectedCategoryId = selectedCategoryId,
@@ -400,7 +386,8 @@ internal fun CatalogScreen(
             sortOrder = if (section == CatalogSection.Live) null else sortOrder,
         )
         }
-    }
+        },
+    )
 }
 
 /** Pure rendering of the current category/item snapshots; requests remain owned by CatalogScreen. */
@@ -583,7 +570,7 @@ internal fun CatalogFilterTabs(
 }
 
 @Composable
-private fun ContinueWatchingStrip(
+internal fun ContinueWatchingStrip(
     records: List<ContinueWatchingItem>,
     onPlay: (CatalogItem) -> Unit,
 ) {
@@ -607,10 +594,8 @@ private fun ContinueWatchingStrip(
                     } ?: stringResource(R.string.continue_watching_resume),
                     selected = false,
                     onClick = { onPlay(record.catalogItem) },
-                    modifier = Modifier.widthIn(min = 136.dp, max = 180.dp),
-                    showArtwork = true,
-                    artworkUrl = record.catalogItem.artworkUrl,
-                    artworkAspectRatio = POSTER_ASPECT_RATIO,
+                    modifier = Modifier.width(240.dp),
+                    compact = true,
                 )
             }
         }
@@ -638,10 +623,8 @@ private fun SeriesContinueWatchingStrip(
                         ?: stringResource(R.string.continue_watching_resume),
                     selected = false,
                     onClick = { onPlay(item) },
-                    modifier = Modifier.widthIn(min = 136.dp, max = 180.dp),
-                    showArtwork = true,
-                    artworkUrl = item.seriesArtworkUrl,
-                    artworkAspectRatio = POSTER_ASPECT_RATIO,
+                    modifier = Modifier.width(240.dp),
+                    compact = true,
                 )
             }
         }
