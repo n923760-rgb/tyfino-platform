@@ -119,16 +119,30 @@ internal fun XtreamAccountManager(
         Dialog(onDismissRequest = { if (!busy) confirmation = null }) {
             LaunchedEffect(account.accountId) { confirmationFocus.requestAfterManagerDialogFrames() }
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 720.dp)
+                    .testTag("xtream-remove-confirmation"),
                 shape = MaterialTheme.shapes.large,
-                tonalElevation = 12.dp,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                tonalElevation = 0.dp,
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .testTag("xtream-remove-confirmation-scroll")
+                        .padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Text(stringResource(R.string.xtream_confirm_remove_title), style = MaterialTheme.typography.headlineSmall)
-                    Text(stringResource(R.string.xtream_confirm_remove_named_message, account.username, account.providerOrigin))
+                    ProductHeader(
+                        title = stringResource(R.string.xtream_confirm_remove_title),
+                        subtitle = stringResource(
+                            R.string.xtream_confirm_remove_named_message,
+                            account.username,
+                            account.providerOrigin,
+                        ),
+                    )
                     FocusVisibleButton(
                         label = stringResource(R.string.xtream_keep_account),
                         onClick = { confirmation = null },
