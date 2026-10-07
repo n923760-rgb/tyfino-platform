@@ -1,6 +1,9 @@
 package dev.tyfino.foundation.ui.screen
 
 import android.content.res.Configuration
+import android.view.View
+import android.view.ViewGroup
+import android.view.Window
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -28,6 +31,13 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Root
+import androidx.test.espresso.UiController
+import androidx.test.espresso.ViewAction
+import androidx.test.espresso.matcher.RootMatchers.isDialog
+import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.R
@@ -35,6 +45,10 @@ import dev.tyfino.foundation.ui.theme.TyfinoTheme
 import dev.tyfino.foundation.xtream.XtreamAccountSummary
 import dev.tyfino.foundation.xtream.XtreamAccountsSnapshot
 import java.util.Locale
+import kotlin.math.roundToInt
+import org.hamcrest.Description
+import org.hamcrest.Matcher
+import org.hamcrest.TypeSafeMatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -47,7 +61,7 @@ import org.junit.runner.RunWith
 class XtreamRemovalConfirmationTest {
     @get:Rule val compose = createComposeRule()
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
-    private val username = "اختبار".repeat(200)
+    private val username = "اختبار".repeat(20)
     private val active = account("active", "active")
     private val target = account("target", "target")
     private val removed = mutableListOf<String>()
@@ -65,6 +79,7 @@ class XtreamRemovalConfirmationTest {
         compose.onNodeWithTag("xtream-remove-target")
             .performScrollTo().assertIsDisplayed().performClick()
         assertArabicConfirmation()
+        constrainFocusedConfirmationWindow()
         compose.onNodeWithTag("xtream-keep-account")
             .performScrollTo().assertIsDisplayed().performClick()
         compose.onNodeWithTag("xtream-remove-confirmation").assertDoesNotExist()
@@ -73,6 +88,7 @@ class XtreamRemovalConfirmationTest {
         compose.onNodeWithTag("xtream-remove-target")
             .performScrollTo().assertIsDisplayed().performClick()
         assertArabicConfirmation()
+        constrainFocusedConfirmationWindow()
         compose.onNodeWithTag("xtream-confirm-remove")
             .performScrollTo().assertIsDisplayed()
         assertConfirmationScrolled()
@@ -87,6 +103,7 @@ class XtreamRemovalConfirmationTest {
             .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
             .assertIsFocused().performKeyInput { pressKey(Key.Enter) }
         assertArabicConfirmation()
+        constrainFocusedConfirmationWindow()
         compose.onNodeWithTag("xtream-keep-account").assertIsFocused()
         compose.runOnIdle { assertTrue(removed.isEmpty()) }
         compose.onNodeWithTag("xtream-keep-account")
@@ -170,6 +187,47 @@ class XtreamRemovalConfirmationTest {
         context.createConfigurationContext(
             Configuration(context.resources.configuration).apply { setLocale(Locale("ar")) },
         ).resources
+    }
+
+    private fun constrainFocusedConfirmationWindow() {
+        val focusedDialog = object : TypeSafeMatcher<Root>() {
+            override fun describeTo(description: Description) {
+                description.appendText("the focused Android dialog")
+            }
+
+            override fun matchesSafely(root: Root): Boolean =
+                isDialog().matches(root) && root.decorView.hasWindowFocus()
+        }
+        onView(isRoot()).inRoot(focusedDialog).perform(object : ViewAction {
+            override fun getConstraints(): Matcher<View> = isRoot()
+            override fun getDescription(): String = "constrain the real confirmation window"
+
+            override fun perform(uiController: UiController, view: View) {
+                val window = findDialogWindow(view)
+                    ?: throw AssertionError("The focused root must contain a Compose Dialog window")
+                val density = view.resources.displayMetrics.density
+                window.setLayout((280 * density).roundToInt(), (320 * density).roundToInt())
+                uiController.loopMainThreadUntilIdle()
+            }
+        })
+        compose.waitForIdle()
+        val density = instrumentation.targetContext.resources.displayMetrics.density
+        val bounds = compose.onNodeWithTag("xtream-remove-confirmation")
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue("Confirmation width must be bounded by the controlled window",
+            bounds.width <= 280 * density + 1f)
+        assertTrue("Confirmation height must be bounded by the controlled window",
+            bounds.height <= 320 * density + 1f)
+    }
+
+    private fun findDialogWindow(view: View): Window? {
+        if (view is DialogWindowProvider) return view.window
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) {
+                findDialogWindow(view.getChildAt(index))?.let { return it }
+            }
+        }
+        return null
     }
 
     private fun assertArabicConfirmation() {
