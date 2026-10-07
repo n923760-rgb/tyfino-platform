@@ -118,37 +118,69 @@ internal fun XtreamAccountManager(
     confirmation?.let { account ->
         Dialog(onDismissRequest = { if (!busy) confirmation = null }) {
             LaunchedEffect(account.accountId) { confirmationFocus.requestAfterManagerDialogFrames() }
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = 12.dp,
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Text(stringResource(R.string.xtream_confirm_remove_title), style = MaterialTheme.typography.headlineSmall)
-                    Text(stringResource(R.string.xtream_confirm_remove_named_message, account.username, account.providerOrigin))
-                    FocusVisibleButton(
-                        label = stringResource(R.string.xtream_keep_account),
-                        onClick = { confirmation = null },
-                        enabled = !busy,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(confirmationFocus)
-                            .testTag("xtream-keep-account"),
-                    )
-                    FocusVisibleButton(
-                        label = stringResource(R.string.xtream_confirm_remove),
-                        onClick = {
-                            confirmation = null
-                            onRemoveAccount(account.accountId)
-                        },
-                        enabled = !busy,
-                        modifier = Modifier.fillMaxWidth().testTag("xtream-confirm-remove"),
-                    )
-                }
-            }
+            XtreamRemovalConfirmationContent(
+                account = account,
+                busy = busy,
+                initialFocus = confirmationFocus,
+                onKeep = { confirmation = null },
+                onRemove = {
+                    confirmation = null
+                    onRemoveAccount(account.accountId)
+                },
+            )
+        }
+    }
+}
+
+@Composable
+internal fun XtreamRemovalConfirmationContent(
+    account: XtreamAccountSummary,
+    busy: Boolean,
+    initialFocus: FocusRequester,
+    onKeep: () -> Unit,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(max = 720.dp)
+            .testTag("xtream-remove-confirmation"),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        tonalElevation = 0.dp,
+    ) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .testTag("xtream-remove-confirmation-scroll")
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            ProductHeader(
+                title = stringResource(R.string.xtream_confirm_remove_title),
+                subtitle = stringResource(
+                    R.string.xtream_confirm_remove_named_message,
+                    account.username,
+                    account.providerOrigin,
+                ),
+            )
+            FocusVisibleButton(
+                label = stringResource(R.string.xtream_keep_account),
+                onClick = onKeep,
+                enabled = !busy,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(initialFocus)
+                    .testTag("xtream-keep-account"),
+            )
+            FocusVisibleButton(
+                label = stringResource(R.string.xtream_confirm_remove),
+                onClick = onRemove,
+                enabled = !busy,
+                modifier = Modifier.fillMaxWidth().testTag("xtream-confirm-remove"),
+            )
         }
     }
 }

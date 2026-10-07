@@ -126,6 +126,12 @@ Cinematic design #185 is squash-merged at official main@1269935f6b77813b5da7fda0
 
 The owner requests continued professional refinement. One bounded catalog viewport/search round keeps overflowing title/filter/query/resume controls independently scrollable and reserves a positive results region on controlled short windows; clear-search and Search IME remain explicit local actions. Existing controller/state owners and all 93 previous cases are retained, with three targeted scenarios (96 expected each). [Report](REPORTS/ANDROID_CATALOG_VIEWPORT_2026-10-04.md). The original short-height/IME concern was an unmeasured inference; no physical baseline failure or actual OEM IME resolution is asserted. Exact-source CI belongs to this task PR; physical/provider/accessibility/performance and production gates remain separate.
 
+### 2026-10-07 account confirmation continuation
+
+Catalog viewport/search #186 is squash-merged at official main@df1250b9c544716bbcbc32a59504b160af00e383; tree f2502fe9d8c1e22e8070d8bbadd1c3ef7477e9d5 equals its qualified PR source. [Official-main Validate37271857310](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37271857310) passed all seven jobs,96 cases each managed device with zero failures/skips and same configured owner APK offline API33 install/launch. No open PRs at this new gate; old pending catalog notes are historical.
+
+The owner requests a fresh installation link and continued refinement. A fresh authorized download of unexpired owner artifact11329510196 was issued; no release/signing-policy change. Current bounded presentation round makes lengthy account-removal confirmation vertically scrollable within its existing manager's720dp maximum and matches the shared branded tonal appearance. Safe Keep-first focus, busy/dismiss guards and exact-ID callback authority remain unchanged. Two real-dialog280x320dp overflow/touch/directional cases and one280x320dp Arabic/font2 actual-renderer case join all unchanged96 cases (99 expected). Initial98-case qualification failed two new overflow-fixture assertions per device. The next99-case source passed phone and actualfont2 renderer but the tablet's two real-dialog fixtures still fit; the final test-driver correction constrains the actual window without changing production geometry. Full causal history is retained in the report. [Report](REPORTS/ANDROID_ACCOUNT_CONFIRMATION_2026-10-07.md). Original overflow concern is an unmeasured source inference; physical/provider/accessibility/performance and commercial signing/operations remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -247,10 +253,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the bounded catalog viewport/search refinement from main@1269935f6b77813b5da7fda005c37bd97c1cc8b9, following merged cinematic design #185. Continued owner implementation and reviewed-merge authority applies.
-Required: complete scoped source/callback/resource review, all 93 existing native cases untouched plus three targeted viewport/search/input cases (96 expected each), seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch.
-Stop: changed baseline/conflicting source, secrets, causal required failures, policy/production scope expansion or unproved runtime claims.
-Following gate: owner visual/device trial on LG Velvet and TV; separately qualify real IME/insets/older/16KB/provider/TalkBack/performance, signing custody/recovery and production operations before sale.
+Task: qualify bounded account-removal confirmation presentation from main@df1250b9c544716bbcbc32a59504b160af00e383, following merged catalog viewport/search #186. Continued owner implementation and reviewed-merge authority applies.
+Required: complete scoped callback/focus/resource diff review; all96 existing native cases untouched plus two real-dialog cases and one controlled Arabic/font2 actual-renderer case (99 each); seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch.
+Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
+Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 
 ## Linked Reports
 
