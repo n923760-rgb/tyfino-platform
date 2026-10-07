@@ -106,8 +106,10 @@ class DetailsAdaptiveLayoutTest {
         val artwork = compose.onNodeWithTag("media-details-artwork").getUnclippedBoundsInRoot()
         val title = compose.onNodeWithTag("media-details-title").getUnclippedBoundsInRoot()
         assertTrue(title.top >= artwork.bottom)
-        assertEquals(200f * context.resources.displayMetrics.density, artwork.width, 1f)
-        assertEquals(9f / 16f, artwork.height / artwork.width, 0.02f)
+        val artworkWidth = (artwork.right - artwork.left).value
+        val artworkHeight = (artwork.bottom - artwork.top).value
+        assertEquals(200f, artworkWidth, 1f)
+        assertEquals(9f / 16f, artworkHeight / artworkWidth, 0.02f)
         assertTextFits("media-details-title", 2f)
         assertTextFits("media-details-facts", 2f)
     }
