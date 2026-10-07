@@ -116,6 +116,7 @@ internal fun MediaDetailsHero(
             // Reserve readable title space after the artwork, gap and panel padding.
             val besidePoster = maxWidth >= posterWidth + 16.dp +
                 200.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
+            val stackedPosterWidth = minOf(maxWidth, 160.dp)
             val backdropHeight = minOf(maxWidth * (9f / 16f), 320.dp)
             if (landscape) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -127,7 +128,7 @@ internal fun MediaDetailsHero(
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     DetailsArtwork(artwork, icon,
                         Modifier.align(Alignment.CenterHorizontally)
-                            .width(minOf(maxWidth, 160.dp)).aspectRatio(2f / 3f))
+                            .width(stackedPosterWidth).aspectRatio(2f / 3f))
                     DetailsHeading(title, facts, Modifier.fillMaxWidth())
                 }
             } else {

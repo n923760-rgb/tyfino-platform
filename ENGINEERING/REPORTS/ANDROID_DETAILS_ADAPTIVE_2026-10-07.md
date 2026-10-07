@@ -46,3 +46,9 @@ Physical phone/TV/foldable, TalkBack, real-provider/media, performance and comme
 
 No secret-bearing artifact is created. Ordinary configured Debug owner-test output is a development artifact; commercial signing/custody/upgrade continuity is not established by it.
 Next action: qualify and review this exact branch in the existing CI, resolve any first causal failure, and integrate only after required checks succeed within owner authorization. Then deliver the qualified configured owner-test APK for visual/input feedback. productionReady=false.
+
+## Initial native build and causal correction
+
+Initial head eb121d81cc140527c351d53a06673d82f7c864b9, tree68f15b502b62352567b1f6077e7389dffd0d5165, [Validate37657274286](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37657274286): four service/governance jobs PASS; Android job112915458976 FAIL during compileDebugKotlin. First causal error: ProductPresentation.kt:130 could not access BoxWithConstraints.maxWidth as an implicit receiver within the nested Column scope. Native instrumentation and APK qualification were SKIPPED, not PASS.
+
+Correction calculates the bounded stackedPosterWidth in the BoxWithConstraints scope before entering Column. Presentation decisions, geometry, callbacks and every test/assertion are retained. Corrected-source qualification is pending on the same PR. No merge or artifact delivery occurred on the failed source; no blind rerun or workflow/test-policy change is used.
