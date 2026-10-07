@@ -138,6 +138,12 @@ Live official source: main@62bb365a99a4ab043c032c0325f7ab5831a67c61, including m
 
 Current owner instruction: continue development, fix errors and refine the interface without repeated pauses. Existing reviewed-merge authorization continues within its scope. One coherent presentation round adapts shared Movie/Series headings/posters to available width and font size, and allows Back/Refresh controls to wrap using their measured labels. State, provider, playback, selection, identity and release policies are unchanged. The narrow-title concern is a source/layout inference; no physical baseline failure is asserted. Four focused native scenarios join all 99 prior cases (103 expected per managed device). Local native execution is BLOCKED by unavailable Gradle distribution/Android SDK; authenticated connector access recovered after transient errors and existing Actions will qualify the exact source. [Report](REPORTS/ANDROID_DETAILS_ADAPTIVE_2026-10-07.md). Physical/provider/TalkBack/performance and production qualification remain separate.
 
+### 2026-10-07 integrated details and Home content order
+
+Adaptive details #188 is squash-merged at official main@a125ced5337c5304258f7ee81419817de5e8f97a; tree2c787ef3e92b1d5554f187f17e5ca9cc494e6921 equals qualified PR head299e833eea9e8deae93d0af2050dbec7294c92cf. [PR Validate37662573296](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37662573296) passed all seven jobs,103 cases on each managed device with zero failures/skips, and exact configured owner APK offline API33 clean-install/launch. Causal compile/measurement failures and their corrections remain in its report/PR; earlier pending details entries are historical. No open PRs at the new gate. Official-main push qualification is tracked separately on #188.
+
+FACT: current Home code inserts browsing shortcuts between the showcase and Continue Watching, contrary to the owner's requested ordering and the README. Current bounded correction relocates only that existing LazyColumn item below latest Movies/Series. All item conditions, callbacks, initial focus, owners and103 native cases remain unchanged. Continued implementation/reviewed-merge authorization applies. [Report](REPORTS/HOME_CONTENT_ORDER_2026-10-07.md). Exact changed-source results belong to this task PR; physical/provider/accessibility/performance and production signing/operations remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -259,8 +265,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify adaptive Movie/Series details presentation from main@62bb365a99a4ab043c032c0325f7ab5831a67c61, following merged account-confirmation #187. Continued owner implementation and reviewed-merge authority applies.
-Required: complete scoped callback/focus/resource diff review; all 99 existing native cases untouched plus four actual-renderer layout/font/touch/directional scenarios (103 each); seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final exact-source results on the task PR without a bookkeeping change invalidating its own checks.
+Task: qualify the Home content-order correction from main@a125ced5337c5304258f7ee81419817de5e8f97a, following merged adaptive-details #188. Continued owner implementation and reviewed-merge authority applies.
+Required: complete minimal item-order/callback/focus/resource diff review; all103 existing native cases untouched; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final exact-source results on the task PR without a bookkeeping change invalidating its own checks, then deliver the qualified configured owner-test APK.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
 Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 
