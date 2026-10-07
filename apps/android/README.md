@@ -178,6 +178,8 @@ Selecting a Movie opens an explicit details destination instead of starting play
 
 Movie/Series story panels apply their existing 1040dp maximum before filling available width; Series episode cards similarly apply their existing 760dp maximum first. This keeps the intended bounds effective on wider windows while compact panes follow available space. Source scope and validation limits are recorded in [details width report](../../ENGINEERING/REPORTS/DETAILS_WIDTH_BOUNDS_2026-10-03.md); physical wide-screen qualification remains separate.
 
+Movie/Series detail summaries place poster artwork beside the heading only when the remaining title area provides at least 200dp scaled with the system font size. In narrower panes or with larger text, a centered poster sits above a full-width heading and facts. Existing landscape backdrops remain above the heading. Back and eligible Refresh actions wrap to another row when their measured labels do not fit; focus grouping, callbacks, scrolling, Play/Resume and episode authority retain their existing owners. No title truncation, new artwork request path or fixed content height is introduced. See [adaptive details report](../../ENGINEERING/REPORTS/ANDROID_DETAILS_ADAPTIVE_2026-10-07.md). Native qualification belongs to the exact task PR; physical-device acceptance remains separate.
+
 ## Deferred contracts
 
 Full physical-device/TV qualification, release identity/signing, provider-wide search, and other deferred playback capabilities require their own approved work. Movie details and Series episode playback, history, resume, and Continue Watching are implemented; do not infer release qualification from build and emulator checks.

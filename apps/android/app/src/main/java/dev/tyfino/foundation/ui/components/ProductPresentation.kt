@@ -31,6 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -108,15 +110,25 @@ internal fun MediaDetailsHero(
     landscape: Boolean = false,
     @DrawableRes icon: Int = R.drawable.ic_nav_movies,
 ) {
-    ProductPanel(modifier.fillMaxWidth()) {
+    ProductPanel(modifier.fillMaxWidth().testTag("media-details-hero")) {
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val posterWidth = if (maxWidth >= 600.dp) 176.dp else 88.dp
+            // Reserve readable title space after the artwork, gap and panel padding.
+            val besidePoster = maxWidth >= posterWidth + 16.dp +
+                200.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
             val backdropHeight = minOf(maxWidth * (9f / 16f), 320.dp)
             if (landscape) {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     DetailsArtwork(artwork, icon,
                         Modifier.fillMaxWidth().height(backdropHeight))
-                    DetailsHeading(title, facts)
+                    DetailsHeading(title, facts, Modifier.fillMaxWidth())
+                }
+            } else if (!besidePoster) {
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    DetailsArtwork(artwork, icon,
+                        Modifier.align(Alignment.CenterHorizontally)
+                            .width(minOf(maxWidth, 160.dp)).aspectRatio(2f / 3f))
+                    DetailsHeading(title, facts, Modifier.fillMaxWidth())
                 }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically,
@@ -133,15 +145,16 @@ internal fun MediaDetailsHero(
 private fun DetailsHeading(title: String, facts: String, modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title, style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.semantics { heading() })
+            modifier = Modifier.semantics { heading() }.testTag("media-details-title"))
         if (facts.isNotBlank()) Text(facts, style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.testTag("media-details-facts"))
     }
 }
 
 @Composable
 private fun DetailsArtwork(artwork: String?, @DrawableRes icon: Int, modifier: Modifier) {
-    Box(modifier.clip(MaterialTheme.shapes.medium).background(Brush.linearGradient(listOf(
+    Box(modifier.testTag("media-details-artwork").clip(MaterialTheme.shapes.medium).background(Brush.linearGradient(listOf(
         MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer))),
         contentAlignment = Alignment.Center) {
         Icon(painterResource(icon), contentDescription = null,

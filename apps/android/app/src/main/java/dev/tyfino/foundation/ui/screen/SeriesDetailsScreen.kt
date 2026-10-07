@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -155,9 +156,10 @@ internal fun SeriesDetailsContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item(key = "actions") {
-            Row(
-                modifier = Modifier.focusGroup(),
+            FlowRow(
+                modifier = Modifier.widthIn(max = 1040.dp).fillMaxWidth().focusGroup(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 FocusVisibleButton(
                     label = stringResource(R.string.back),
@@ -165,7 +167,8 @@ internal fun SeriesDetailsContent(
                     modifier = Modifier.focusRequester(initialFocus).testTag("series-back"),
                 )
                 if (details != null || state is SeriesState.Error) {
-                    FocusVisibleButton(label = stringResource(R.string.series_refresh), onClick = onRefresh)
+                    FocusVisibleButton(label = stringResource(R.string.series_refresh), onClick = onRefresh,
+                        modifier = Modifier.testTag("series-refresh"))
                 }
             }
         }
