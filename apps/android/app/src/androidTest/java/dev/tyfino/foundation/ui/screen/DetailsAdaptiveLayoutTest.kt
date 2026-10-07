@@ -187,7 +187,11 @@ class DetailsAdaptiveLayoutTest {
             val results = mutableListOf<TextLayoutResult>()
             assertTrue(action(results))
             assertEquals(expectedFontScale, results.single().layoutInput.density.fontScale, 0.001f)
-            assertFalse("Text must remain readable without clipping", results.single().hasVisualOverflow)
+            val result = results.single()
+            assertFalse("$tag must remain readable without clipping: size=${result.size}, " +
+                "paragraph=${result.multiParagraph.width}x${result.multiParagraph.height}, " +
+                "widthOverflow=${result.didOverflowWidth}, heightOverflow=${result.didOverflowHeight}, " +
+                "constraints=${result.layoutInput.constraints}", result.hasVisualOverflow)
         }
     }
 

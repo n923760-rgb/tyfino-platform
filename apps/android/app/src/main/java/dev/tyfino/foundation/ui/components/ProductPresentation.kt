@@ -146,10 +146,10 @@ internal fun MediaDetailsHero(
 private fun DetailsHeading(title: String, facts: String, modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title, style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.semantics { heading() }.testTag("media-details-title"))
+            modifier = Modifier.fillMaxWidth().semantics { heading() }.testTag("media-details-title"))
         if (facts.isNotBlank()) Text(facts, style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.testTag("media-details-facts"))
+            modifier = Modifier.fillMaxWidth().testTag("media-details-facts"))
     }
 }
 
