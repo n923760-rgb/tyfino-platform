@@ -5,6 +5,7 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -130,9 +131,10 @@ internal fun MovieDetailsContent(
     ) {
         item("actions") {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(
-                    modifier = Modifier.focusGroup(),
+                FlowRow(
+                    modifier = Modifier.widthIn(max = 1040.dp).fillMaxWidth().focusGroup(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     FocusVisibleButton(
                         label = stringResource(R.string.back),
@@ -140,7 +142,8 @@ internal fun MovieDetailsContent(
                         modifier = Modifier.focusRequester(initialFocus).testTag("movie-back"),
                     )
                     if (details != null || state is MovieDetailsState.Error) {
-                        FocusVisibleButton(stringResource(R.string.movie_refresh), onClick = onRefresh)
+                        FocusVisibleButton(stringResource(R.string.movie_refresh), onClick = onRefresh,
+                            modifier = Modifier.testTag("movie-refresh"))
                     }
                 }
                 FocusVisibleButton(

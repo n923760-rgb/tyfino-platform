@@ -132,6 +132,12 @@ Catalog viewport/search #186 is squash-merged at official main@df1250b9c544716bb
 
 The owner requests a fresh installation link and continued refinement. A fresh authorized download of unexpired owner artifact11329510196 was issued; no release/signing-policy change. Current bounded presentation round makes lengthy account-removal confirmation vertically scrollable within its existing manager's720dp maximum and matches the shared branded tonal appearance. Safe Keep-first focus, busy/dismiss guards and exact-ID callback authority remain unchanged. Two real-dialog280x320dp overflow/touch/directional cases and one280x320dp Arabic/font2 actual-renderer case join all unchanged96 cases (99 expected). Initial98-case qualification failed two new overflow-fixture assertions per device. The next99-case source passed phone and actualfont2 renderer but the tablet's two real-dialog fixtures still fit; the final test-driver correction constrains the actual window without changing production geometry. Full causal history is retained in the report. [Report](REPORTS/ANDROID_ACCOUNT_CONFIRMATION_2026-10-07.md). Original overflow concern is an unmeasured source inference; physical/provider/accessibility/performance and commercial signing/operations remain separate.
 
+### 2026-10-07 adaptive details continuation
+
+Live official source: main@62bb365a99a4ab043c032c0325f7ab5831a67c61, including merged account-confirmation #187. [Official-main Validate 37578813615](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37578813615) passed all seven jobs. No open PRs at this gate. Previous task/qualification notes remain historical snapshots.
+
+Current owner instruction: continue development, fix errors and refine the interface without repeated pauses. Existing reviewed-merge authorization continues within its scope. One coherent presentation round adapts shared Movie/Series headings/posters to available width and font size, and allows Back/Refresh controls to wrap using their measured labels. State, provider, playback, selection, identity and release policies are unchanged. The narrow-title concern is a source/layout inference; no physical baseline failure is asserted. Four focused native scenarios join all 99 prior cases (103 expected per managed device). Local native execution is BLOCKED by unavailable Gradle distribution/Android SDK; authenticated connector access recovered after transient errors and existing Actions will qualify the exact source. [Report](REPORTS/ANDROID_DETAILS_ADAPTIVE_2026-10-07.md). Physical/provider/TalkBack/performance and production qualification remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -253,8 +259,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify bounded account-removal confirmation presentation from main@df1250b9c544716bbcbc32a59504b160af00e383, following merged catalog viewport/search #186. Continued owner implementation and reviewed-merge authority applies.
-Required: complete scoped callback/focus/resource diff review; all96 existing native cases untouched plus two real-dialog cases and one controlled Arabic/font2 actual-renderer case (99 each); seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch.
+Task: qualify adaptive Movie/Series details presentation from main@62bb365a99a4ab043c032c0325f7ab5831a67c61, following merged account-confirmation #187. Continued owner implementation and reviewed-merge authority applies.
+Required: complete scoped callback/focus/resource diff review; all 99 existing native cases untouched plus four actual-renderer layout/font/touch/directional scenarios (103 each); seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final exact-source results on the task PR without a bookkeeping change invalidating its own checks.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
 Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 
