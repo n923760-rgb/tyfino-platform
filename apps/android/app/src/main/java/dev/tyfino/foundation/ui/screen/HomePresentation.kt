@@ -8,6 +8,7 @@ internal data class HomeShowcaseMetadata(val rating: Double?, val releaseYear: I
 
 /** Bounded local discovery, not a claim about provider-wide popularity. No network work. */
 internal object HomePresentation {
+    const val HIGHLIGHT_LIMIT = 10
     fun metadata(item: CatalogItem): HomeShowcaseMetadata = HomeShowcaseMetadata(
         rating = item.rating?.toDoubleOrNull()?.takeIf { it.isFinite() && it in 0.0..10.0 }
             ?.let { if (it == 0.0) 0.0 else it },
@@ -17,19 +18,13 @@ internal object HomePresentation {
     )
 
     fun highlights(movies: List<CatalogItem>, series: List<CatalogItem>): List<HomeHighlight> {
-        fun ranked(items: List<CatalogItem>): List<CatalogItem> = items.take(20)
-            .distinctBy { it.providerId }
-            .sortedWith(compareByDescending<CatalogItem> {
-                it.rating?.toDoubleOrNull()?.takeIf { rating -> rating.isFinite() && rating in 0.0..10.0 }
-            }.thenByDescending { it.addedAtEpochSeconds })
-            .take(3)
-        val moviePicks = ranked(movies)
-        val seriesPicks = ranked(series)
-        return buildList {
-            repeat(maxOf(moviePicks.size, seriesPicks.size)) { index ->
-                moviePicks.getOrNull(index)?.let { add(HomeHighlight(CatalogSection.Movies, it)) }
-                seriesPicks.getOrNull(index)?.let { add(HomeHighlight(CatalogSection.Series, it)) }
-            }
-        }
+        return (movies.take(HIGHLIGHT_LIMIT).map { HomeHighlight(CatalogSection.Movies, it) } +
+            series.take(HIGHLIGHT_LIMIT).map { HomeHighlight(CatalogSection.Series, it) })
+            .filter { metadata(it.item).rating != null }
+            .sortedWith(compareByDescending<HomeHighlight> { metadata(it.item).rating }
+                .thenByDescending { it.item.addedAtEpochSeconds }
+                .thenBy { it.section.ordinal }.thenBy { it.item.providerId })
+            .distinctBy { it.section to it.item.providerId }
+            .take(HIGHLIGHT_LIMIT)
     }
 }

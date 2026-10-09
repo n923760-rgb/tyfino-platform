@@ -33,12 +33,23 @@ class HomePresentationTest {
         assertEquals(listOf(CatalogSection.Movies, CatalogSection.Series, CatalogSection.Movies), picks.map { it.section })
     }
 
-    @Test fun malformedRatingsAreLastAndSelectionIsBoundedAndDeterministic() {
+    @Test fun malformedRatingsAreExcludedAndSelectionIsBoundedAndDeterministic() {
         val movies = listOf(item("invalid", "NaN"), item("over", "99"), item("valid", "7"), item("valid", "8"))
         assertEquals("valid", HomePresentation.highlights(movies, emptyList()).first().item.providerId)
-        assertEquals(6, HomePresentation.highlights((1..30).map { item("$it", "8") },
+        assertEquals(listOf("valid"), HomePresentation.highlights(movies, emptyList()).map { it.item.providerId })
+        assertEquals(10, HomePresentation.highlights((1..30).map { item("$it", "8") },
             (1..30).map { item("$it", "7") }).size)
         assertEquals(emptyList<HomeHighlight>(), HomePresentation.highlights(emptyList(), emptyList()))
+    }
+
+    @Test fun ratingOrderIsGlobalRatherThanAlternatingSectionsOrUsingLatestDates() {
+        val oldMovie = item("old-best", "9.9").copy(addedAtEpochSeconds = null)
+        val freshMovie = item("new-lower", "7").copy(addedAtEpochSeconds = 9_999)
+        val series = listOf(item("series", "9"), item("invalid", "Infinity"))
+        assertEquals(listOf("old-best", "series", "new-lower"),
+            HomePresentation.highlights(listOf(freshMovie, oldMovie), series).map { it.item.providerId })
+        assertEquals(listOf("a", "b"), HomePresentation.highlights(
+            listOf(item("b", "8"), item("a", "8")), emptyList()).map { it.item.providerId })
     }
 
     private fun item(id: String, rating: String?) = CatalogItem(id, "category", "Title $id", 0,

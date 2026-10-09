@@ -50,11 +50,82 @@ import dev.tyfino.foundation.xtream.SeriesEpisode
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @RunWith(AndroidJUnit4::class)
 class HomeShowcaseTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun automaticRotationPausesResumesAndStopsWithTheLifecycleWithoutOpeningContent() {
+        val owner = object : LifecycleOwner {
+            val registry = LifecycleRegistry(this)
+            override val lifecycle: Lifecycle get() = registry
+        }
+        compose.runOnIdle { owner.registry.currentState = Lifecycle.State.RESUMED }
+        var opened: CatalogItem? = null
+        val highlights = (0..9).map { HomeHighlight(CatalogSection.Movies, item("$it")) }
+        compose.setContent {
+            CompositionLocalProvider(LocalLifecycleOwner provides owner) {
+                TyfinoTheme { HomeShowcase(highlights, { opened = it }, {}, rotationIntervalMillis = 500L) }
+            }
+        }
+        compose.waitUntil(5_000) {
+            compose.onNodeWithTag("home-featured-title").fetchSemanticsNode().config[
+                androidx.compose.ui.semantics.SemanticsProperties.Text].first().text != "Title 0"
+        }
+        compose.onNodeWithTag("home-showcase-pause").performClick()
+        fun title() = compose.onNodeWithTag("home-featured-title").fetchSemanticsNode().config[
+            androidx.compose.ui.semantics.SemanticsProperties.Text].first().text
+        val paused = title()
+        Thread.sleep(1_100)
+        assertEquals(paused, title())
+        compose.runOnIdle { assertNull(opened) }
+        compose.onNodeWithTag("home-showcase-pause").performClick()
+        compose.waitUntil(5_000) { title() != paused }
+        compose.runOnIdle { owner.registry.currentState = Lifecycle.State.STARTED }
+        val stopped = title()
+        Thread.sleep(1_100)
+        assertEquals(stopped, title())
+        compose.runOnIdle { owner.registry.currentState = Lifecycle.State.RESUMED }
+        compose.waitUntil(5_000) { title() != stopped }
+        compose.onNodeWithTag("home-showcase-pause").performClick()
+        val selectedTitle = title()
+        compose.onNodeWithTag("home-featured-action").performClick()
+        compose.runOnIdle { assertEquals(selectedTitle, opened!!.name) }
+    }
+
+    @Test fun keyboardFocusStopsAutomaticRotationAndManualSelectionKeepsItsExactAction() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        instrumentation.setInTouchMode(false)
+        try {
+            var input: InputModeManager? = null
+            var opened: CatalogItem? = null
+            compose.setContent {
+                input = LocalInputModeManager.current
+                TyfinoTheme { HomeShowcase(listOf(HomeHighlight(CatalogSection.Movies, item("movie")),
+                    HomeHighlight(CatalogSection.Series, item("series"))),
+                    { opened = it }, { opened = it }, rotationIntervalMillis = 500L) }
+            }
+            compose.runOnIdle { assertTrue(input!!.requestInputMode(InputMode.Keyboard)) }
+            compose.onNodeWithTag("home-showcase-previous")
+                .performSemanticsAction(SemanticsActions.RequestFocus) { it() }.assertIsFocused()
+            compose.onNodeWithTag("home-showcase-next").performClick()
+            val selectedTitle = compose.onNodeWithTag("home-featured-title").fetchSemanticsNode().config[
+                androidx.compose.ui.semantics.SemanticsProperties.Text].first().text
+            Thread.sleep(1_100)
+            compose.onNodeWithTag("home-featured-title").assertTextEquals(selectedTitle)
+            compose.runOnIdle { assertNull(opened) }
+            compose.onNodeWithTag("home-featured-action").performClick()
+            compose.runOnIdle { assertEquals(selectedTitle, opened!!.name) }
+        } finally {
+            instrumentation.setInTouchMode(true)
+        }
+    }
 
     @Test fun spotlightMovesBetweenMovieAndSeriesWithoutStartingPlayback() {
         var movie = ""

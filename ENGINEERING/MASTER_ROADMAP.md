@@ -158,6 +158,12 @@ Home order #189 is merged at main@06f37f62caf1d3b33b4b5d8f28c5c10925026ece, tree
 
 Current owner explicitly approves the displayed navy/turquoise cinematic concept. One bounded native presentation implementation aligns shared colors/panels/actions, Home branding/title/action geometry, selected bottom-navigation labels and compact two-column catalog density. Existing details/Settings/TV patterns, functional callbacks, content ordering and state/data owners remain. Update the two affected density oracles to the newly approved policy, retain all103 existing native cases and add one actual Arabic/font2 long-title/callback case (104 expected). Source/local evidence and exact-head qualification belong to [the report](REPORTS/APPROVED_CINEMATIC_DESIGN_2026-10-09.md) and isolated task PR. The generated board is a concept, not runtime or shipped media content; no pixel-perfect/physical/provider/performance/commercial readiness is claimed.
 
+### 2026-10-09 highest-rated Home rotation
+
+Approved design #191 is merged at official mainf9b1555385fabc7cbf3a193dd04189bf8a39cf84, treea25d13dbea31830ba5e97334815f4ae6abb3409b. [Official-main Validate37968908256](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37968908256) passed all seven jobs; no open PRs at this task gate. Earlier next-task notes are historical.
+
+Current explicit owner request: show up to ten highest-rated Movies/Series in Spotlight with automatic rotation, remove only latest Movies and leave the rest unchanged. Read all eligible active opened-category cache rows on IO while retaining only ten candidates per section, then globally rank ten finite provider-rated works. No provider scan/request, schema migration or new state owner. Rotate every seven seconds only while RESUMED; allow pause/resume and stop for showcase keyboard focus/touch exploration. Retain every104 native case and add two rotation/input scenarios and one SQLite ranking/isolation case (107 expected per device), plus ranking/owner unit coverage. [Report](REPORTS/HOME_RATED_CAROUSEL_2026-10-09.md). Exact-source qualification is required before the standing authorized merge; physical/provider/TalkBack/performance and production remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -279,8 +285,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the owner-approved cinematic presentation from main@06f37f62caf1d3b33b4b5d8f28c5c10925026ece. Continued owner implementation and reviewed-merge authority applies.
-Required: complete scoped presentation/callback/focus/ownership review; affected compact-density unit/native oracles and full long-Arabic showcase renderer; all104 native cases each device; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final results on the task PR without a bookkeeping source change invalidating its checks; integrate only after qualification.
+Task: qualify the owner-requested highest-rated Home rotation from main@f9b1555385fabc7cbf3a193dd04189bf8a39cf84. Continued owner implementation and reviewed-merge authority applies.
+Required: complete scoped cache-ranking/callback/focus/lifecycle ownership review; ranking and stale-owner unit tests, SQLite isolation/replacement and actual rotation/pause/lifecycle/keyboard cases; all107 native cases each device; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final results on the task PR without a bookkeeping source change invalidating its checks; integrate only after qualification.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
 Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 
