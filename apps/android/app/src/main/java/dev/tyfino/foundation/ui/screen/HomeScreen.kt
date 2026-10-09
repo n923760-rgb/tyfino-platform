@@ -264,9 +264,6 @@ internal fun HomeScreen(
                     Modifier.focusRequester(initialFocus),
                 )
             }
-            item(contentType = "browse") {
-                HomeBrowseSections(onOpenCatalog = onOpenCatalog)
-            }
             if (history.resumeMovies.isNotEmpty() || history.seriesResume.isNotEmpty()) item(contentType = "continue") {
                 HomeContinueWatching(history.resumeMovies, history.seriesResume,
                     onResumeMovie, onResumeSeries, resumeWidth)
@@ -288,6 +285,9 @@ internal fun HomeScreen(
             if (history.latestSeries.isNotEmpty()) item(contentType = "latest-series") {
                 HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries,
                     "home-latest-series", posterWidth)
+            }
+            item(contentType = "browse") {
+                HomeBrowseSections(onOpenCatalog = onOpenCatalog)
             }
             if (history.live.isNotEmpty()) item(contentType = "recent-live") {
                 HomeRecentStrip(stringResource(R.string.home_recent_live), history.live, onPlayLive,

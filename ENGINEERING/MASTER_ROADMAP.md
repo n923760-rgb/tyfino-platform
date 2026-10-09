@@ -146,6 +146,12 @@ Home ordering #189 retains head70e9fb867baa0ab873590737f59b7594f4ce59b0 and its 
 
 Confirmed workflow concern: pinned Chromium installation has no step deadline and inherits the job's much longer default budget. Add only a15-minute step deadline, preserving the pinned command, browser tests, all seven jobs, source/artifact attribution and failure semantics. This bounds setup rather than claiming a network-root-cause repair. Continued error-correction and reviewed-merge authority applies. [Report](REPORTS/CI_CHROMIUM_PROVISION_TIMEOUT_2026-10-07.md). Exact-source qualification belongs to the task PR; runtime/production gates remain separate.
 
+### 2026-10-09 Home content-order resumption
+
+CI deadline #190 is squash-merged at official main@98cfebad91de3c85e10a8f1cb1b3f72ab71581a6; tree cf619777d2b6d9d12f67e2ad8101d7f63a4692cc equals qualified source7edda7e9e2fcf8a6ce35b1909f5060cab7ac8611. [Validate37670195821](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37670195821) attempt2 passed all seven jobs. The complete failed Admin log located the first failure in apt package-mirror provisioning; one unchanged-source Admin-only retry passed all nine Chromium scenarios. Native103 cases per device and same configured APK API33 installation passed. Official-main [Validate37947443877](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37947443877) is tracked separately on #190. Earlier pending/closed notes remain historical.
+
+Reconcile retained Home #189 against this official baseline without rewriting its published history: keep the identical three-line browsing-item relocation, README alignment and task report, and retain the qualified CI prerequisite. Home now presents showcase → eligible Continue Watching → eligible latest Movies/Series → browsing shortcuts → eligible recent history. All callbacks, conditions, focus/state/data owners and103 native cases remain unchanged. Continued owner implementation and reviewed-merge authority applies. [Report](REPORTS/HOME_CONTENT_ORDER_2026-10-07.md). New exact-source qualification is required; physical/provider/accessibility/performance and production signing/operations remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -267,10 +273,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the Chromium provisioning deadline from main@a125ced5337c5304258f7ee81419817de5e8f97a. Continued error-correction and reviewed-merge authority applies.
-Required: exact one-property workflow diff review; every source/job/test/artifact control retained; six governance validators; all seven exact-source jobs with103 native cases each and same configured APK offline API33 installation/launch. Record source/results on the task PR without a bookkeeping change invalidating its checks.
+Task: qualify the retained Home content-order correction on main@98cfebad91de3c85e10a8f1cb1b3f72ab71581a6, following qualified CI prerequisite #190. Continued owner implementation and reviewed-merge authority applies.
+Required: complete minimal item-order/callback/focus/resource diff review; all103 existing native cases untouched; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final exact-source results on the task PR without a bookkeeping change invalidating its own checks, then deliver the qualified configured owner-test APK.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
-Following gate: recompose the retained Home ordering change on the qualified CI baseline, reopen #189, qualify all seven jobs and integrate it; then owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
+Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 
 ## Linked Reports
 
