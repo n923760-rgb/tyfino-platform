@@ -138,6 +138,14 @@ Live official source: main@62bb365a99a4ab043c032c0325f7ab5831a67c61, including m
 
 Current owner instruction: continue development, fix errors and refine the interface without repeated pauses. Existing reviewed-merge authorization continues within its scope. One coherent presentation round adapts shared Movie/Series headings/posters to available width and font size, and allows Back/Refresh controls to wrap using their measured labels. State, provider, playback, selection, identity and release policies are unchanged. The narrow-title concern is a source/layout inference; no physical baseline failure is asserted. Four focused native scenarios join all 99 prior cases (103 expected per managed device). Local native execution is BLOCKED by unavailable Gradle distribution/Android SDK; authenticated connector access recovered after transient errors and existing Actions will qualify the exact source. [Report](REPORTS/ANDROID_DETAILS_ADAPTIVE_2026-10-07.md). Physical/provider/TalkBack/performance and production qualification remain separate.
 
+### 2026-10-07 Chromium provisioning deadline
+
+Adaptive details #188 is merged at main@a125ced5337c5304258f7ee81419817de5e8f97a, tree2c787ef3e92b1d5554f187f17e5ca9cc494e6921. [Official-main Validate37664582379](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37664582379) passed all seven jobs,103 cases each managed device with zero failures/skips and exact configured APK offline API33 installation/launch.
+
+Home ordering #189 retains head70e9fb867baa0ab873590737f59b7594f4ce59b0 and its isolated branch. [Validate37665154418](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37665154418) passed all six other jobs,103 cases on each device and exact APK API33 installation, but Admin provisioning remained pending for over35 minutes. Its typecheck/build passed; the running log archive returned BlobNotFound, so the internal installation cause is UNKNOWN. #189 is temporarily closed to keep one reviewable PR at a time, pending this separate prerequisite and controlled base/documentation reconciliation.
+
+Confirmed workflow concern: pinned Chromium installation has no step deadline and inherits the job's much longer default budget. Add only a15-minute step deadline, preserving the pinned command, browser tests, all seven jobs, source/artifact attribution and failure semantics. This bounds setup rather than claiming a network-root-cause repair. Continued error-correction and reviewed-merge authority applies. [Report](REPORTS/CI_CHROMIUM_PROVISION_TIMEOUT_2026-10-07.md). Exact-source qualification belongs to the task PR; runtime/production gates remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -259,10 +267,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify adaptive Movie/Series details presentation from main@62bb365a99a4ab043c032c0325f7ab5831a67c61, following merged account-confirmation #187. Continued owner implementation and reviewed-merge authority applies.
-Required: complete scoped callback/focus/resource diff review; all 99 existing native cases untouched plus four actual-renderer layout/font/touch/directional scenarios (103 each); seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final exact-source results on the task PR without a bookkeeping change invalidating its own checks.
+Task: qualify the Chromium provisioning deadline from main@a125ced5337c5304258f7ee81419817de5e8f97a. Continued error-correction and reviewed-merge authority applies.
+Required: exact one-property workflow diff review; every source/job/test/artifact control retained; six governance validators; all seven exact-source jobs with103 native cases each and same configured APK offline API33 installation/launch. Record source/results on the task PR without a bookkeeping change invalidating its checks.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
-Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
+Following gate: recompose the retained Home ordering change on the qualified CI baseline, reopen #189, qualify all seven jobs and integrate it; then owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 
 ## Linked Reports
 

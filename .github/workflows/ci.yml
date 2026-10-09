@@ -195,6 +195,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Install pinned Chromium test tool
+        timeout-minutes: 15
         run: npm exec --yes --package=playwright@1.58.2 -- playwright install --with-deps chromium
       - name: Test modal keyboard behavior in Chromium
         timeout-minutes: 5
