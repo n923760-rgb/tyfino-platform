@@ -27,6 +27,8 @@ Existing cinematic foundation already provides cached showcase/resume shelves, a
 
 No generated board/posters enter app assets. Images remain optional provider artwork from existing bounded loader paths. No new dependencies, requests, automatic carousel, blur/shadow animations, provider scans, persistence, backend/licensing, IDs, SDK/ABI/version/origin/signing/CI changes. The board illustrates direction, not pixel-perfect native geometry, real content availability, screenshots or performance acceptance.
 
+First exact-source Validate37966336167 at6780668832d210e918a8e1b7fd699f6b283047f2 passed debug/release compilation and unit tests, but lint correctly failed on the now-unused home_title and product_home_description resources. The complete causal lint report identified only these two errors; three pre-existing allocation hints are not failures. Remove both obsolete resources from default and Arabic translations after confirming there are no remaining source references. Do not suppress UnusedResources, change its gate, or rerun unchanged source. Native jobs were skipped because their Android dependency failed; new-source qualification is required.
+
 ## Verification plan and evidence boundary
 
 Smallest deterministic checks: full intended diff/whitespace review, exact compact-grid preference change with retained wider thresholds/readability arithmetic, retained callbacks/state owner/loading paths and source/test case counts; static color-pair contrast calculation and six governance validators. Local executed outcomes and frozen source belong to the PR result. Do not claim planned commands as PASS.

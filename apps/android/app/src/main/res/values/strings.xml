@@ -11,7 +11,6 @@
     <string name="catalog_sort_newest">Newest added</string>
     <string name="catalog_sort_rating">Top rated</string>
     <string name="destination_settings">Settings</string>
-    <string name="home_title">What would you like to watch?</string>
     <string name="home_empty_sections">Open a Live, Movies, or Series category to start discovering content here.</string>
     <string name="home_showcase_title">In the spotlight</string>
     <string name="home_showcase_previous">Previous</string>
@@ -226,7 +225,6 @@
     <string name="product_login_eyebrow">CONNECT YOUR CONTENT</string>
     <string name="product_login_help">Use the Xtream connection details supplied by your IPTV provider.</string>
     <string name="product_browse_title">Explore your library</string>
-    <string name="product_home_description">Your channels, movies and series, together in one place.</string>
     <string name="product_license_title">Your app license</string>
     <string name="product_license_plan">License type</string>
     <string name="product_license_trial">7-day trial</string>
