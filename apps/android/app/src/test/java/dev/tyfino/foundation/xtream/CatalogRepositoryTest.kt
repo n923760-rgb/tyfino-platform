@@ -303,6 +303,24 @@ class CatalogRepositoryTest {
         assertEquals(listOf(CatalogState.Loading), states)
     }
 
+    @Test fun topRatedCacheReadRejectsChangedOwnerAndNeverFetchesProvider() = runBlocking {
+        val accounts = FakeAccountStore(account("rated-a", 4))
+        val api = FixedCatalogApi(success("Unused"))
+        val store = FakeCatalogStore().apply {
+            searchable += CatalogItem("rated", "category", "Rated", 0, null, "9", null, null)
+        }
+        val repository = repository(accounts, api, store, 10_000)
+        assertEquals("rated", repository.topRatedCached(CatalogSection.Movies).single().providerId)
+        assertEquals(listOf("rated-a"), store.ratedOwners)
+        store.onRated = { accounts.value = account("rated-a", 5) }
+        assertTrue(repository.topRatedCached(CatalogSection.Movies).isEmpty())
+        store.onRated = { accounts.value = account("rated-b", 1) }
+        assertTrue(repository.topRatedCached(CatalogSection.Series).isEmpty())
+        assertTrue(repository.topRatedCached(CatalogSection.Live).isEmpty())
+        assertTrue(repository.topRatedCached(CatalogSection.Movies, 11).isEmpty())
+        assertEquals(0, api.categoryCalls)
+    }
+
     private fun repository(
         accountStore: FakeAccountStore,
         api: XtreamCatalogApi,
@@ -351,6 +369,13 @@ class CatalogRepositoryTest {
         val searchable = mutableListOf<CatalogItem>()
         val searchCalls = mutableListOf<Triple<String, CatalogSection, String>>()
         var onSearch: () -> Unit = {}
+        val ratedOwners = mutableListOf<String>()
+        var onRated: () -> Unit = {}
+        override fun topRatedCached(accountId: String, section: CatalogSection, limit: Int): List<CatalogItem> {
+            ratedOwners += accountId
+            onRated()
+            return searchable.take(limit)
+        }
         override fun searchItems(accountId: String, section: CatalogSection, query: String, limit: Int): List<CatalogItem> {
             searchCalls += Triple(accountId, section, query)
             onSearch()

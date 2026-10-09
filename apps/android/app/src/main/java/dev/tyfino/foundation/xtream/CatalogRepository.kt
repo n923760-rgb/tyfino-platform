@@ -25,6 +25,8 @@ internal interface CatalogStore {
     /** Only dated items in previously visited categories; never triggers a provider scan. */
     fun latestCachedMovies(accountId: String, limit: Int): List<CatalogItem> = emptyList()
     fun latestCachedSeries(accountId: String, limit: Int): List<CatalogItem> = emptyList()
+    /** Finite provider ratings from active, previously visited category snapshots only. */
+    fun topRatedCached(accountId: String, section: CatalogSection, limit: Int): List<CatalogItem> = emptyList()
     fun monitoredMovieCategories(accountId: String, limit: Int): List<String> = emptyList()
     fun replaceCategories(
         accountId: String,
@@ -134,6 +136,18 @@ internal class CatalogRepository(
                 current?.accountId != account.accountId ||
                 current.generation != account.generation
             ) emptyList() else records
+        }
+    }
+
+    suspend fun topRatedCached(section: CatalogSection, limit: Int = 10): List<CatalogItem> = withContext(Dispatchers.IO) {
+        if (section == CatalogSection.Live || limit !in 1..10) return@withContext emptyList()
+        mutex.withLock {
+            val account = accountStore.load() ?: return@withLock emptyList()
+            val records = runCatching { store.topRatedCached(account.accountId, section, limit) }
+                .getOrElse { return@withLock emptyList() }
+            val current = accountStore.load()
+            if (current?.accountId == account.accountId && current.generation == account.generation) records
+            else emptyList()
         }
     }
 

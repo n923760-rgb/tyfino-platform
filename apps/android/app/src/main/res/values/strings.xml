@@ -15,6 +15,8 @@
     <string name="home_showcase_title">In the spotlight</string>
     <string name="home_showcase_previous">Previous</string>
     <string name="home_showcase_next">Next</string>
+    <string name="home_showcase_pause">Pause automatic rotation</string>
+    <string name="home_showcase_start">Start automatic rotation</string>
     <string name="home_showcase_position">%1$d / %2$d</string>
     <string name="home_showcase_cached">Picks from your opened categories, ranked by available ratings.</string>
     <string name="home_showcase_rating">Provider rating: %1$s / %2$s</string>
@@ -39,7 +41,6 @@
     <string name="playlist_refresh">Refresh subscription information</string>
     <string name="home_featured_details">View details</string>
     <string name="home_recent_live">Recently watched channels</string>
-    <string name="home_latest_movies">Newly added movies</string>
     <string name="home_latest_series">Newly added series</string>
     <string name="new_content_channel">New content</string>
     <string name="new_movies_alert">New movies available</string>

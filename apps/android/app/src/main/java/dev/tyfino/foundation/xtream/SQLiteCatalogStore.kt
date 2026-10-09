@@ -180,6 +180,49 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
         }
     }
 
+    override fun topRatedCached(accountId: String, section: CatalogSection, limit: Int): List<CatalogItem> = synchronized(helper) {
+        require(section != CatalogSection.Live && limit in 1..10)
+        val sql = """SELECT i.$CATEGORY_ID, i.$PROVIDER_ID, i.$DISPLAY_NAME,
+            i.$PROVIDER_ORDER, i.$ARTWORK_URL, i.$RATING, i.$RELEASE_YEAR,
+            i.$CONTAINER_EXTENSION, i.$ADDED_AT
+            FROM $ITEM_TABLE i
+            JOIN $SNAPSHOT_TABLE s ON s.$ACCOUNT_ID = i.$ACCOUNT_ID
+                AND s.$SECTION = i.$SECTION AND s.$CATEGORY_ID = i.$CATEGORY_ID
+                AND s.$GENERATION = i.$GENERATION
+            JOIN $CATEGORY_TABLE c ON c.$ACCOUNT_ID = i.$ACCOUNT_ID
+                AND c.$SECTION = i.$SECTION AND c.$PROVIDER_ID = i.$CATEGORY_ID
+            WHERE i.$ACCOUNT_ID = ? AND i.$SECTION = ? AND i.$RATING IS NOT NULL""".trimIndent()
+        helper.readableDatabase.rawQuery(sql, arrayOf(accountId, section.name)).use { cursor ->
+            // Stream the cache: SQLite CAST accepts malformed text as zero. Rank validated values,
+            // including old/undated works, without materializing every cached row.
+            val ranked = mutableListOf<CatalogItem>()
+            val order = compareByDescending<CatalogItem> { it.rating!!.toDouble() }
+                .thenByDescending { it.addedAtEpochSeconds }.thenBy { it.providerId }.thenBy { it.categoryId }
+            while (cursor.moveToNext()) {
+                val rating = cursor.nullableText(RATING)
+                val score = rating?.toDoubleOrNull()
+                if (score == null || !score.isFinite() || score !in 0.0..10.0) continue
+                val id = cursor.text(PROVIDER_ID)
+                val candidate = CatalogItem(
+                    providerId = id, categoryId = cursor.text(CATEGORY_ID),
+                    name = cursor.text(DISPLAY_NAME), providerOrder = cursor.getInt(cursor.getColumnIndexOrThrow(PROVIDER_ORDER)),
+                    artworkUrl = cursor.nullableText(ARTWORK_URL), rating = rating,
+                    releaseYear = cursor.nullableText(RELEASE_YEAR), containerExtension = cursor.nullableText(CONTAINER_EXTENSION),
+                    addedAtEpochSeconds = cursor.nullableLong(ADDED_AT),
+                )
+                val duplicate = ranked.indexOfFirst { it.providerId == id }
+                if (duplicate >= 0) {
+                    if (order.compare(candidate, ranked[duplicate]) >= 0) continue
+                    ranked.removeAt(duplicate)
+                }
+                ranked.add(candidate)
+                ranked.sortWith(order)
+                if (ranked.size > limit) ranked.removeAt(ranked.lastIndex)
+            }
+            ranked.toList()
+        }
+    }
+
     override fun latestCachedMovies(accountId: String, limit: Int): List<CatalogItem> =
         latestCachedItems(accountId, CatalogSection.Movies, limit)
 

@@ -22,6 +22,8 @@ Later owner request (2026-09-23): opt-in new-content alerts may check a bounded 
 
 Later home-layout request (2026-09-23): show separately the latest added Movies and Series from dated items in active, previously opened category snapshots, followed by recent Live, Series, and Movies history. An undated or uncached item cannot be ranked as newly added. Opening Home does not fetch unvisited categories or scan the provider catalog.
 
+Later explicit owner request (2026-10-09): remove the latest-Movies Home shelf; retain latest Series, Continue Watching, shortcuts and recent history. Spotlight ranks up to ten Movies/Series together using finite provider ratings in0–10 across active, previously opened category snapshots, including old/undated works. Each section streams cached rows off the UI thread and retains at most ten candidates; the merged presentation retains at most ten. No new network request, provider-wide scan, cross-account query, background catalog refresh or persistence schema change is authorized. Seven-second presentation rotation is not network polling or media autoplay; it stops below RESUMED, for keyboard/D-pad focus in the showcase, for touch exploration, on explicit pause or when the showcase leaves composition. Manual navigation and exact-item details callbacks remain.
+
 ### 2.1 In scope
 
 - Three catalog sections: Live TV, Movies, and Series.

@@ -2,6 +2,7 @@ package dev.tyfino.foundation.ui.screen
 
 import android.Manifest
 import android.os.Build
+import android.view.accessibility.AccessibilityManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.focusGroup
@@ -41,9 +42,11 @@ import androidx.compose.material3.Text
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -54,6 +57,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -64,6 +69,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.notifications.NewContentNotifier
@@ -87,13 +93,14 @@ import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.FocusIconButton
 import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.NumberFormat
 import java.util.Locale
 
 private data class HomeHistory(
-    val latestMovies: List<CatalogItem> = emptyList(),
+    val highlights: List<HomeHighlight> = emptyList(),
     val latestSeries: List<CatalogItem> = emptyList(),
     val live: List<CatalogItem> = emptyList(),
     val movies: List<CatalogItem> = emptyList(),
@@ -173,12 +180,13 @@ internal fun HomeScreen(
                 )
                 val series = (episodeResumeRepository.continueWatching() as? EpisodeResumeListResult.Ready)?.items.orEmpty()
                 val seriesHistory = (episodeHistoryRepository.recent() as? EpisodeHistoryListResult.Ready)?.items.orEmpty()
-                val latestMovies = catalogRepository.latestCachedMovies()
+                val ratedMovies = catalogRepository.topRatedCached(CatalogSection.Movies)
+                val ratedSeries = catalogRepository.topRatedCached(CatalogSection.Series)
                 val latestSeries = catalogRepository.latestCachedSeries()
                 val currentOwner = withContext(Dispatchers.IO) { accountStore.load()?.let { it.accountId to it.generation } }
                 if (request == generation && owner == currentOwner) {
                     history = HomeHistory(
-                        latestMovies = latestMovies,
+                        highlights = HomePresentation.highlights(ratedMovies, ratedSeries),
                         latestSeries = latestSeries,
                         live = live.take(8),
                         movies = (movies + movieResume.map { it.catalogItem }).distinctBy { it.providerId }.take(8),
@@ -195,9 +203,7 @@ internal fun HomeScreen(
         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) refresh()
         onDispose { generation++; lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-    val highlights = remember(history.latestMovies, history.latestSeries) {
-        HomePresentation.highlights(history.latestMovies, history.latestSeries)
-    }
+    val highlights = history.highlights
     BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         val expanded = maxWidth >= 840.dp
         val posterWidth = if (expanded) 180.dp else 128.dp
@@ -267,7 +273,7 @@ internal fun HomeScreen(
                 HomeContinueWatching(history.resumeMovies, history.seriesResume,
                     onResumeMovie, onResumeSeries, resumeWidth)
             }
-            if (historyLoaded && history.latestMovies.isEmpty() && history.latestSeries.isEmpty() &&
+            if (historyLoaded && highlights.isEmpty() && history.latestSeries.isEmpty() &&
                 history.live.isEmpty() && history.movies.isEmpty() &&
                 history.seriesHistory.isEmpty() && history.seriesResume.isEmpty()
             ) item(contentType = "empty-content") {
@@ -276,10 +282,6 @@ internal fun HomeScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-            }
-            if (history.latestMovies.isNotEmpty()) item(contentType = "latest-movies") {
-                HomeRecentStrip(stringResource(R.string.home_latest_movies), history.latestMovies, onOpenMovie,
-                    "home-latest-movies", posterWidth)
             }
             if (history.latestSeries.isNotEmpty()) item(contentType = "latest-series") {
                 HomeRecentStrip(stringResource(R.string.home_latest_series), history.latestSeries, onOpenSeries,
@@ -333,11 +335,33 @@ internal fun HomeShowcase(
     onOpenMovie: (CatalogItem) -> Unit,
     onOpenSeries: (CatalogItem) -> Unit,
     modifier: Modifier = Modifier,
+    rotationIntervalMillis: Long = 7_000L,
 ) {
     if (highlights.isEmpty()) return
-    var selected by remember(highlights) { mutableStateOf(0) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val inputMode = LocalInputModeManager.current.inputMode
+    val context = LocalContext.current
+    val accessibility = remember(context) { context.getSystemService(AccessibilityManager::class.java) }
+    var touchExploration by remember(accessibility) { mutableStateOf(accessibility?.isTouchExplorationEnabled == true) }
+    DisposableEffect(accessibility) {
+        val listener = AccessibilityManager.TouchExplorationStateChangeListener { touchExploration = it }
+        accessibility?.addTouchExplorationStateChangeListener(listener)
+        onDispose { accessibility?.removeTouchExplorationStateChangeListener(listener) }
+    }
+    var selected by remember(highlights) { mutableIntStateOf(0) }
+    var paused by remember { mutableStateOf(false) }
+    var hasFocus by remember { mutableStateOf(false) }
+    val canRotate = highlights.size > 1 && !paused && !touchExploration &&
+        !(hasFocus && inputMode == InputMode.Keyboard)
+    LaunchedEffect(highlights, selected, canRotate, lifecycleOwner, rotationIntervalMillis) {
+        if (canRotate) lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            delay(rotationIntervalMillis.coerceAtLeast(500L))
+            selected = (selected + 1) % highlights.size
+        }
+    }
     val current = highlights[selected.coerceIn(highlights.indices)]
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.testTag("home-showcase")) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier
+        .onFocusChanged { hasFocus = it.hasFocus }.focusGroup().testTag("home-showcase")) {
         ProductSectionHeading(stringResource(R.string.home_showcase_title))
         HomeHero(
             if (current.section == CatalogSection.Movies) HomeFeatured.NewMovie(current.item)
@@ -359,6 +383,12 @@ internal fun HomeShowcase(
             FocusVisibleButton(stringResource(R.string.home_showcase_next),
                 { selected = (selected + 1) % highlights.size },
                 prominent = false, modifier = Modifier.weight(1f).testTag("home-showcase-next"))
+            FocusIconButton(
+                icon = if (paused) R.drawable.ic_play else R.drawable.ic_pause,
+                description = stringResource(if (paused) R.string.home_showcase_start else R.string.home_showcase_pause),
+                onClick = { paused = !paused },
+                modifier = Modifier.testTag("home-showcase-pause"),
+            )
         }
         Text(stringResource(R.string.home_showcase_cached), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
