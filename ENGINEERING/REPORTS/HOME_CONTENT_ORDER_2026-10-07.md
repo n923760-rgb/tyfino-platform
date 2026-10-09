@@ -4,8 +4,10 @@ Task ID: android-home-content-order-20261007
 Type: IMPLEMENTATION
 Controller/executor: current authorized engineering session.
 Repository: n923760-rgb/tyfino-platform
-Official branch/base: main@a125ced5337c5304258f7ee81419817de5e8f97a
-Base tree: 2c787ef3e92b1d5554f187f17e5ca9cc494e6921
+Original official branch/base: main@a125ced5337c5304258f7ee81419817de5e8f97a
+Original base tree: 2c787ef3e92b1d5554f187f17e5ca9cc494e6921
+Resumed official base (2026-10-09): main@98cfebad91de3c85e10a8f1cb1b3f72ab71581a6
+Resumed base tree: cf619777d2b6d9d12f67e2ad8101d7f63a4692cc
 Isolated branch/worktree: fix/home-content-order-20261007, tyfino-home-order.
 Report is the task/result record; exact final source/CI/merge/artifact evidence belongs to the task PR to preserve the tested source.
 
@@ -35,3 +37,9 @@ Required changed-source CI: all seven Validate jobs; Android debug/optimized uns
 Local native execution: BLOCKED by the previously established SDK/emulator/Gradle limitations; no local native PASS claimed. Physical LG Velvet/TV/foldable, TalkBack, real-provider/media and performance qualification: NOT RUN in this round.
 
 Next: review and qualify the exact branch, integrate only after required checks pass, verify merged tree identity, then deliver the qualified configured owner-test Debug APK. This is a development artifact; production signing/custody/upgrade continuity and commercial release readiness are not established. productionReady=false.
+
+## 2026-10-09 continuation and controlled composition
+
+Original Home source70e9fb867baa0ab873590737f59b7594f4ce59b0, Validate37665154418, passed six jobs,103 native cases each device and exact APK API33 installation. Chromium provisioning held the seventh job; #189 was temporarily closed to preserve sequencing while separate CI prerequisite #190 was reviewed. The qualified deadline source7edda7e9e2fcf8a6ce35b1909f5060cab7ac8611 passed all seven jobs in Validate37670195821 attempt2 after complete first-failure diagnosis and one unchanged-source Admin-only retry; all nine real browser scenarios passed. The failed attempt located apt package-mirror provisioning as the first causal boundary, not a product assertion. Specific network root cause remains UNKNOWN. #190 merged at98cfebad91de3c85e10a8f1cb1b3f72ab71581a6 with identical qualified tree; official-main Validate37947443877 is tracked on #190.
+
+The resumed Home task merges that verified official base into the retained branch, preserving both histories and the unchanged UI relocation. Only the expected roadmap overlap is reconciled; all CI prerequisite bytes remain identical to official main. New PR diff is still exactly four Home-task files; new source requires all seven jobs again. Original checks are historical, not new-source PASS. Local capabilities reverified: Git/shell/JDK17 and authenticated Actions available; Android SDK/emulator/usable Gradle unavailable. Root instructions, project profile, roadmap, CI contract/workflow, Android README and relevant catalog/account/playback contracts were reread. No new dependency or protected release scope.
