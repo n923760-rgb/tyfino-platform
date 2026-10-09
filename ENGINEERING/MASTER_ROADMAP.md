@@ -152,6 +152,12 @@ CI deadline #190 is squash-merged at official main@98cfebad91de3c85e10a8f1cb1b3f
 
 Reconcile retained Home #189 against this official baseline without rewriting its published history: keep the identical three-line browsing-item relocation, README alignment and task report, and retain the qualified CI prerequisite. Home now presents showcase → eligible Continue Watching → eligible latest Movies/Series → browsing shortcuts → eligible recent history. All callbacks, conditions, focus/state/data owners and103 native cases remain unchanged. Continued owner implementation and reviewed-merge authority applies. [Report](REPORTS/HOME_CONTENT_ORDER_2026-10-07.md). New exact-source qualification is required; physical/provider/accessibility/performance and production signing/operations remain separate.
 
+### 2026-10-09 owner-approved visual concept
+
+Home order #189 is merged at main@06f37f62caf1d3b33b4b5d8f28c5c10925026ece, tree308ce3b347b1097d9011729db9a2e36c002ee8f4. [Official-main Validate37961457475](https://github.com/n923760-rgb/tyfino-platform/actions/runs/37961457475) passed all seven jobs; no open PRs at this task gate. Earlier pending and next-task notes are historical.
+
+Current owner explicitly approves the displayed navy/turquoise cinematic concept. One bounded native presentation implementation aligns shared colors/panels/actions, Home branding/title/action geometry, selected bottom-navigation labels and compact two-column catalog density. Existing details/Settings/TV patterns, functional callbacks, content ordering and state/data owners remain. Update the two affected density oracles to the newly approved policy, retain all103 existing native cases and add one actual Arabic/font2 long-title/callback case (104 expected). Source/local evidence and exact-head qualification belong to [the report](REPORTS/APPROVED_CINEMATIC_DESIGN_2026-10-09.md) and isolated task PR. The generated board is a concept, not runtime or shipped media content; no pixel-perfect/physical/provider/performance/commercial readiness is claimed.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -273,8 +279,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the retained Home content-order correction on main@98cfebad91de3c85e10a8f1cb1b3f72ab71581a6, following qualified CI prerequisite #190. Continued owner implementation and reviewed-merge authority applies.
-Required: complete minimal item-order/callback/focus/resource diff review; all103 existing native cases untouched; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final exact-source results on the task PR without a bookkeeping change invalidating its own checks, then deliver the qualified configured owner-test APK.
+Task: qualify the owner-approved cinematic presentation from main@06f37f62caf1d3b33b4b5d8f28c5c10925026ece. Continued owner implementation and reviewed-merge authority applies.
+Required: complete scoped presentation/callback/focus/ownership review; affected compact-density unit/native oracles and full long-Arabic showcase renderer; all104 native cases each device; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final results on the task PR without a bookkeeping source change invalidating its checks; integrate only after qualification.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
 Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 

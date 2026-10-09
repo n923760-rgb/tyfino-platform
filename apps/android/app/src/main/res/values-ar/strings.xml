@@ -11,7 +11,6 @@
     <string name="catalog_sort_newest">الأحدث إضافة</string>
     <string name="catalog_sort_rating">الأعلى تقييمًا</string>
     <string name="destination_settings">الإعدادات</string>
-    <string name="home_title">ماذا تريد أن تشاهد؟</string>
     <string name="home_empty_sections">افتح قسم القنوات أو الأفلام أو المسلسلات لتظهر لك المحتويات هنا.</string>
     <string name="home_showcase_title">أبرز الأعمال</string>
     <string name="home_showcase_previous">السابق</string>
@@ -226,7 +225,6 @@
     <string name="product_login_eyebrow">أضف محتواك</string>
     <string name="product_login_help">استخدم بيانات اتصال Xtream التي حصلت عليها من مزوّد IPTV.</string>
     <string name="product_browse_title">اكتشف مكتبتك</string>
-    <string name="product_home_description">قنواتك وأفلامك ومسلسلاتك في مكان واحد.</string>
     <string name="product_license_title">ترخيص التطبيق</string>
     <string name="product_license_plan">نوع الترخيص</string>
     <string name="product_license_trial">تجربة مجانية لمدة 7 أيام</string>

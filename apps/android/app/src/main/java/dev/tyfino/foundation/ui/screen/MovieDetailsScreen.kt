@@ -149,7 +149,7 @@ internal fun MovieDetailsContent(
                 FocusVisibleButton(
                     stringResource(if (canResume) R.string.movie_resume else R.string.movie_play),
                     onClick = onPlay,
-                    modifier = Modifier.testTag("movie-play"),
+                    modifier = Modifier.widthIn(max = 1040.dp).fillMaxWidth().testTag("movie-play"),
                 )
             }
         }

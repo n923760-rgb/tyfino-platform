@@ -3,6 +3,7 @@ package dev.tyfino.foundation.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -35,13 +36,13 @@ internal fun FocusVisibleButton(
             color = if (isFocused) {
                 MaterialTheme.colorScheme.onSurface
             } else {
-                MaterialTheme.colorScheme.outline
+                if (prominent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
             },
         ),
-        shape = MaterialTheme.shapes.medium,
+        shape = RoundedCornerShape(50),
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
         colors = if (prominent) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ),
     ) {

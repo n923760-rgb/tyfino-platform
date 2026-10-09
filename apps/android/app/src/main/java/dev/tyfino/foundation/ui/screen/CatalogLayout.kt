@@ -22,7 +22,8 @@ internal fun catalogGridColumns(width: Dp, fontScale: Float = 1f): Int {
         width >= 900.dp -> 6
         width >= 600.dp -> 5
         width >= 480.dp -> 4
-        else -> 3
+        // Owner-approved cinematic concept favors two readable posters on compact phones.
+        else -> 2
     }
     val readableFontScale = if (fontScale.isFinite()) fontScale.coerceAtLeast(1f) else 1f
     val fittingColumns = (

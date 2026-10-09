@@ -6,10 +6,10 @@ import org.junit.Test
 
 class CatalogGridColumnsTest {
     @Test
-    fun portraitPhoneUsesThreeCards() {
-        assertEquals(3, catalogGridColumns(288.dp))
-        assertEquals(3, catalogGridColumns(328.dp))
-        assertEquals(3, catalogGridColumns(479.dp))
+    fun portraitPhoneUsesTwoReadablePosters() {
+        assertEquals(2, catalogGridColumns(288.dp))
+        assertEquals(2, catalogGridColumns(328.dp))
+        assertEquals(2, catalogGridColumns(479.dp))
     }
 
     @Test
@@ -28,12 +28,13 @@ class CatalogGridColumnsTest {
         assertEquals(1, catalogGridColumns(128.dp))
         assertEquals(2, catalogGridColumns(200.dp))
         assertEquals(2, catalogGridColumns(279.dp))
-        assertEquals(3, catalogGridColumns(280.dp))
+        assertEquals(2, catalogGridColumns(280.dp))
     }
 
     @Test
     fun largerFontsReduceDensityAtPhoneAndExpandedWidths() {
         assertEquals(2, catalogGridColumns(328.dp, 1.3f))
+        assertEquals(1, catalogGridColumns(328.dp, 2f))
         assertEquals(3, catalogGridColumns(480.dp, 1.3f))
         assertEquals(4, catalogGridColumns(600.dp, 1.5f))
         assertEquals(4, catalogGridColumns(900.dp, 2f))
@@ -43,7 +44,7 @@ class CatalogGridColumnsTest {
 
     @Test
     fun smallerFontsDoNotIncreaseBaselineDensity() {
-        assertEquals(3, catalogGridColumns(328.dp, 0.85f))
+        assertEquals(2, catalogGridColumns(328.dp, 0.85f))
         assertEquals(6, catalogGridColumns(1440.dp, 0.85f))
     }
 }
