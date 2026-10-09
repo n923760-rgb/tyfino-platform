@@ -73,7 +73,7 @@ internal fun ProductPanel(modifier: Modifier = Modifier, content: @Composable Co
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
         Column(
             Modifier.background(Brush.linearGradient(listOf(
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.24f),
+                MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.35f),
                 MaterialTheme.colorScheme.surfaceContainer,
             ))).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),

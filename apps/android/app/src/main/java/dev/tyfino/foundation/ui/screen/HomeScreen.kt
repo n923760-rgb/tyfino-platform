@@ -57,7 +57,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -217,8 +216,8 @@ internal fun HomeScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ProductHeader(
-                            title = stringResource(R.string.home_title),
-                            subtitle = stringResource(R.string.product_home_description),
+                            title = stringResource(R.string.app_name),
+                            eyebrow = "",
                             modifier = Modifier.weight(1f),
                         )
                         if (newContentNotifier != null) FocusIconButton(
@@ -461,7 +460,7 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
                 }
                 Text(featured.title, style = if (spacious) MaterialTheme.typography.headlineMedium
                     else MaterialTheme.typography.headlineSmall, color = Color.White,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    modifier = Modifier.fillMaxWidth().testTag("home-featured-title"))
                 if (metadata.rating != null || metadata.releaseYear != null) FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -476,7 +475,7 @@ private fun HomeHero(featured: HomeFeatured, onClick: () -> Unit, modifier: Modi
                 FocusVisibleButton(
                     label = stringResource(R.string.home_featured_details),
                     onClick = onClick,
-                    modifier = modifier.testTag("home-featured-action"),
+                    modifier = modifier.fillMaxWidth().testTag("home-featured-action"),
                 )
             }
         }

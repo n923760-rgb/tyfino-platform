@@ -20,6 +20,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -113,13 +114,16 @@ class CatalogLayoutAccessibilityTest {
         }
 
         fun top(id: Int) = compose.onNodeWithTag("tile-$id").fetchSemanticsNode().boundsInRoot.top
-        assertEquals(top(1), top(3), 1f)
-        compose.runOnIdle { fontScale = 1.3f }
         assertEquals(top(1), top(2), 1f)
-        assertTrue("Larger fonts should move the third card to the next row", top(3) > top(1))
+        assertTrue("Compact library should show two posters per row", top(3) > top(1))
+        compose.runOnIdle { fontScale = 2f }
+        assertTrue("200% fonts should move the second card to the next row", top(2) > top(1))
+        compose.onNodeWithTag("catalog-items").performScrollToIndex(2)
         compose.onNodeWithTag("tile-3").assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals(3, lastClicked) }
         compose.runOnIdle { fontScale = 1f }
-        assertEquals(top(1), top(3), 1f)
+        compose.onNodeWithTag("catalog-items").performScrollToIndex(0)
+        assertEquals(top(1), top(2), 1f)
+        assertTrue(top(3) > top(1))
     }
 }

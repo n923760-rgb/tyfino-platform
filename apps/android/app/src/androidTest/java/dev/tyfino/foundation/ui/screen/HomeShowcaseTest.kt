@@ -49,6 +49,8 @@ import dev.tyfino.foundation.playback.SeriesContinueWatchingItem
 import dev.tyfino.foundation.xtream.SeriesEpisode
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import androidx.compose.ui.text.TextLayoutResult
 
 @RunWith(AndroidJUnit4::class)
 class HomeShowcaseTest {
@@ -213,6 +215,38 @@ class HomeShowcaseTest {
         compose.runOnIdle { assertSame(record, resumed); assertEquals(0, movies) }
         compose.onNodeWithTag("home-resume-movie-shared").performClick()
         compose.runOnIdle { assertEquals(1, movies); assertSame(record, resumed) }
+    }
+
+    @Test fun approvedHeroShowsFullArabicTitleAtLargeFontAndKeepsDetailsAction() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val resources = context.createConfigurationContext(Configuration(context.resources.configuration).apply {
+            setLocale(Locale("ar"))
+        }).resources
+        val title = "رحلة إلى المجهول عبر الجبال والبحار بحثا عن الحكاية المفقودة"
+        val featured = item("long-title").copy(name = title)
+        var opened: CatalogItem? = null
+        compose.setContent {
+            CompositionLocalProvider(LocalResources provides resources,
+                LocalLayoutDirection provides LayoutDirection.Rtl,
+                LocalDensity provides Density(context.resources.displayMetrics.density, 2f)) {
+                TyfinoTheme {
+                    Column(Modifier.width(280.dp).verticalScroll(rememberScrollState())) {
+                        HomeShowcase(listOf(HomeHighlight(CatalogSection.Movies, featured)),
+                            onOpenMovie = { opened = it }, onOpenSeries = {})
+                    }
+                }
+            }
+        }
+        compose.onNodeWithTag("home-featured-title").assertTextEquals(title)
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { action ->
+                val results = mutableListOf<TextLayoutResult>()
+                assertTrue(action(results))
+                assertTrue("Long title must wrap beyond the former two-line limit", results.single().lineCount > 2)
+                assertFalse("Full title must not overflow", results.single().hasVisualOverflow)
+            }
+        compose.runOnIdle { assertEquals(null, opened) }
+        compose.onNodeWithTag("home-featured-action").performScrollTo().assertIsDisplayed().performClick()
+        compose.runOnIdle { assertSame(featured, opened) }
     }
 
     private fun item(id: String) = CatalogItem(id, "category", "Title $id", 0,
