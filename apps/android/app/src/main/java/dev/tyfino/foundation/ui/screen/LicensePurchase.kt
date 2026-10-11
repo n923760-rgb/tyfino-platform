@@ -3,7 +3,7 @@ package dev.tyfino.foundation.ui.screen
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,7 +43,7 @@ internal object LicensePurchase {
     const val MESSAGE = "أرغب بشراء كود تفعيل تطبيق TYFINO"
 
     fun intent(): Intent = Intent(Intent.ACTION_VIEW,
-        Uri.parse("https://wa.me/966502085865").buildUpon()
+        "https://wa.me/966502085865".toUri().buildUpon()
             .appendQueryParameter("text", MESSAGE).build())
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
