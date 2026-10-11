@@ -59,6 +59,11 @@
     <string name="settings_user_agent_tyfino">TYFINO (الافتراضي)</string>
     <string name="settings_user_agent_vlc">متوافق مع VLC</string>
     <string name="licensing_title">فعّل TYFINO</string>
+    <string name="license_purchase">شراء التفعيل</string>
+    <string name="license_purchase_description">اطلب كود تفعيل تطبيق TYFINO عبر واتساب. بعد الشراء، ارجع إلى التطبيق وأدخل الكود. التفعيل لا يشمل اشتراك IPTV.</string>
+    <string name="license_purchase_open">فتح واتساب</string>
+    <string name="license_purchase_other_device">تستخدم التلفزيون؟ تواصل مع هذا الرقم عبر واتساب من جوالك، ثم أدخل كود التفعيل على هذا الجهاز.</string>
+    <string name="license_purchase_unavailable">تعذّر فتح واتساب أو المتصفح. تواصل مع الرقم أعلاه من جهاز آخر.</string>
     <string name="licensing_description">ابدأ تجربتك المجانية لمدة 7 أيام أو فعّل التطبيق مباشرة. يبقى حساب IPTV على جهازك فقط.</string>
     <string name="start_trial">ابدأ التجربة المجانية 7 أيام</string>
     <string name="activate_now">التفعيل الآن</string>

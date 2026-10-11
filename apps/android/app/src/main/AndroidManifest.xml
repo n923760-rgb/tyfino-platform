@@ -20,11 +20,11 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:banner="@drawable/tv_banner_tyfino"
-        android:icon="@drawable/ic_app_tyfino"
+        android:icon="@mipmap/ic_launcher_tyfino"
         android:label="@string/app_name"
         android:localeConfig="@xml/locale_config"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:roundIcon="@drawable/ic_app_tyfino"
+        android:roundIcon="@mipmap/ic_launcher_tyfino"
         android:supportsRtl="true"
         android:theme="@style/Theme.Tyfino"
         tools:targetApi="33">

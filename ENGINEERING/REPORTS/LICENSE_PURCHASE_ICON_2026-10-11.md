@@ -1,0 +1,17 @@
+# WhatsApp activation purchase and native icon
+
+Task: license-purchase-icon-20261011. Owner explicitly requests a purchase button and professional app icon, selects WhatsApp, and supplies the sales number. Existing reviewed-merge authority remains applicable after required qualification. No signing, release, production deployment, payment gateway, prices, entitlement policy, package ID or version change is authorized by this task.
+
+Verified baseline: official/main and clean local source86c773da63e9345592fbb687d503bc843a314f32; no open PRs at the source gate. Read root AGENTS, current central reference, profile, roadmap, Android README, licensing/direct-APK contracts and exact-source CI. Native Gradle/SDK/emulator execution is BLOCKED locally; authenticated Actions provides build and native qualification. Single-agent self-review is not independent review.
+
+## Behavior
+
+Choice, activation-entry and failure states expose Buy activation, retaining initial Activate/Trial actions. Checking/Working/Active do not expose contact. A scrollable native dialog displays the owner-approved sales number in LTR, explains app-only licensing/code return and using a phone with TV, and opens the fixed HTTPS wa.me contact request only on explicit action. No automatic message submission occurs. Only generic request text is included; no code, installation/session identity, IPTV data or viewing data is read or attached. Successful external launch closes the dialog; unavailable/denied handlers keep contact visible with an assertive localized explanation. Removing the eligible licensing state disposes dialog state. Existing trial, activation and async owners are unchanged.
+
+Keep the in-app brand as a VectorDrawable. Separate launcher resources provide API24 legacy, API26 adaptive foreground/background and API33 monochrome support. Essential T-and-play artwork lies within the centered66dp safe region of108dp layers. The matching TV banner retains its existing wordmark and launcher declaration. Native SVG [artwork preview](../EVIDENCE/LICENSE_PURCHASE_ICON_2026-10-11.svg) is source artwork, not a device screenshot or pixel-perfect launcher proof.
+
+## Qualification
+
+Retain all107 baseline native cases; add five cases for explicit exact contact intent/no licensing callbacks, unavailable-handler/code preservation, busy-state disposal/failure availability, missing/denied intent handling and native drawable inflation/rendering/themed-layer presence. Expected112 per managed device. No tests send an external WhatsApp message; startActivity is intercepted by a test ContextWrapper.
+
+PASS locally: full scoped source/callback/resource self-review, whitespace, XML parsing and default/Arabic string-key parity, all baseline native files retained with five additions, and six governance validators including adversarial cases. The SVG was rendered with the existing runtime Sharp library and visually inspected; no runtime dependency was added. Native build/unit/lint/device results belong to exact-source CI on the scoped PR. Actual WhatsApp/browser app switching, physical TV navigation, TalkBack and launcher appearance remain NOT RUN; owner acceptance is separate. Existing permanent signing-key custody and external server backups remain open and are not solved by this source feature.
