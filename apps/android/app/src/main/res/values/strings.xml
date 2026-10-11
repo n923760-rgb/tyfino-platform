@@ -59,6 +59,11 @@
     <string name="settings_user_agent_tyfino">TYFINO (default)</string>
     <string name="settings_user_agent_vlc">VLC compatible</string>
     <string name="licensing_title">Unlock TYFINO</string>
+    <string name="license_purchase">Buy activation</string>
+    <string name="license_purchase_description">Request a TYFINO app activation code via WhatsApp. After purchasing, return here and enter your code. An IPTV subscription is not included.</string>
+    <string name="license_purchase_open">Open WhatsApp</string>
+    <string name="license_purchase_other_device">Using a TV? Contact this number from WhatsApp on your phone, then enter the activation code on this device.</string>
+    <string name="license_purchase_unavailable">WhatsApp or a browser could not be opened. Contact the number above from another device.</string>
     <string name="licensing_description">Start your 7-day free trial or activate the app now. Your IPTV account stays only on this device.</string>
     <string name="start_trial">Start 7-Day Free Trial</string>
     <string name="activate_now">Activate Now</string>

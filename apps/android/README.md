@@ -5,6 +5,7 @@ This directory contains the native TYFINO Android client and the licensing, mult
 ## Implemented licensing slice
 
 - Explicit **Start 7-Day Free Trial** and **Activate Now** entry points; opening or installing the app never starts the trial.
+- **Buy activation** is an explicit WhatsApp contact entry on license choice, code entry and failure screens. It displays the owner-approved sales number, offers a fixed generic activation-request message and retains a phone-readable fallback when no external app can open it. Contact does not start a trial, send credentials/codes/device IDs, process payment or grant a license; the existing code activation remains authoritative.
 - Random opaque installation identity and entitlement/session storage encrypted with Android Keystore and excluded from backup.
 - HTTPS-only calls to the approved `/v1/licensing/*` contract, with bounded timeouts, response size, retry count, exponential delay, and jitter.
 - One authoritative operation generation per action so stale network results cannot overwrite newer intent.
@@ -81,7 +82,7 @@ Exact-task/official-main results are recorded on the compatibility PR and [repor
 - Internal source namespace: `dev.tyfino.foundation` (not part of the installed or Play Store identity)
 - App label: `TYFINO`
 - Initial version code/name: `1` / `1.0.0`
-- TYFINO vector icon, Android TV banner, and dark cyan/violet theme
+- Navy/turquoise T-and-play vector mark and matching Android TV banner; a separate launcher resource supports adaptive masks on API26+ and themed monochrome icons on API33+, with an API24 legacy fallback. In-app Compose headers keep their vector resource instead of attempting to load an adaptive drawable as a painter.
 
 The application identity, production licensing endpoint, and Direct APK distribution path are approved and must not be changed after distribution. The protected signing workflow is defined by [`../../docs/android/direct-apk-release-v1.md`](../../docs/android/direct-apk-release-v1.md); key generation, verified backup custody, and release approval remain separate gates.
 

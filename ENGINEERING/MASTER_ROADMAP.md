@@ -164,6 +164,10 @@ Approved design #191 is merged at official mainf9b1555385fabc7cbf3a193dd04189bf8
 
 Current explicit owner request: show up to ten highest-rated Movies/Series in Spotlight with automatic rotation, remove only latest Movies and leave the rest unchanged. Read all eligible active opened-category cache rows on IO while retaining only ten candidates per section, then globally rank ten finite provider-rated works. No provider scan/request, schema migration or new state owner. Rotate every seven seconds only while RESUMED; allow pause/resume and stop for showcase keyboard focus/touch exploration. Retain every104 native case and add two rotation/input scenarios and one SQLite ranking/isolation case (107 expected per device), plus ranking/owner unit coverage. [Report](REPORTS/HOME_RATED_CAROUSEL_2026-10-09.md). Exact-source qualification is required before the standing authorized merge; physical/provider/TalkBack/performance and production remain separate.
 
+### 2026-10-11 WhatsApp purchase and launcher icon
+
+Home rotation #192 is merged at official main86c773da63e9345592fbb687d503bc843a314f32. Official-main Validate37982243531 passed all seven jobs. Current owner explicitly requests a purchase entry and professional icon, chooses WhatsApp and supplies the sales contact. The new bounded Android task adds explicit external contact with a TV-readable fallback, preserves activation-code authority and refreshes native vector/adaptive/themed launcher artwork without changing package/version/signing identity. Five native cases join the unchanged107 (112 expected). [Report](REPORTS/LICENSE_PURCHASE_ICON_2026-10-11.md). Local XML/locale/source and six governance validators PASS; native build/unit/lint/device qualification requires exact-source Actions. Physical app switching/TV/TalkBack and permanent signing-key custody remain separate.
+
 ## 2. Architecture
 
 TYFINO is a multi-surface repository containing:
@@ -285,8 +289,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the owner-requested highest-rated Home rotation from main@f9b1555385fabc7cbf3a193dd04189bf8a39cf84. Continued owner implementation and reviewed-merge authority applies.
-Required: complete scoped cache-ranking/callback/focus/lifecycle ownership review; ranking and stale-owner unit tests, SQLite isolation/replacement and actual rotation/pause/lifecycle/keyboard cases; all107 native cases each device; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final results on the task PR without a bookkeeping source change invalidating its checks; integrate only after qualification.
+Task: qualify the owner-requested WhatsApp purchase entry and native launcher icon from main@86c773da63e9345592fbb687d503bc843a314f32. Continued owner implementation and reviewed-merge authority applies.
+Required: review exact contact intent/privacy boundary, busy-state disposal, unavailable-handler fallback and independent vector/adaptive resources; all112 native cases each device; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final results on the task PR without a bookkeeping source change invalidating its checks; integrate only after qualification.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
 Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 

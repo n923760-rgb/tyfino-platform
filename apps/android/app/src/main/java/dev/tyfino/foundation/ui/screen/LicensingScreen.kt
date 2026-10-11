@@ -30,6 +30,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -56,7 +57,9 @@ internal fun LicensingScreen(
     onBack: () -> Unit,
     onActivate: (String) -> Unit,
     onRetry: () -> Unit,
+    onOpenPurchase: (() -> Boolean)? = null,
 ) {
+    val context = LocalContext.current
     Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).imePadding()
         .padding(horizontal = 16.dp, vertical = 16.dp).testTag("licensing-screen"),
         contentAlignment = Alignment.Center) {
@@ -81,6 +84,10 @@ internal fun LicensingScreen(
                     FailureContent(state, onRetry, onShowActivation)
                 }
                 is LicensingUiState.Active -> Unit
+            }
+            if (state is LicensingUiState.Choice || state is LicensingUiState.ActivationEntry ||
+                state is LicensingUiState.Failure) {
+                LicensePurchaseAction(onOpenPurchase = onOpenPurchase ?: { LicensePurchase.open(context) })
             }
             Text(stringResource(R.string.product_license_scope), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.testTag("license-device-scope"))
