@@ -39,11 +39,11 @@ import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 
 /** An explicit external contact request, never a payment or licensing operation. */
 internal object LicensePurchase {
-    const val PHONE = "+966 50 208 5865"
+    const val PHONE = "+966 50 432 7750"
     const val MESSAGE = "أرغب بشراء كود تفعيل تطبيق TYFINO"
 
     fun intent(): Intent = Intent(Intent.ACTION_VIEW,
-        "https://wa.me/966502085865".toUri().buildUpon()
+        "https://wa.me/966504327750".toUri().buildUpon()
             .appendQueryParameter("text", MESSAGE).build())
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 

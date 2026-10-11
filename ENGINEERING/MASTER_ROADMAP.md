@@ -289,8 +289,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the owner-requested WhatsApp purchase entry and native launcher icon from main@86c773da63e9345592fbb687d503bc843a314f32. Continued owner implementation and reviewed-merge authority applies.
-Required: review exact contact intent/privacy boundary, busy-state disposal, unavailable-handler fallback and independent vector/adaptive resources; all112 native cases each device; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record final results on the task PR without a bookkeeping source change invalidating its checks; integrate only after qualification.
+Task: replace the owner-supplied WhatsApp purchase number with966504327750 from main@0b14ffd91fcf9e6ecd5c420f9f591bfc3ccd886c. Purchase/icon PR #193 is merged; exact-head Validate38117377842 passed all seven jobs and112 cases per device with zero failures/skips plus exact configured APK API33 installation/launch. Continued owner implementation and reviewed-merge authority applies.
+Required: independently pin both displayed phone and wa.me destination; retain all112 native cases and existing behavior; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record replacement-head results on the task PR without a bookkeeping source change invalidating its checks; integrate only after qualification.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
 Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 

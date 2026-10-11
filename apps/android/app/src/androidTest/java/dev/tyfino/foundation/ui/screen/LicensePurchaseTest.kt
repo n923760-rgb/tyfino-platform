@@ -52,7 +52,7 @@ class LicensePurchaseTest {
         } }
         compose.runOnIdle { assertNull(captured); assertEquals(0, licensingActions) }
         compose.onNodeWithTag("purchase-license").performScrollTo().performClick()
-        compose.onNodeWithTag("license-purchase-phone").assertTextEquals(LicensePurchase.PHONE)
+        compose.onNodeWithTag("license-purchase-phone").assertTextEquals("+966 50 432 7750")
         compose.runOnIdle { assertNull(captured) }
         compose.onNodeWithTag("license-purchase-open").performScrollTo().performClick()
         compose.runOnIdle {
@@ -60,7 +60,7 @@ class LicensePurchaseTest {
             assertEquals(Intent.ACTION_VIEW, intent.action)
             assertEquals("https", intent.data?.scheme)
             assertEquals("wa.me", intent.data?.host)
-            assertEquals("/966502085865", intent.data?.path)
+            assertEquals("/966504327750", intent.data?.path)
             assertEquals(setOf("text"), intent.data?.queryParameterNames)
             assertEquals(LicensePurchase.MESSAGE, intent.data?.getQueryParameter("text"))
             assertNull(intent.extras)
