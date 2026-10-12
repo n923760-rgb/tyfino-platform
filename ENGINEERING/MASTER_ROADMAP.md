@@ -289,8 +289,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: replace the owner-supplied WhatsApp purchase number with966504327750 from main@0b14ffd91fcf9e6ecd5c420f9f591bfc3ccd886c. Purchase/icon PR #193 is merged; exact-head Validate38117377842 passed all seven jobs and112 cases per device with zero failures/skips plus exact configured APK API33 installation/launch. Continued owner implementation and reviewed-merge authority applies.
-Required: independently pin both displayed phone and wa.me destination; retain all112 native cases and existing behavior; seven exact-source jobs, Android build/unit/lint and same configured APK offline API33 installation/launch. Record replacement-head results on the task PR without a bookkeeping source change invalidating its checks; integrate only after qualification.
+Task: qualify the existing audio/subtitle picker viewport and directional-input improvement from main@fa142e3965562a0d1acd3ffa1675e80b883ac5e8. Contact replacement #194 is merged; official-main Validate38120065539 PASS. Continued owner implementation and reviewed-merge authority applies. Report: [player track dialog](REPORTS/PLAYER_TRACK_DIALOG_2026-10-12.md).
+Required: actual280x320dp Dialog touch/directional checks, actual production Arabic/font2 renderer, retained selection semantics/callbacks and all112 baseline native cases (115 expected each device); seven exact-source jobs, build/unit/lint and same configured APK offline API33 installation/launch. Record exact-head results on the task PR without invalidating qualification with a bookkeeping source change; integrate only after qualification.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
 Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 

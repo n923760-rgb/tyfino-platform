@@ -1,0 +1,13 @@
+# Player track dialog viewport and directional input
+
+Owner requests continued TYFINO improvements after reviewing open-source IPTV ideas. Scope: the existing native audio/subtitle picker; no third-party code/assets were copied. Existing standing owner reviewed-merge authority applies after exact-source qualification. No signing, release, Downloader publication or production deployment is authorized in this round.
+
+Verified official base: fa142e3965562a0d1acd3ffa1675e80b883ac5e8, no open PRs. Official-main Validate38120065539 PASS. Read root AGENTS, central reference, profile, roadmap, Android README, playback contract, existing picker/accessibility/viewport tests and CI. Git/Bash/JDK17 and authenticated GitHub API/Actions available; local Android SDK/Gradle/emulators BLOCKED. Single-agent self-review is not independent review.
+
+Source finding: the previous picker had a fixed-padding non-scrollable outer Column with title, up-to360dp LazyColumn and Close underneath; short windows/large headings could exhaust space before Close. Initial focus was requested from an effect outside the Dialog's native-window composition. No baseline device reproduction is claimed.
+
+Correction: preserve the real Dialog, PlayerView controls, all track labels/selection semantics and callbacks. Bound content to520dp width/680dp height and make the full outer content scrollable; the existing lazy track list stays bounded to360dp. Request Automatic focus through the established window-aware helper inside Dialog; focus alone never selects a track. Extract the exact production content renderer for honest Arabic font-scale qualification without pretending outer Dialog density is retained. No media engine, lifecycle, account owner, network, storage, resume, retry, credentials, package/version, ABI, endpoint, icon or contact change.
+
+Retain all112 prior native cases. Three new cases (115 expected per device): actual native Dialog constrained to280x320dp with touch Close/no track callback; actual-window directional Automatic→Off→Close with Enter-only callbacks; actual production content at280x320dp with Arabic/font2, selected Off semantics, measured Text layout density and positive outer scrolling. No test sends provider traffic or claims physical TV/media behavior.
+
+PASS locally: scoped source/callback review, whitespace and all six governance validators including adversarial fixtures. Native build/unit/lint/managed-device and exact configured APK API33 results belong to the exact task PR. Physical TV, TalkBack, actual provider/audio/subtitle switching, LG/OEM and performance remain NOT RUN. Broader player controls/EPG/customization/update ideas stay separate tasks and release gates remain open.

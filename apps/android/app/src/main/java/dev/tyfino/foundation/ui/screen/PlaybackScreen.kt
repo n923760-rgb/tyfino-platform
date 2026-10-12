@@ -12,6 +12,8 @@ import android.net.Network
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,6 +89,7 @@ import dev.tyfino.foundation.playback.XtreamPlaybackReferenceBuilder
 import dev.tyfino.foundation.ui.components.ProductHeader
 import dev.tyfino.foundation.ui.components.ProductPanel
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.ui.components.FocusIconButton
 import dev.tyfino.foundation.xtream.CatalogSection
 import dev.tyfino.foundation.xtream.LiveEpgDestination
@@ -820,82 +823,104 @@ internal fun TrackPickerDialog(
     onTrack: (EmbeddedTrackOption) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val firstFocus = remember { FocusRequester() }
-    val selectedSuffix = stringResource(R.string.playback_selected)
     Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 520.dp),
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = 8.dp,
+        val firstFocus = rememberInitialFocusRequester()
+        TrackPickerContent(title, options, automaticSelected, includeOff, offSelected,
+            noTracksMessage, firstFocus, onAutomatic, onOff, onTrack, onDismiss)
+    }
+}
+
+@Composable
+internal fun TrackPickerContent(
+    title: String,
+    options: List<EmbeddedTrackOption>,
+    automaticSelected: Boolean,
+    includeOff: Boolean,
+    offSelected: Boolean,
+    noTracksMessage: String,
+    firstFocus: FocusRequester,
+    onAutomatic: () -> Unit,
+    onOff: () -> Unit,
+    onTrack: (EmbeddedTrackOption) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val selectedSuffix = stringResource(R.string.playback_selected)
+    Surface(
+        modifier = Modifier
+            .widthIn(max = 520.dp)
+            .fillMaxWidth()
+            .heightIn(max = 680.dp)
+            .testTag("track-picker"),
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 8.dp,
+    ) {
+        Column(
+            modifier = Modifier.verticalScroll(rememberScrollState())
+                .testTag("track-picker-scroll").padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ProductHeader(title = title, eyebrow = stringResource(R.string.product_player_options))
+            LazyColumn(
+                modifier = Modifier.heightIn(max = 360.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                ProductHeader(title = title, eyebrow = stringResource(R.string.product_player_options))
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 360.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+                item {
+                    FocusVisibleButton(
+                        label = selectionLabel(
+                            stringResource(R.string.playback_automatic),
+                            automaticSelected,
+                            selectedSuffix,
+                        ),
+                        onClick = onAutomatic,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { selected = automaticSelected }
+                            .focusRequester(firstFocus)
+                            .testTag("track-picker-automatic"),
+                    )
+                }
+                if (includeOff) {
                     item {
                         FocusVisibleButton(
                             label = selectionLabel(
-                                stringResource(R.string.playback_automatic),
-                                automaticSelected,
+                                stringResource(R.string.playback_off),
+                                offSelected,
                                 selectedSuffix,
                             ),
-                            onClick = onAutomatic,
+                            onClick = onOff,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .semantics { selected = automaticSelected }
-                                .focusRequester(firstFocus),
+                                .semantics { selected = offSelected }
+                                .testTag("track-picker-off"),
                         )
-                    }
-                    if (includeOff) {
-                        item {
-                            FocusVisibleButton(
-                                label = selectionLabel(
-                                    stringResource(R.string.playback_off),
-                                    offSelected,
-                                    selectedSuffix,
-                                ),
-                                onClick = onOff,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .semantics { selected = offSelected },
-                            )
-                        }
-                    }
-                    itemsIndexed(options) { _, option ->
-                        FocusVisibleButton(
-                            label = selectionLabel(option.label, option.selected, selectedSuffix),
-                            onClick = { onTrack(option) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .semantics { selected = option.selected },
-                        )
-                    }
-                    if (options.isEmpty()) {
-                        item {
-                            Text(
-                                text = noTracksMessage,
-                                modifier = Modifier.padding(vertical = 12.dp),
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
                     }
                 }
-                FocusVisibleButton(
-                    label = stringResource(R.string.playback_close),
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                itemsIndexed(options) { _, option ->
+                    FocusVisibleButton(
+                        label = selectionLabel(option.label, option.selected, selectedSuffix),
+                        onClick = { onTrack(option) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { selected = option.selected },
+                    )
+                }
+                if (options.isEmpty()) {
+                    item {
+                        Text(
+                            text = noTracksMessage,
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+                }
             }
+            FocusVisibleButton(
+                label = stringResource(R.string.playback_close),
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth().testTag("track-picker-close"),
+            )
         }
     }
-    LaunchedEffect(Unit) { firstFocus.requestFocus() }
 }
 
 private fun createPlayer(

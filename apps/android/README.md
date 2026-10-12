@@ -117,6 +117,8 @@ Settings presents account actions first, the active provider subscription summar
 
 ## TV and D-pad focus scope
 
+The existing embedded audio/subtitle picker bounds and scrolls its entire content so its heading, options and Close remain reachable in short windows or with larger text. Automatic receives initial focus only after the actual Dialog window is ready; selection semantics and explicit Media3 track callbacks are unchanged. Native viewport/directional/Arabic qualification is recorded in the [track dialog report](../../ENGINEERING/REPORTS/PLAYER_TRACK_DIALOG_2026-10-12.md); physical TV/TalkBack/media acceptance is separate.
+
 Primary screens request a deterministic first focus target after attachment. Navigation destinations, horizontal content rails, season selectors, and adaptive catalog grids are focus groups so directional input visits related controls coherently; buttons and cards retain a visible focus border. Managed-device tests assert representative Settings, Movie details, and Series details entry targets. This is emulator evidence only: physical Android TV/Google TV traversal, overscan, Back behavior, playback controls, RTL, accessibility, and performance qualification remains `BLOCKED` until recorded under the device-qualification contract.
 
 ## Cached search scope
