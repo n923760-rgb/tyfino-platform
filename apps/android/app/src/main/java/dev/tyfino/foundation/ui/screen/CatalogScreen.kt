@@ -49,6 +49,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -99,6 +100,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.NumberFormat
 
 @Composable
 internal fun CatalogScreen(
@@ -281,6 +283,7 @@ internal fun CatalogScreen(
             onAll = { favoritesOnly = false; historyOnly = false },
             onFavorites = { favoritesOnly = true; historyOnly = false },
             onHistory = { historyOnly = true; favoritesOnly = false },
+            favoriteCount = (favoritesState as? FavoritesListResult.Ready)?.items?.size,
         )
         CatalogSearchField(
             value = searchText,
@@ -355,9 +358,19 @@ internal fun CatalogScreen(
             }
         } else if (favoritesOnly) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                if (favoritesState == FavoritesListResult.Failure) CatalogEmptyState(R.string.catalog_favorite_error)
-                else if (favoriteItems.isEmpty()) CatalogEmptyState(R.string.catalog_favorites_empty)
-                else ItemGrid(favoriteItems, section, onPlay, favoriteIds, toggleFavorite)
+                when (val result = favoritesState) {
+                    null -> if (favoritesRepository == null) CatalogEmptyState(R.string.catalog_favorite_error)
+                        else CatalogStatusPane { CatalogLoadingState() }
+                    FavoritesListResult.Failure -> CatalogEmptyState(R.string.catalog_favorite_error)
+                    is FavoritesListResult.Ready -> if (result.items.isEmpty()) {
+                        CatalogFavoritesEmptyState(onBrowse = {
+                            favoritesOnly = false
+                            historyOnly = false
+                            searchText = ""
+                            searchResult = null
+                        })
+                    } else ItemGrid(result.items, section, onPlay, favoriteIds, toggleFavorite)
+                }
             }
         } else {
         CatalogBrowsePane(
@@ -537,7 +550,12 @@ internal fun CatalogFilterTabs(
     onAll: () -> Unit,
     onFavorites: () -> Unit,
     onHistory: () -> Unit,
+    favoriteCount: Int? = null,
 ) {
+    val locale = LocalResources.current.configuration.locales[0]
+    val countLabel = favoriteCount?.takeIf { it >= 0 }?.let {
+        NumberFormat.getIntegerInstance(locale).format(it)
+    }
     LazyRow(
         modifier = Modifier.fillMaxWidth().focusGroup().testTag("catalog-filters"),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -552,7 +570,8 @@ internal fun CatalogFilterTabs(
         }
         item {
             CatalogFilterButton(
-                label = stringResource(R.string.catalog_favorites_only),
+                label = if (countLabel == null) stringResource(R.string.catalog_favorites_only)
+                    else stringResource(R.string.catalog_favorites_count, countLabel),
                 selected = favoritesOnly,
                 onClick = onFavorites,
                 modifier = Modifier.testTag("catalog-favorites-filter"),

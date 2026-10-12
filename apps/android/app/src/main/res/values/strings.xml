@@ -201,6 +201,9 @@
     <string name="catalog_search_empty">No matches in downloaded categories.</string>
     <string name="catalog_search_limit">Showing the first 50 matches.</string>
     <string name="catalog_favorites_only">Favorites</string>
+    <string name="catalog_favorites_count">Favorites (%1$s)</string>
+    <string name="catalog_favorites_help">Open a category, then choose the heart on a card to add it here. Favorites are separate for each IPTV account.</string>
+    <string name="catalog_favorites_browse">Browse items</string>
     <string name="catalog_show_all">All items</string>
     <string name="catalog_favorites_empty">No favorites in downloaded categories.</string>
     <string name="catalog_favorite_add">Add %1$s to favorites</string>
