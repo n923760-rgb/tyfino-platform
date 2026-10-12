@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="playback_picture_size">أبعاد الصورة</string>
+    <string name="playback_picture_fit">احتواء — عرض الصورة كاملة</string>
+    <string name="playback_picture_zoom">تكبير — قص الأطراف</string>
+    <string name="playback_picture_stretch">تمديد — ملء الشاشة</string>
     <string name="app_name">TYFINO</string>
     <string name="navigation_browse">المشاهدة</string>
     <string name="navigation_preferences">التفضيلات</string>

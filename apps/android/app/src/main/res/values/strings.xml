@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="playback_picture_size">Picture size</string>
+    <string name="playback_picture_fit">Fit — show the full picture</string>
+    <string name="playback_picture_zoom">Zoom — crop the edges</string>
+    <string name="playback_picture_stretch">Stretch — fill the screen</string>
     <string name="app_name">TYFINO</string>
     <string name="navigation_browse">Browse</string>
     <string name="navigation_preferences">Preferences</string>

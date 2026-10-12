@@ -2,7 +2,6 @@
 
 package dev.tyfino.foundation.ui.screen
 
-import android.graphics.Color
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,7 +54,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -67,8 +66,6 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
-import androidx.media3.ui.AspectRatioFrameLayout
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.playback.EpisodePlaybackSelection
 import dev.tyfino.foundation.playback.EpisodeResumeLoadResult
@@ -344,6 +341,7 @@ private fun PlayerSurface(
     var subtitleAutomatic by remember { mutableStateOf(true) }
     var subtitlesDisabled by remember { mutableStateOf(false) }
     var activeMenu by remember { mutableStateOf<TrackMenu?>(null) }
+    var aspectMode by rememberPlaybackAspectMode(selection)
     var epgVisible by remember(selection) { mutableStateOf(false) }
     var epgState by remember(selection) { mutableStateOf<LiveEpgState>(LiveEpgState.Loading) }
     var epgDestination by remember(selection) { mutableStateOf<LiveEpgDestination?>(null) }
@@ -675,19 +673,7 @@ private fun PlayerSurface(
             .background(ComposeColor.Black)
             .testTag("playback-screen"),
     ) {
-        AndroidView(
-            factory = { viewContext ->
-                PlayerView(viewContext).apply {
-                    setBackgroundColor(Color.BLACK)
-                    useController = true
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                    controllerAutoShow = true
-                    setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
-                }
-            },
-            update = { view -> view.player = player },
-            modifier = Modifier.fillMaxSize(),
-        )
+        PlaybackVideoView(player, aspectMode, Modifier.fillMaxSize())
         Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -718,12 +704,15 @@ private fun PlayerSurface(
             }
         }
         if (player != null && !playbackFailed) {
-            Row(
+            FlowRow(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
+                    .widthIn(max = 400.dp)
+                    .fillMaxWidth()
                     .padding(WindowInsets.safeDrawing.asPaddingValues())
                     .padding(top = 68.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (previousLiveAvailable) {
                     FocusIconButton(
@@ -753,6 +742,7 @@ private fun PlayerSurface(
                     onClick = { activeMenu = TrackMenu.Subtitles },
                     modifier = Modifier.testTag("playback-subtitles"),
                 )
+                PlaybackAspectAction(aspectMode) { activeMenu = TrackMenu.Picture }
             }
         }
         if (player == null && !playbackFailed) {
@@ -782,6 +772,9 @@ private fun PlayerSurface(
     }
 
     when (activeMenu) {
+        TrackMenu.Picture -> PlaybackAspectDialog(aspectMode,
+            onSelect = { aspectMode = it; activeMenu = null },
+            onDismiss = { activeMenu = null })
         TrackMenu.Audio -> TrackPickerDialog(
             title = stringResource(R.string.playback_audio),
             options = audioTracks,
@@ -1024,6 +1017,7 @@ private data class PlaybackProgressSnapshot(
 private enum class TrackMenu {
     Audio,
     Subtitles,
+    Picture,
 }
 
 @Composable
