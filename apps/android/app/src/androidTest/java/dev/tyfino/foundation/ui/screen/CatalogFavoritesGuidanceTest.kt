@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.ui.screen
 
 import android.content.res.Configuration
+import android.view.View
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -10,9 +11,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
@@ -79,12 +84,21 @@ class CatalogFavoritesGuidanceTest {
 
     @Test fun shortEmptyPanelRequiresExplicitEnterToBrowse() {
         var browsed = 0
-        compose.setContent { TyfinoTheme { Box(Modifier.width(280.dp).height(200.dp)) {
-            CatalogFavoritesEmptyState { browsed++ }
-        } } }
+        var host: View? = null
+        var input: InputModeManager? = null
+        compose.setContent {
+            host = LocalView.current
+            input = LocalInputModeManager.current
+            TyfinoTheme { Box(Modifier.width(280.dp).height(200.dp)) {
+                CatalogFavoritesEmptyState { browsed++ }
+            } }
+        }
         val browse = compose.onNodeWithTag("catalog-favorites-browse")
         browse.performScrollTo().assertIsDisplayed()
-            .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+        compose.waitUntil(5_000) { compose.runOnIdle { host?.hasWindowFocus() == true } }
+        compose.runOnIdle { assertTrue(input!!.requestInputMode(InputMode.Keyboard)) }
+        compose.waitUntil(5_000) { compose.runOnIdle { input?.inputMode == InputMode.Keyboard } }
+        browse.performSemanticsAction(SemanticsActions.RequestFocus) { it() }
         browse.assertIsFocused()
         assertScroll()
         compose.runOnIdle { assertEquals(0, browsed) }
