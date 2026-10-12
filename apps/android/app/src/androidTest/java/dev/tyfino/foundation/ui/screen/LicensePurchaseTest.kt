@@ -20,6 +20,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.espresso.Espresso
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.licensing.LicensingUiState
@@ -79,7 +80,12 @@ class LicensePurchaseTest {
                 onOpenPurchase = { attempts++; false })
         } }
         compose.onNodeWithTag("activation-code").performScrollTo().performTextInput("TYFINO-TEST")
-        compose.onNodeWithTag("purchase-license").performScrollTo().performClick()
+        // Finish native IME interaction before scrolling/clicking a different window's trigger.
+        // Compose idleness alone does not settle the platform keyboard/inset animation on API35.
+        Espresso.closeSoftKeyboard()
+        compose.onNodeWithTag("activation-code").assertTextContains("TYFINO-TEST")
+        compose.onNodeWithTag("purchase-license").performScrollTo().assertIsDisplayed().performClick()
+        compose.onNodeWithTag("license-purchase-dialog").assertIsDisplayed()
         compose.onNodeWithTag("license-purchase-open").performScrollTo().performClick()
         compose.onNodeWithTag("license-purchase-unavailable").performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("license-purchase-phone").performScrollTo().assertTextEquals(LicensePurchase.PHONE)

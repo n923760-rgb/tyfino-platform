@@ -289,8 +289,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: qualify the existing audio/subtitle picker viewport and directional-input improvement from main@fa142e3965562a0d1acd3ffa1675e80b883ac5e8. Contact replacement #194 is merged; official-main Validate38120065539 PASS. Continued owner implementation and reviewed-merge authority applies. Report: [player track dialog](REPORTS/PLAYER_TRACK_DIALOG_2026-10-12.md).
-Required: actual280x320dp Dialog touch/directional checks, actual production Arabic/font2 renderer, retained selection semantics/callbacks and all112 baseline native cases (115 expected each device); seven exact-source jobs, build/unit/lint and same configured APK offline API33 installation/launch. Record exact-head results on the task PR without invalidating qualification with a bookkeeping source change; integrate only after qualification.
+Task: qualify owner-approved Picture size controls from main@8d3401dc55424adb97da4691202f088469dc6a2f. Track-dialog #195 is merged; official-main Validate38230203393 PASS. Continued owner implementation and reviewed-merge authority applies. Report: [player picture size](REPORTS/PLAYER_ASPECT_2026-10-12.md).
+Required: same native Player/view reference and synthetic frame geometry across Fit/Zoom/Stretch; directional selection/Back/current-choice focus; owner reset; actual Arabic/font2 content renderer; retain all115 baseline native cases (119 expected each device); seven exact-source jobs, build/unit/lint and same configured APK offline API33 installation/launch. Record final exact-head results on the task PR without a bookkeeping source change invalidating checks; integrate only after qualification.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
 Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 
