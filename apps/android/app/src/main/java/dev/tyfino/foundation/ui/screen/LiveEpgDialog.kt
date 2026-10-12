@@ -11,12 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.xtream.LiveEpgProgram
 import dev.tyfino.foundation.xtream.LiveEpgState
 import java.text.DateFormat
@@ -47,7 +49,18 @@ internal fun LiveEpgDialog(
     onRefresh: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val firstFocus = remember { FocusRequester() }
+    Dialog(onDismissRequest = onDismiss) {
+        LiveEpgContent(state, rememberInitialFocusRequester(), onRefresh, onDismiss)
+    }
+}
+
+@Composable
+internal fun LiveEpgContent(
+    state: LiveEpgState,
+    firstFocus: FocusRequester,
+    onRefresh: () -> Unit,
+    onDismiss: () -> Unit,
+) {
     val locale = LocalConfiguration.current.locales[0]
     val timeFormat = remember(locale) { DateFormat.getTimeInstance(DateFormat.SHORT, locale) }
     val now = System.currentTimeMillis()
@@ -58,87 +71,86 @@ internal fun LiveEpgDialog(
     }
     val current = programs.firstOrNull { it.startEpochMillis <= now && it.endEpochMillis > now }
     val next = programs.firstOrNull { it.startEpochMillis > now }
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            modifier = Modifier.fillMaxWidth().widthIn(max = 620.dp).testTag("live-epg-dialog"),
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = 8.dp,
+    Surface(
+        modifier = Modifier.widthIn(max = 620.dp).fillMaxWidth()
+            .heightIn(max = 680.dp).testTag("live-epg-dialog"),
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 8.dp,
+    ) {
+        Column(
+            modifier = Modifier.verticalScroll(rememberScrollState())
+                .testTag("live-epg-scroll").padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
+            Text(stringResource(R.string.epg_title), style = MaterialTheme.typography.headlineSmall)
+            LazyColumn(
+                modifier = Modifier.heightIn(max = 400.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(stringResource(R.string.epg_title), style = MaterialTheme.typography.headlineSmall)
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 400.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    when (state) {
-                        LiveEpgState.Loading -> item {
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                CircularProgressIndicator()
-                                EpgLoadingStatus()
-                            }
-                        }
-                        is LiveEpgState.Error -> item {
-                            Text(
-                                text = stringResource(R.string.epg_error),
-                                modifier = Modifier
-                                    .semantics { liveRegion = LiveRegionMode.Assertive }
-                                    .testTag("epg-error"),
-                            )
-                        }
-                        is LiveEpgState.Empty -> item {
-                            Text(
-                                text = stringResource(R.string.epg_empty),
-                                modifier = Modifier
-                                    .semantics { liveRegion = LiveRegionMode.Polite }
-                                    .testTag("epg-empty"),
-                            )
-                        }
-                        is LiveEpgState.Stale -> item {
-                            Text(
-                                text = stringResource(R.string.epg_stale),
-                                modifier = Modifier
-                                    .semantics { liveRegion = LiveRegionMode.Assertive }
-                                    .testTag("epg-stale"),
-                            )
-                        }
-                        is LiveEpgState.Content -> if (state.refreshing) item {
+                when (state) {
+                    LiveEpgState.Loading -> item {
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            CircularProgressIndicator()
                             EpgLoadingStatus()
                         }
                     }
-                    if (programs.isNotEmpty()) {
-                        item {
-                            Text(stringResource(R.string.epg_current), style = MaterialTheme.typography.titleMedium)
-                            Text(current?.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_no_current))
-                        }
-                        item {
-                            Text(stringResource(R.string.epg_next), style = MaterialTheme.typography.titleMedium)
-                            Text(next?.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_no_next))
-                        }
-                        item { Text(stringResource(R.string.epg_schedule), style = MaterialTheme.typography.titleMedium) }
-                        itemsIndexed(programs) { index, program ->
-                            EpgProgramRow(index, program, timeFormat)
-                        }
-                    } else if (state is LiveEpgState.Stale) {
-                        item { Text(stringResource(R.string.epg_empty)) }
+                    is LiveEpgState.Error -> item {
+                        Text(
+                            text = stringResource(R.string.epg_error),
+                            modifier = Modifier
+                                .semantics { liveRegion = LiveRegionMode.Assertive }
+                                .testTag("epg-error"),
+                        )
+                    }
+                    is LiveEpgState.Empty -> item {
+                        Text(
+                            text = stringResource(R.string.epg_empty),
+                            modifier = Modifier
+                                .semantics { liveRegion = LiveRegionMode.Polite }
+                                .testTag("epg-empty"),
+                        )
+                    }
+                    is LiveEpgState.Stale -> item {
+                        Text(
+                            text = stringResource(R.string.epg_stale),
+                            modifier = Modifier
+                                .semantics { liveRegion = LiveRegionMode.Assertive }
+                                .testTag("epg-stale"),
+                        )
+                    }
+                    is LiveEpgState.Content -> if (state.refreshing) item {
+                        EpgLoadingStatus()
                     }
                 }
-                FocusVisibleButton(
-                    label = stringResource(R.string.epg_refresh),
-                    onClick = onRefresh,
-                    modifier = Modifier.fillMaxWidth().focusRequester(firstFocus).testTag("epg-refresh"),
-                )
-                FocusVisibleButton(
-                    label = stringResource(R.string.playback_close),
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                if (programs.isNotEmpty()) {
+                    item {
+                        Text(stringResource(R.string.epg_current), style = MaterialTheme.typography.titleMedium)
+                        Text(current?.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_no_current))
+                    }
+                    item {
+                        Text(stringResource(R.string.epg_next), style = MaterialTheme.typography.titleMedium)
+                        Text(next?.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_no_next))
+                    }
+                    item { Text(stringResource(R.string.epg_schedule), style = MaterialTheme.typography.titleMedium) }
+                    itemsIndexed(programs) { index, program ->
+                        EpgProgramRow(index, program, timeFormat)
+                    }
+                } else if (state is LiveEpgState.Stale) {
+                    item { Text(stringResource(R.string.epg_empty)) }
+                }
             }
+            FocusVisibleButton(
+                label = stringResource(R.string.epg_refresh),
+                onClick = onRefresh,
+                modifier = Modifier.fillMaxWidth().focusRequester(firstFocus).testTag("epg-refresh"),
+            )
+            FocusVisibleButton(
+                label = stringResource(R.string.playback_close),
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth().testTag("epg-close"),
+            )
         }
     }
-    LaunchedEffect(Unit) { firstFocus.requestFocus() }
 }
 
 @Composable

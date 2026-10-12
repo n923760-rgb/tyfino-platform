@@ -153,6 +153,8 @@ Settings offers two bounded provider User-Agent presets: `TYFINO/<versionName> (
 
 ## Live EPG scope
 
+The guide bounds its native dialog to620dp width/680dp height and scrolls the complete content, keeping Refresh and Close reachable when the400dp lazy schedule leaves little space. Initial directional focus is requested inside the attached Dialog window, not its parent. Current/next selection, schedule rows, state announcements, refresh/dismiss callbacks and cache/network ownership are unchanged. See [EPG viewport report](../../ENGINEERING/REPORTS/LIVE_EPG_VIEWPORT_2026-10-12.md); physical/provider/accessibility acceptance remains separate.
+
 The player opens the selected Live channel's program guide only when requested. A direct per-channel provider request updates an account-owned, bounded cache; playback does not wait for guide data. The dialog shows current/next programs and a lazy schedule with localized loading, empty, stale, and error states. Closing it or changing channels invalidates older results, and account removal clears the EPG cache. Physical TV D-pad, RTL, accessibility, media, and performance qualification remains BLOCKED until recorded under the device-qualification contract.
 
 ## Catalog refresh ownership
