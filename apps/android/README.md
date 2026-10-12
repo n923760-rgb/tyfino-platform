@@ -125,6 +125,8 @@ Primary screens request a deterministic first focus target after attachment. Nav
 
 ## Cached search scope
 
+The category strip/sidebar keeps its existing layout and adds an explicit Choose a category action for a nonempty published list. Its bounded native dialog shows the same provider order lazily, starts its list viewport at the current category and retains selected semantics. Close receives initial focus inside the actual dialog; header/Close remain outside the list, which yields space in shorter windows. Closing or moving focus never selects; explicit selection closes the picker and uses the same category callback. It is not category search, bulk loading, sorting or hiding. See [category picker report](../../ENGINEERING/REPORTS/CATEGORY_PICKER_2026-10-12.md); physical/provider qualification remains separate.
+
 Each Live, Movies, and Series destination searches only the active account's already-downloaded category snapshots. The search is local (no network fetch or background full-catalog synchronization), starts after two characters and a short debounce, and shows at most 50 matches. The UI states this limitation. Provider-wide search remains deferred.
 
 ## Favorites scope

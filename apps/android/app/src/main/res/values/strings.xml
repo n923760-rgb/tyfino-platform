@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="catalog_category_picker">Choose a category</string>
     <string name="playback_picture_size">Picture size</string>
     <string name="playback_picture_fit">Fit — show the full picture</string>
     <string name="playback_picture_zoom">Zoom — crop the edges</string>
