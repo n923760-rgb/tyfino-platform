@@ -201,6 +201,9 @@
     <string name="catalog_search_empty">لا توجد نتائج في التصنيفات المحمّلة.</string>
     <string name="catalog_search_limit">تُعرض أول ٥٠ نتيجة.</string>
     <string name="catalog_favorites_only">المفضلة</string>
+    <string name="catalog_favorites_count">المفضلة (%1$s)</string>
+    <string name="catalog_favorites_help">افتح أحد الأقسام، ثم اختر علامة القلب على البطاقة لإضافتها هنا. لكل حساب IPTV مفضلته المستقلة.</string>
+    <string name="catalog_favorites_browse">تصفح العناصر</string>
     <string name="catalog_show_all">كل العناصر</string>
     <string name="catalog_favorites_empty">لا توجد عناصر مفضلة ضمن التصنيفات المحمّلة.</string>
     <string name="catalog_favorite_add">إضافة %1$s إلى المفضلة</string>
