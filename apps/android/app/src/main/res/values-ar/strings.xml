@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="catalog_category_picker">اختيار القسم</string>
     <string name="playback_picture_size">أبعاد الصورة</string>
     <string name="playback_picture_fit">احتواء — عرض الصورة كاملة</string>
     <string name="playback_picture_zoom">تكبير — قص الأطراف</string>

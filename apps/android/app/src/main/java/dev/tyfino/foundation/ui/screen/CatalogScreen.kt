@@ -659,6 +659,17 @@ private fun CategoryStrip(
     modifier: Modifier = Modifier,
     vertical: Boolean = false,
 ) {
+    val pickerRecords = when (state) {
+        is CatalogState.Content -> state.records
+        is CatalogState.StaleContent -> state.records
+        else -> emptyList()
+    }
+    var pickerVisible by remember(pickerRecords.isNotEmpty()) { mutableStateOf(false) }
+    if (pickerVisible && pickerRecords.isNotEmpty()) {
+        CatalogCategoryPickerDialog(pickerRecords, selectedCategoryId,
+            onSelect = { category -> pickerVisible = false; onSelect(category) },
+            onDismiss = { pickerVisible = false })
+    }
     Column(
         modifier = if (vertical) modifier
             .clip(RoundedCornerShape(16.dp))
@@ -666,12 +677,17 @@ private fun CategoryStrip(
             .padding(12.dp) else modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        if (vertical) Text(
-            text = stringResource(R.string.catalog_categories_title),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.semantics { heading() },
-        )
+        if (vertical || pickerRecords.isNotEmpty()) Row(Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.catalog_categories_title),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f).semantics { heading() })
+            if (pickerRecords.isNotEmpty()) FocusIconButton(R.drawable.ic_category_picker,
+                stringResource(R.string.catalog_category_picker), { pickerVisible = true },
+                Modifier.testTag("catalog-category-picker-open"))
+        }
         when (state) {
             CatalogState.Empty, CatalogState.Loading -> CatalogLoadingState()
             is CatalogState.Error -> CatalogErrorPanel(state.failure, onRetry)
