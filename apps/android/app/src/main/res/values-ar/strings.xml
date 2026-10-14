@@ -4,6 +4,7 @@
     <string name="catalog_category_search">بحث في الأقسام</string>
     <string name="catalog_category_search_close">مسح بحث الأقسام وإغلاقه</string>
     <string name="catalog_category_search_empty">لا توجد أقسام مطابقة</string>
+    <string name="catalog_category_search_count">الأقسام المطابقة: %1$d</string>
     <string name="playback_picture_size">أبعاد الصورة</string>
     <string name="playback_picture_fit">احتواء — عرض الصورة كاملة</string>
     <string name="playback_picture_zoom">تكبير — قص الأطراف</string>
