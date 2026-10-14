@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="settings_app_info">About the app</string>
+    <string name="settings_app_version">Version %1$s (build %2$d)</string>
+    <string name="settings_app_development">Development build for testing, not customer distribution.</string>
     <string name="catalog_category_picker">Choose a category</string>
     <string name="catalog_category_search">Search categories</string>
     <string name="catalog_category_search_close">Clear and close category search</string>

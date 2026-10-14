@@ -23,6 +23,9 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -30,6 +33,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.ui.theme.TyfinoTheme
+import dev.tyfino.foundation.BuildConfig
+import dev.tyfino.foundation.R
 import dev.tyfino.foundation.xtream.ProviderUserAgent
 import dev.tyfino.foundation.xtream.ProviderUserAgentPreset
 import java.util.Locale
@@ -44,6 +49,56 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class SettingsScreenTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun actualSettingsExposeCurrentBuildWithoutInvokingAccountActions() {
+        var requests = 0
+        val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
+        compose.setContent { TyfinoTheme { Box(Modifier.width(280.dp).height(320.dp)) {
+            SettingsScreen({ requests++ }, { requests++ })
+        } } }
+        compose.onNodeWithTag("settings-app-info-heading").performScrollTo().assertIsDisplayed()
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Heading, Unit))
+        compose.onNodeWithTag("settings-app-version").performScrollTo().assertIsDisplayed()
+            .assertTextEquals(resources.getString(R.string.settings_app_version,
+                BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE))
+        compose.onNodeWithTag("settings-app-development").performScrollTo().assertIsDisplayed()
+            .assertTextEquals(resources.getString(R.string.settings_app_development))
+        compose.runOnIdle { assertEquals(0, requests) }
+    }
+
+    @Test fun arabicFontTwoSettingsKeepBuildInformationReachableAndUseActualTextDensity() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val resources = context.createConfigurationContext(Configuration(context.resources.configuration)
+            .apply { setLocale(Locale.forLanguageTag("ar")) }).resources
+        compose.setContent {
+            CompositionLocalProvider(LocalResources provides resources,
+                LocalLayoutDirection provides LayoutDirection.Rtl,
+                LocalDensity provides Density(LocalDensity.current.density, 2f)) {
+                TyfinoTheme { Box(Modifier.width(280.dp).height(320.dp)) {
+                    SettingsScreen({}, {})
+                } }
+            }
+        }
+        compose.onNodeWithTag("settings-app-info-heading").performScrollTo().assertIsDisplayed()
+            .assertTextEquals(resources.getString(R.string.settings_app_info))
+        compose.onNodeWithTag("settings-app-version").performScrollTo().assertIsDisplayed()
+            .assertTextEquals(resources.getString(R.string.settings_app_version,
+                BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE))
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { action ->
+                val layouts = mutableListOf<TextLayoutResult>()
+                assertTrue(action(layouts))
+                assertEquals(2f, layouts.single().layoutInput.density.fontScale, 0f)
+            }
+        compose.onNodeWithTag("settings-app-development").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test fun nonDebugPresentationOmitsDevelopmentNoticeWithoutClaimingReleaseQualification() {
+        val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
+        compose.setContent { TyfinoTheme { SettingsAppInfo("2.0.0", 42, development = false) } }
+        compose.onNodeWithTag("settings-app-version")
+            .assertTextEquals(resources.getString(R.string.settings_app_version, "2.0.0", 42))
+        compose.onNodeWithTag("settings-app-development").assertDoesNotExist()
+    }
 
     @Before
     fun useDpadInputMode() {

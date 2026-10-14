@@ -111,6 +111,7 @@ internal fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth().testTag("settings-user-agent-vlc"),
                     )
                 }
+                SettingsAppInfo()
             }
         }
     }
