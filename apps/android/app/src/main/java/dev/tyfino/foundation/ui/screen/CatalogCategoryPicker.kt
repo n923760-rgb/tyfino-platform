@@ -93,7 +93,7 @@ internal fun CatalogCategoryPickerContent(
                 modifier = Modifier.semantics { heading() })
             if (visible == null) Text(stringResource(R.string.catalog_loading))
             else if (visible.isEmpty()) Text(stringResource(R.string.catalog_category_search_empty))
-            else key(categories, query) {
+            else key(query) {
                 val initialIndex = if (query.isBlank()) visible.indexOfFirst {
                     it.providerId == selectedCategoryId
                 }.coerceAtLeast(0) else 0
