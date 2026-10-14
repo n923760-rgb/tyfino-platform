@@ -129,6 +129,8 @@ The category strip/sidebar keeps its existing layout and adds an explicit Choose
 
 The picker now offers explicit local name search over that published category list only. Search replaces the heading with an editable field rather than adding another controls row. Input is bounded to80 Unicode code points; trimmed case-insensitive matching runs on Default and retains provider order/IDs, without network, persistence, sorting or bulk loading. Each query/snapshot has a distinct presentation state cell, preventing older results from entering a replacement; account/section shell ownership remains unchanged. Clear/close search restores the current-category viewport. No match retains explicit Close; searching never chooses or opens a category. [Search report](../../ENGINEERING/REPORTS/CATEGORY_SEARCH_2026-10-14.md).
 
+The search field also exposes localized current-result count/loading/no-match state with polite live-region semantics, without an additional visible row or input target. Native filtered Enter/Back and Arabic/font2 short-pane qualification are recorded in [input review](../../ENGINEERING/REPORTS/CATEGORY_SEARCH_INPUT_REVIEW_2026-10-14.md). Actual physical TV/OEM keyboard and audible TalkBack behavior remain separate acceptance gates.
+
 Each Live, Movies, and Series destination searches only the active account's already-downloaded category snapshots. The search is local (no network fetch or background full-catalog synchronization), starts after two characters and a short debounce, and shows at most 50 matches. The UI states this limitation. Provider-wide search remains deferred.
 
 ## Favorites scope

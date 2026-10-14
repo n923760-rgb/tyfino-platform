@@ -23,11 +23,16 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performKeyInput
@@ -213,6 +218,100 @@ class CatalogCategoryPickerTest {
         }
         compose.onNodeWithTag("catalog-category-picker-close").assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals(1, closed); assertEquals(replacement, chosen) }
+    }
+
+    @Test fun filteredNativeDialogUsesRealDpadEnterWithoutImplicitSelection() {
+        var chosen: CatalogCategory? = null
+        compose.setContent {
+            var visible by remember { mutableStateOf(true) }
+            TyfinoTheme { if (visible) CatalogCategoryPickerDialog(categories, null,
+                { chosen = it; visible = false }, { visible = false }) }
+        }
+        constrainWindow()
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
+        compose.onNodeWithTag("catalog-category-picker-query").performTextReplacement("Category 39")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        waitForOption("Category 39")
+        compose.onNodeWithTag("catalog-category-picker-option-0")
+            .performSemanticsAction(SemanticsActions.RequestFocus) { it() }.assertIsFocused()
+        compose.runOnIdle { assertEquals(null, chosen) }
+        compose.onNodeWithTag("catalog-category-picker-option-0").performKeyInput { pressKey(Key.Enter) }
+        compose.onNodeWithTag("catalog-category-picker").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(categories[39], chosen) }
+    }
+
+    @Test fun nativeBackDismissesFilteredDialogWithoutChoosingOrChangingCategory() {
+        var chosen: CatalogCategory? = null
+        var closed = 0
+        compose.setContent {
+            var visible by remember { mutableStateOf(true) }
+            TyfinoTheme { if (visible) CatalogCategoryPickerDialog(categories, categories[30].providerId,
+                { chosen = it }, { closed++; visible = false }) }
+        }
+        constrainWindow()
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
+        compose.onNodeWithTag("catalog-category-picker-query").performTextReplacement("Category 39")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        waitForOption("Category 39")
+        compose.onNodeWithTag("catalog-category-picker-close")
+            .performSemanticsAction(SemanticsActions.RequestFocus) { it() }.assertIsFocused()
+        androidx.test.espresso.Espresso.pressBack()
+        compose.onNodeWithTag("catalog-category-picker").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(null, chosen); assertEquals(1, closed) }
+    }
+
+    @Test fun arabicSearchAtFontTwoKeepsSelectionAndNoMatchCloseReachableWithExactStatus() {
+        val context = instrumentation.targetContext
+        val resources = context.createConfigurationContext(Configuration(context.resources.configuration)
+            .apply { setLocale(Locale.forLanguageTag("ar")) }).resources
+        val records = listOf(CatalogCategory("films", "أفلام عربية", 0),
+            CatalogCategory("news", "قنوات إخبارية", 1))
+        var chosen: CatalogCategory? = null
+        var closed = 0
+        compose.setContent {
+            CompositionLocalProvider(LocalResources provides resources,
+                LocalLayoutDirection provides LayoutDirection.Rtl,
+                LocalDensity provides Density(LocalDensity.current.density, 2f)) {
+                TyfinoTheme { Box(Modifier.width(280.dp).height(320.dp)) {
+                    CatalogCategoryPickerContent(records, null, remember { FocusRequester() },
+                        { chosen = it }, { closed++ })
+                } }
+            }
+        }
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
+        compose.onNodeWithTag("catalog-category-picker-query").performTextReplacement("أفلام")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        waitForOption(records[0].name)
+        compose.onNodeWithTag("catalog-category-picker-query")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription,
+                resources.getString(R.string.catalog_category_search_count, 1)))
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite))
+        compose.onNodeWithText(resources.getString(R.string.catalog_category_search), useUnmergedTree = true)
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { action ->
+                val layouts = mutableListOf<TextLayoutResult>()
+                assertTrue(action(layouts))
+                assertEquals(2f, layouts.single().layoutInput.density.fontScale, 0f)
+            }
+        compose.onNodeWithTag("catalog-category-picker-option-0").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(records[0], chosen) }
+        compose.onNodeWithTag("catalog-category-picker-query").performTextReplacement("غير موجود")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        val empty = resources.getString(R.string.catalog_category_search_empty)
+        compose.waitUntil(5_000) { compose.onAllNodes(hasText(empty)).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("catalog-category-picker-query")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, empty))
+        val pane = compose.onNodeWithTag("catalog-category-picker").fetchSemanticsNode().boundsInRoot
+        val close = compose.onNodeWithTag("catalog-category-picker-close").fetchSemanticsNode().boundsInRoot
+        assertTrue("Close must be fully inside the short pane", close.top >= pane.top && close.bottom <= pane.bottom + 1f)
+        compose.onNodeWithTag("catalog-category-picker-close").assertIsDisplayed().performTouchInput { click() }
+        compose.runOnIdle { assertEquals(1, closed); assertEquals(records[0], chosen) }
+    }
+
+    private fun waitForOption(name: String) {
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(hasTestTag("catalog-category-picker-option-0") and hasText(name))
+                .fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     private fun constrainWindow() {

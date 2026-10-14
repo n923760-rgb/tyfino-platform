@@ -4,6 +4,7 @@
     <string name="catalog_category_search">Search categories</string>
     <string name="catalog_category_search_close">Clear and close category search</string>
     <string name="catalog_category_search_empty">No matching categories</string>
+    <string name="catalog_category_search_count">Matching categories: %1$d</string>
     <string name="playback_picture_size">Picture size</string>
     <string name="playback_picture_fit">Fit — show the full picture</string>
     <string name="playback_picture_zoom">Zoom — crop the edges</string>

@@ -32,6 +32,9 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -76,6 +79,11 @@ internal fun CatalogCategoryPickerContent(
         }
     }
     val visible = if (query.isBlank()) categories else matches
+    val searchStatus = when {
+        visible == null -> stringResource(R.string.catalog_loading)
+        visible.isEmpty() -> stringResource(R.string.catalog_category_search_empty)
+        else -> stringResource(R.string.catalog_category_search_count, visible.size)
+    }
     val keyboard = LocalSoftwareKeyboardController.current
     Surface(Modifier.widthIn(max = 620.dp).fillMaxWidth().heightIn(max = 680.dp)
         .testTag("catalog-category-picker"), shape = MaterialTheme.shapes.large,
@@ -84,6 +92,7 @@ internal fun CatalogCategoryPickerContent(
             if (searching) {
                 OutlinedTextField(query, { query = boundCategoryPickerQuery(it) },
                     Modifier.fillMaxWidth().focusRequester(rememberInitialFocusRequester())
+                        .semantics { stateDescription = searchStatus; liveRegion = LiveRegionMode.Polite }
                         .testTag("catalog-category-picker-query"),
                     label = { Text(stringResource(R.string.catalog_category_search)) },
                     singleLine = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
