@@ -27,6 +27,9 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performSemanticsAction
@@ -147,6 +150,69 @@ class CatalogCategoryPickerTest {
         assertTrue(range.value() > 0f)
         compose.onNodeWithTag("catalog-category-picker-close").performClick()
         compose.runOnIdle { assertEquals(records[5], chosen); assertEquals(1, closed) }
+    }
+
+    @Test fun nativeSearchFiltersWithoutSelectionAndClearRestoresCurrentCategory() {
+        var chosen: CatalogCategory? = null
+        compose.setContent { TyfinoTheme {
+            CatalogCategoryPickerDialog(categories, categories[30].providerId, { chosen = it }, {})
+        } }
+        constrainWindow()
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
+        compose.onNodeWithTag("catalog-category-picker-query").performTextReplacement("Category 39")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(hasTestTag("catalog-category-picker-option-0") and hasText("Category 39"))
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("catalog-category-picker-option-0").assertIsDisplayed()
+        compose.runOnIdle { assertEquals(null, chosen) }
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
+        compose.onNodeWithTag("catalog-category-picker-query").assertDoesNotExist()
+        compose.onNodeWithTag("catalog-category-picker-option-30").assertIsSelected().assertIsDisplayed()
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
+        compose.onNodeWithTag("catalog-category-picker-query").performTextReplacement("Category 39")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(hasTestTag("catalog-category-picker-option-0") and hasText("Category 39"))
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("catalog-category-picker-option-0").performClick()
+        compose.runOnIdle { assertEquals(categories[39], chosen) }
+    }
+
+    @Test fun searchSnapshotReplacementNeverOffersOldCategoryAndNoMatchKeepsClose() {
+        var records by mutableStateOf(categories)
+        var chosen: CatalogCategory? = null
+        var closed = 0
+        compose.setContent { TyfinoTheme { Box(Modifier.width(280.dp).height(320.dp)) {
+            CatalogCategoryPickerContent(records, null, remember { FocusRequester() },
+                { chosen = it }, { closed++ })
+        } } }
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
+        compose.onNodeWithTag("catalog-category-picker-query").performTextReplacement("Category 39")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(hasTestTag("catalog-category-picker-option-0") and hasText("Category 39"))
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        val replacement = CatalogCategory("new-owner", "Category 39 replacement", 0)
+        compose.runOnIdle { records = listOf(replacement) }
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(hasTestTag("catalog-category-picker-option-0") and hasText(replacement.name))
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNode(hasTestTag("catalog-category-picker-option-0") and hasText("Category 39")).assertDoesNotExist()
+        compose.onNodeWithTag("catalog-category-picker-option-0").performClick()
+        compose.runOnIdle { assertEquals(replacement, chosen) }
+        compose.onNodeWithTag("catalog-category-picker-query").performTextReplacement("not present")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(hasText(instrumentation.targetContext.getString(R.string.catalog_category_search_empty)))
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("catalog-category-picker-close").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(1, closed); assertEquals(replacement, chosen) }
     }
 
     private fun constrainWindow() {
