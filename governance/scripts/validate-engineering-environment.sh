@@ -27,6 +27,7 @@ java_distribution="$(jq -r '.toolchains.java.distribution' "$manifest")"
 gradle_version="$(jq -r '.toolchains.gradle.version' "$manifest")"
 gradle_sha="$(jq -r '.toolchains.gradle.distribution_sha256' "$manifest")"
 postgres_image="$(jq -r '.toolchains.postgres.image' "$manifest")"
+runner_selector="$(jq -r '.external_environment.github_runner_image.selector' "$manifest")"
 compile_sdk="$(jq -r '.toolchains.android.compile_sdk' "$manifest")"
 target_sdk="$(jq -r '.toolchains.android.target_sdk' "$manifest")"
 min_sdk="$(jq -r '.toolchains.android.min_sdk' "$manifest")"
@@ -44,6 +45,8 @@ node_stage_count="$(grep -Ec "^FROM ${node_image}([[:space:]]|$)" apps/api/Docke
 
 grep -Fq "image: $postgres_image" docker-compose.yml   || fail "docker-compose.yml PostgreSQL image does not match $postgres_image"
 grep -Fq "image: $postgres_image" .github/workflows/ci.yml   || fail "CI PostgreSQL image does not match $postgres_image"
+runner_definitions="$(grep -Fxc "    runs-on: $runner_selector" .github/workflows/ci.yml || true)"
+[[ "$runner_definitions" -eq 6 ]] || fail "All six Validate job definitions must match runner selector $runner_selector"
 
 grep -Fq "gradle-${gradle_version}-bin.zip" apps/android/gradle/wrapper/gradle-wrapper.properties   || fail "Gradle wrapper version does not match $gradle_version"
 grep -Fq "distributionSha256Sum=$gradle_sha" apps/android/gradle/wrapper/gradle-wrapper.properties   || fail "Gradle wrapper distribution SHA-256 does not match the manifest"
