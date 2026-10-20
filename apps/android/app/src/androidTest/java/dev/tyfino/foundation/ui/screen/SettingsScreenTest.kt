@@ -6,10 +6,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -23,6 +31,8 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.text.TextLayoutResult
@@ -49,6 +59,48 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class SettingsScreenTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun dpadReachesReadOnlyBuildFactsInShortArabicSettingsAtBothFontSizes() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val resources = context.createConfigurationContext(Configuration(context.resources.configuration)
+            .apply { setLocale(Locale.forLanguageTag("ar")) }).resources
+        val store = ProviderUserAgent(context)
+        val original = store.selected()
+        var fontScale by mutableStateOf(1f)
+        var callbacks = 0
+        lateinit var view: android.view.View
+        lateinit var input: InputModeManager
+        compose.setContent {
+            view = LocalView.current
+            input = LocalInputModeManager.current
+            CompositionLocalProvider(LocalResources provides resources,
+                LocalLayoutDirection provides LayoutDirection.Rtl,
+                LocalDensity provides Density(LocalDensity.current.density, fontScale)) {
+                TyfinoTheme { Box(Modifier.width(280.dp).height(320.dp)) {
+                    SettingsScreen({ callbacks++ }, { callbacks++ })
+                } }
+            }
+        }
+        compose.waitUntil(5_000) { compose.runOnIdle { view.hasWindowFocus() } }
+        compose.runOnIdle { assertTrue(input.requestInputMode(InputMode.Keyboard)) }
+        compose.waitUntil(5_000) { compose.runOnIdle { input.inputMode == InputMode.Keyboard } }
+        for (scale in listOf(1f, 2f)) {
+            compose.runOnIdle { fontScale = scale }
+            compose.onNodeWithTag("settings-user-agent-vlc").performScrollTo()
+                .performSemanticsAction(SemanticsActions.RequestFocus) { it() }.assertIsFocused()
+                .performKeyInput { pressKey(Key.DirectionDown) }
+            compose.onNodeWithTag("settings-app-version").assertIsFocused().assertIsDisplayed()
+                .performKeyInput { pressKey(Key.Enter); pressKey(Key.DirectionDown) }
+            compose.onNodeWithTag("settings-app-development").assertIsFocused().assertIsDisplayed()
+                .performKeyInput { pressKey(Key.Enter); pressKey(Key.DirectionUp) }
+            compose.onNodeWithTag("settings-app-version").assertIsFocused().assertIsDisplayed()
+            for (tag in listOf("settings-app-version", "settings-app-development")) {
+                val semantics = compose.onNodeWithTag(tag).fetchSemanticsNode().config
+                assertTrue("read-only text must not expose a click action", !semantics.contains(SemanticsActions.OnClick))
+            }
+            compose.runOnIdle { assertEquals(0, callbacks); assertEquals(original, store.selected()) }
+        }
+    }
 
     @Test fun actualSettingsExposeCurrentBuildWithoutInvokingAccountActions() {
         var requests = 0
