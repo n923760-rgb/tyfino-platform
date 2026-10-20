@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   deployment-config:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,7 +72,7 @@ jobs:
           ' /tmp/tyfino-compose.json
 
   api:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:16-alpine
@@ -171,7 +171,7 @@ jobs:
         run: npm run build
 
   admin:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: apps/admin
@@ -202,7 +202,7 @@ jobs:
         run: npm exec --yes --package=playwright@1.58.2 -- node tests/modal-dialog.browser.mjs
 
   database-backup-restore:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:16-alpine
@@ -235,6 +235,15 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify exact source SHA
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Select PostgreSQL 16 client tools
+        run: |
+          client_bin=/usr/lib/postgresql/16/bin
+          for tool in psql pg_dump pg_restore createdb dropdb; do
+            test -x "$client_bin/$tool"
+          done
+          "$client_bin/pg_dump" --version
+          "$client_bin/pg_restore" --version
+          echo "$client_bin" >> "$GITHUB_PATH"
       - name: Initialize representative database
         run: |
           psql "$DATABASE_URL" --set=ON_ERROR_STOP=1 --file=database/init/001_schema.sql
@@ -259,7 +268,7 @@ jobs:
         run: database/scripts/verify-backup-restore.sh "$BACKUP_FILE"
 
   android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: apps/android
@@ -348,7 +357,7 @@ jobs:
   android-instrumentation:
     needs: android
     name: android-instrumentation (${{ matrix.device }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
