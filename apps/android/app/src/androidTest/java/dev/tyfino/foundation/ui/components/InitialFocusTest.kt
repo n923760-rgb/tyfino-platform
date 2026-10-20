@@ -7,12 +7,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.InputModeManager
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -34,6 +36,7 @@ class InitialFocusTest {
         var mounted by mutableStateOf(false)
         lateinit var host: View
         lateinit var input: InputModeManager
+        val transitions = mutableListOf<String>()
         compose.setContent {
             host = LocalView.current
             input = LocalInputModeManager.current
@@ -43,8 +46,10 @@ class InitialFocusTest {
                     FocusVisibleButton("Host", {}, Modifier.testTag("initial-host"))
                     if (mounted) {
                         val first = rememberInitialFocusRequester()
-                        FocusVisibleButton("First", {}, Modifier.testTag("initial-first").focusRequester(first))
-                        FocusVisibleButton("Second", {}, Modifier.testTag("initial-second"))
+                        FocusVisibleButton("First", {}, Modifier.testTag("initial-first").focusRequester(first)
+                            .onFocusChanged { transitions += "first=${it.isFocused}@${compose.mainClock.currentTime}" })
+                        FocusVisibleButton("Second", {}, Modifier.testTag("initial-second")
+                            .onFocusChanged { transitions += "second=${it.isFocused}@${compose.mainClock.currentTime}" })
                     }
                 }
             }
@@ -61,13 +66,20 @@ class InitialFocusTest {
             compose.mainClock.advanceTimeByFrame()
             compose.mainClock.advanceTimeByFrame()
             compose.onNodeWithTag("initial-first").assertIsFocused()
-                .performKeyInput { pressKey(Key.DirectionDown) }
-            compose.onNodeWithTag("initial-second").assertIsFocused()
+                .performKeyInput { pressKey(Key.DirectionDown, pressDurationMillis = 0) }
+            assertSecondFocused("immediately after Down", transitions)
             // No user selection or target-forcing: only the remaining initialization frame runs.
             compose.mainClock.advanceTimeByFrame()
-            compose.onNodeWithTag("initial-second").assertIsFocused()
+            assertSecondFocused("after the remaining initialization frame", transitions)
         } finally {
             compose.mainClock.autoAdvance = true
         }
+    }
+
+    private fun assertSecondFocused(stage: String, transitions: List<String>) {
+        val focused = compose.onNodeWithTag("initial-second").fetchSemanticsNode()
+            .config[SemanticsProperties.Focused]
+        val trace = compose.runOnIdle { transitions.joinToString() }
+        assertTrue("$stage: second must own focus; transitions=[$trace]", focused)
     }
 }
