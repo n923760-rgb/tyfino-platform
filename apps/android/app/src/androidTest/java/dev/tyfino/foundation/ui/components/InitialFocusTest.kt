@@ -38,9 +38,11 @@ class InitialFocusTest {
             host = LocalView.current
             input = LocalInputModeManager.current
             TyfinoTheme {
-                if (mounted) {
-                    val first = rememberInitialFocusRequester()
-                    Column {
+                Column {
+                    // Android needs an actual focusable child before leaving touch mode.
+                    FocusVisibleButton("Host", {}, Modifier.testTag("initial-host"))
+                    if (mounted) {
+                        val first = rememberInitialFocusRequester()
                         FocusVisibleButton("First", {}, Modifier.testTag("initial-first").focusRequester(first))
                         FocusVisibleButton("Second", {}, Modifier.testTag("initial-second"))
                     }
@@ -48,7 +50,8 @@ class InitialFocusTest {
             }
         }
         compose.waitUntil(5_000) { compose.runOnIdle { host.hasWindowFocus() } }
-        compose.runOnIdle { assertTrue(input.requestInputMode(InputMode.Keyboard)) }
+        compose.runOnIdle { assertTrue("Host must accept keyboard input before mounting the helper",
+            input.requestInputMode(InputMode.Keyboard)) }
         compose.waitUntil(5_000) { compose.runOnIdle { input.inputMode == InputMode.Keyboard } }
 
         compose.mainClock.autoAdvance = false

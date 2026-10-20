@@ -16,4 +16,6 @@ The controlled-frame case may intentionally expose a production failure. A failu
 
 ## Qualification
 
+Diagnostic source `f71d8bb6c7b9a0fa053094631de337f15c1e7fb6`, Validate39509534707: five jobs passed; both native jobs ran138 cases,1 failure,0 skips. All137 prior cases passed. The new case failed at input-mode setup, before mounting the helper or moving focus. The full tablet report ZIP (artifact12304784898, SHA256 `03a29880871b40583cf44b40f487094de7b890dd5402d7838f34ec35d5fcacec`) resolves the failure to InitialFocusTest.kt:51, `requestInputMode(Keyboard)` returning false. This is a harness failure, not evidence for the product hypothesis. The corrected fixture keeps a real focusable host button present while requesting keyboard mode; the production helper is still mounted afterward. The request has a distinct assertion message. A new source run is required.
+
 Local native execution BLOCKED: Gradle/Android SDK/emulator unavailable. Existing exact-head Validate is the native execution environment. Runtime result belongs to the diagnostic PR; do not merge failing diagnostic source or claim a fix from source inspection. Physical TV/TalkBack/provider/performance NOT RUN. No release or customer artifact is produced.
