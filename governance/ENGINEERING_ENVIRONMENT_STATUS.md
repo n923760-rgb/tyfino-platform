@@ -73,7 +73,7 @@ The following remain **NOT QUALIFIED** unless a task provides live execution evi
 - signing-key custody/recovery;
 - production deployment state.
 
-GitHub runner selector `ubuntu-latest` is intentionally not treated as a permanently pinned OS image. Runner details remain attributable per execution.
+Validate now selects `ubuntu-24.04` explicitly after the2026-10-20 ubuntu-latest migration caused Chromium/backup-restore failures. This fixes the OS release label, not immutable image bytes: manifest `pinned: false` and per-execution attribution/qualification remain. All six Validate definitions are drift-gated against the selector; PostgreSQL16 backup clients are explicitly selected. Exact corrected-head runtime evidence belongs to the scoped PR, not this historical qualification record.
 
 ## Phase 2 Result
 

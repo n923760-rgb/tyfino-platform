@@ -50,7 +50,7 @@ The Node package manifests require Node `>=22`. API/Admin dependency resolution 
 
 ## GitHub Actions Validation Environment
 
-Current repository workflows use GitHub-hosted `ubuntu-latest` runners.
+The primary Validate workflow uses GitHub-hosted `ubuntu-24.04` runners. Manual/protected workflows remain separately qualified.
 
 Validated repository requirements:
 
@@ -61,7 +61,7 @@ Validated repository requirements:
 - Android SDK/emulator with KVM acceleration for managed-device instrumentation;
 - Docker Compose and `jq` for deployment/environment validation.
 
-The runner image selector `ubuntu-latest` is intentionally **not** treated as a pinned operating-system image. Runner image/version details are execution evidence and must be taken from the actual CI run.
+The `ubuntu-24.04` selector fixes the OS release label, not immutable runner-image bytes or every installed package. The manifest therefore retains `pinned: false` and per-run qualification. Runner image/version details must still come from the actual run. The drift gate requires all six Validate job definitions to match the declared selector. The database backup/restore job explicitly selects PostgreSQL16 client tools to match its PostgreSQL16 service; a missing installation fails without fallback.
 
 ## Android Build / Device Baseline
 

@@ -48,7 +48,7 @@
   },
   "external_environment": {
     "github_runner_image": {
-      "selector": "ubuntu-latest",
+      "selector": "ubuntu-24.04",
       "pinned": false,
       "qualified_per_run": true
     },
