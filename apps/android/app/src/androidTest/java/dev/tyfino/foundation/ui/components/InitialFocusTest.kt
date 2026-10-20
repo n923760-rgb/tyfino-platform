@@ -34,6 +34,7 @@ class InitialFocusTest {
 
     @Test fun aLaterInitializationFrameDoesNotUndoDirectionalNavigation() {
         var mounted by mutableStateOf(false)
+        var focusKey by mutableStateOf(0)
         lateinit var host: View
         lateinit var input: InputModeManager
         val transitions = mutableListOf<String>()
@@ -45,7 +46,7 @@ class InitialFocusTest {
                     // Android needs an actual focusable child before leaving touch mode.
                     FocusVisibleButton("Host", {}, Modifier.testTag("initial-host"))
                     if (mounted) {
-                        val first = rememberInitialFocusRequester()
+                        val first = rememberInitialFocusRequester(focusKey)
                         FocusVisibleButton("First", {}, Modifier.testTag("initial-first").focusRequester(first)
                             .onFocusChanged { transitions += "first=${it.isFocused}@${compose.mainClock.currentTime}" })
                         FocusVisibleButton("Second", {}, Modifier.testTag("initial-second")
@@ -71,6 +72,16 @@ class InitialFocusTest {
             // No user selection or target-forcing: only the remaining initialization frame runs.
             compose.mainClock.advanceTimeByFrame()
             assertSecondFocused("after the remaining initialization frame", transitions)
+
+            // A new content owner still receives its own initial target using the same requester.
+            compose.runOnIdle { focusKey++ }
+            compose.mainClock.advanceTimeByFrame()
+            compose.mainClock.advanceTimeByFrame()
+            compose.onNodeWithTag("initial-first").assertIsFocused()
+                .performKeyInput { pressKey(Key.DirectionDown, pressDurationMillis = 0) }
+            assertSecondFocused("after Down for the replacement key", transitions)
+            compose.mainClock.advanceTimeByFrame()
+            assertSecondFocused("after initialization for the replacement key", transitions)
         } finally {
             compose.mainClock.autoAdvance = true
         }

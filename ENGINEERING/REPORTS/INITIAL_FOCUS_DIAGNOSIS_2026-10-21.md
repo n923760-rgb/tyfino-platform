@@ -1,6 +1,6 @@
-# Initial-focus controlled-frame diagnosis
+# Initial-focus retention after directional navigation
 
-Scope: test-only investigation of #205 on official `main@3359b4ddb206928af4374c55b95608b2594d59c5`. Owner requested continued engineering work. No production helper, selection behavior, dependency, workflow, identity, signing or deployment change.
+Scope: diagnosis and correction of shared initial-focus repetition, investigated from #205 on official `main@3359b4ddb206928af4374c55b95608b2594d59c5`. Owner requested continued engineering work. Selection callbacks, dependencies, workflows, identity, signing and deployment stay unchanged. Earlier test-only checkpoints below describe their original sources.
 
 ## Evidence and hypothesis
 
@@ -23,3 +23,13 @@ Local native execution BLOCKED: Gradle/Android SDK/emulator unavailable. Existin
 Second diagnostic source `e0bce1fe67a5a5d67a53fbea8ea6213ddf947853`, run39514615433 phone job118944480009:138 cases,1 failure,0 skips. Full artifact12307961445, ZIP SHA256 `c23b07d4739dd65892d2cfc3e99a12843b5e7caf2ea6e1de3e17058d41ceb9b8`, resolves the failure to line65 immediately after Down, before the explicit extra frame. Input-mode setup and first-target assertion passed, but movement/retention timing remains ambiguous. KeyInjectionScope.pressKey advances event time between keyDown/keyUp; the diagnostic now uses a zero-duration press to isolate explicit frame advancement and logs actual focus transitions with test-clock times in distinct assertions. Production behavior remains unchanged; require new runtime evidence before a correction.
 
 The original full artifact12296026794 (SHA256 `9f210051f389858c5254afd6e6bfc16c7c02a54d2f002af5f87da2c96e2472e3`) resolves #205 to PlaybackAspectTest.kt:110 after Down from Fit, before selecting Zoom. Its failure summary alone had omitted the line. Cause remains under investigation.
+
+## Confirmed reproduction and correction
+
+Diagnostic source `fab0b7476d0dae45f84ac01b864163464faf0369`, run39516284286, phone report artifact12308425900, ZIP SHA256 `cec40deeaed5e98dd6506bb20028ad3b498827857436be99c1719ba88efd60a0`: first focus succeeds at96ms; Down moves to second at96ms and its immediate assertion passes; advancing the next frame loses second focus and restores first at112ms. The failure is the final assertion after the remaining initialization frame. This confirms that the unchanged production helper undoes a real directional move through its repeated request. It explains a concrete failure mechanism consistent with the original after-Down symptom; the original run did not log its focus transitions.
+
+At the correction source checkpoint, that diagnostic tablet job was still running. The correction supersedes its source through the existing workflow concurrency policy; no tablet PASS or completed full-run qualification is claimed for this checkpoint. The retained phone report is the causal reproduction, and the correction must qualify both devices again.
+
+Correction: share a completion cell between the bounded frame attempts and window-focus listener, remembered for the actual view/requester/content key. Only a successful request completes initialization. Once complete, later callbacks cannot take focus back. A new key/view resets the cell; unsuccessful initial requests retain the existing bounded frame/window opportunities. Existing disposal removes the listener and cancels the effect. No timer, sleep, target-forcing, selection callback, persistence or new dependency.
+
+The controlled-frame regression keeps both movement and later-retention predicates and adds a replacement-key phase, proving the same requester still gets fresh initial focus for a new owner. All137 baseline cases remain;138 expected/device. The separate existing picture-size dialog test retains Enter-only selection/Back semantics and distinct assertion stages. Product correction requires a fresh all-seven-job run, native138/device and exact configured APK API33 proof before reviewed merge. Physical claims remain NOT RUN.
