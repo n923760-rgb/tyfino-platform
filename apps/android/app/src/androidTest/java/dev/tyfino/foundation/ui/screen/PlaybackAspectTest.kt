@@ -107,12 +107,13 @@ class PlaybackAspectTest {
             .performKeyInput { pressKey(Key.Enter) }
         compose.onNodeWithTag("aspect-mode-Fit").assertIsSelected().assertIsFocused()
             .performKeyInput { pressKey(Key.DirectionDown) }
-        compose.onNodeWithTag("aspect-mode-Zoom").assertIsFocused()
+        assertZoomFocused("after Down from Fit")
         compose.runOnIdle { assertEquals(AspectRatioFrameLayout.RESIZE_MODE_FIT, video.resizeMode) }
         compose.onNodeWithTag("aspect-mode-Zoom").performKeyInput { pressKey(Key.Enter) }
         assertEquals(AspectRatioFrameLayout.RESIZE_MODE_ZOOM, nativeView().resizeMode)
         compose.onNodeWithTag("playback-aspect").performClick()
-        compose.onNodeWithTag("aspect-mode-Zoom").assertIsSelected().assertIsFocused()
+        compose.onNodeWithTag("aspect-mode-Zoom").assertIsSelected()
+        assertZoomFocused("after reopening the selected Zoom mode")
         pressBack()
         compose.onNodeWithTag("playback-aspect-dialog").assertDoesNotExist()
         assertEquals(AspectRatioFrameLayout.RESIZE_MODE_ZOOM, nativeView().resizeMode)
@@ -165,6 +166,12 @@ class PlaybackAspectTest {
             .config[SemanticsProperties.VerticalScrollAxisRange]
         assertTrue(range.maxValue() > 0f); assertTrue(range.value() > 0f)
         compose.runOnIdle { assertEquals(PlaybackAspectMode.Stretch, chosen); assertEquals(1, closed) }
+    }
+
+    private fun assertZoomFocused(stage: String) {
+        val focused = compose.onNodeWithTag("aspect-mode-Zoom").fetchSemanticsNode()
+            .config[SemanticsProperties.Focused]
+        assertTrue("Picture-size focus $stage: Zoom must own focus", focused)
     }
 
     private fun render() {
