@@ -289,8 +289,8 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Task: owner-authorized continuation from official maina720fbdd685fd7742b9652300edd725edfbf1f2d. Category search review #201 is merged; official-main Validate38510494344 completed SUCCESS. No open PRs at the live gate; earlier next-task notes are historical.
-Current bounded refinement: read-only About the app panel at the end of Settings, with actual BuildConfig version name/code and explicit Debug testing/non-customer notice. No network, account data, new controls or protected version/signing-policy change. Three native actual-page/Arabic-font2/non-debug renderer cases join all133 baseline cases (136 expected each device). Report: [Settings app info](REPORTS/SETTINGS_APP_INFO_2026-10-14.md). All seven exact-head jobs must pass before the standing conditional merge; physical/comprehensive owner testing stays deferred. No CI, signing or release gates weakened.
+Task: continued owner-authorized refinement from official main09c1590e3b54330f6c97923b58870691336585f1; About #202 merged, postmerge Validate38571196794 completed SUCCESS. No open PRs at this gate; older next-task notes are historical.
+Current bounded refinement: explicit visible-outline read-only focus stops for version/development facts in Settings, no click/Enter action or provider/account change. One native short-Arabic-font1/font2 real directional/Enter case joins all136 baseline cases (137 expected each device). Report: [About directional access](REPORTS/SETTINGS_ABOUT_DPAD_2026-10-20.md). Existing build/unit/lint/all-seven exact-head jobs and exact APK API33 install remain required before standing reviewed merge. Physical/comprehensive owner testing remains deferred. No signing/publication/deployment or gate weakening.
 Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
 Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
 
