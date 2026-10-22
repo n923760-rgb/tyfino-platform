@@ -2,6 +2,11 @@ name: Build signed APK
 
 on:
   workflow_dispatch:
+    inputs:
+      expected_source_sha:
+        description: Full reviewed official main SHA (40 lowercase hex characters)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -26,6 +31,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Require reviewed exact official source before signing
+        timeout-minutes: 3
+        env:
+          TYFINO_EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+        run: bash scripts/verify-release-source.sh
       - name: Configure signing key path
         run: printf '%s\n' "TYFINO_ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/tyfino-release.p12" >> "$GITHUB_ENV"
       - name: Set up JDK 17
@@ -69,6 +81,7 @@ jobs:
           fi
           cp "$apk_path" build/release-output/TYFINO-1.0.0.apk
           sha256sum build/release-output/TYFINO-1.0.0.apk > build/release-output/TYFINO-1.0.0.apk.sha256
+          git rev-parse HEAD > build/release-output/source-sha.txt
       - name: Upload signed APK for owner review
         uses: actions/upload-artifact@v4
         with:

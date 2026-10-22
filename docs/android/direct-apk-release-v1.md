@@ -38,14 +38,17 @@ Required protected values are:
 
 The manual `Build signed APK` workflow:
 
-1. materializes the protected keystore only on the ephemeral runner;
-2. builds the optimized Release variant with the approved production licensing origin;
-3. verifies the APK signature;
-4. rejects a signing certificate that differs from the approved SHA-256 fingerprint;
-5. emits the APK, APK checksum, and public certificate report as a 30-day owner-review artifact;
-6. removes the materialized keystore even after failure.
+1. requires selecting official `main` and supplying its full reviewed `expected_source_sha`; before materializing a key, it checks repository/event/ref, workflow SHA, clean tracked checkout and freshly fetched official `main` all match that SHA;
+2. materializes the protected keystore only on the ephemeral runner;
+3. builds the optimized Release variant with the approved production licensing origin;
+4. verifies the APK signature;
+5. rejects a signing certificate that differs from the approved SHA-256 fingerprint;
+6. emits the APK, APK checksum, public certificate report and `source-sha.txt` as a 30-day owner-review artifact;
+7. removes the materialized keystore even after failure.
 
 The workflow does not publish the APK to customers. Distribution remains a separate explicit release action.
+
+If official `main` moved after review, preflight fails: review and qualify the new exact source before a separately authorized signing request. This source check is not CI, physical-device, key-custody or release approval; it does not authenticate the person dispatching the workflow or replace GitHub environment access controls. The SHA file binds the bundle to the build checkout, not to a successful upgrade on an installed device. The guard is tested without keys using disposable local Git repositories in ordinary Validate. See [source-binding qualification](../../ENGINEERING/REPORTS/RELEASE_SOURCE_BINDING_2026-10-22.md).
 
 ## Current signed-build evidence
 
