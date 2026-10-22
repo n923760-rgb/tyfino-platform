@@ -61,6 +61,7 @@ jobs:
         run: bash governance/scripts/validate-governance-qualification.sh
       - name: Validate deployment configuration and scripts
         run: |
+          python3 apps/android/scripts/test-release-source.py
           cp .env.example .env
           bash -n infrastructure/server/bootstrap-ubuntu.sh
           bash -n infrastructure/server/deploy-preproduction.sh
