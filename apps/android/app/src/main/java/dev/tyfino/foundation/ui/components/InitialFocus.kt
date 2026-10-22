@@ -4,6 +4,7 @@ import android.view.ViewTreeObserver
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.focus.FocusRequester
@@ -14,10 +15,13 @@ import androidx.compose.ui.platform.LocalView
 internal fun rememberInitialFocusRequester(key: Any? = Unit): FocusRequester {
     val requester = remember { FocusRequester() }
     val view = LocalView.current
+    val completed = remember(view, requester, key) { mutableStateOf(false) }
 
     DisposableEffect(view, requester, key) {
         val listener = ViewTreeObserver.OnWindowFocusChangeListener { hasWindowFocus ->
-            if (hasWindowFocus) requester.requestFocus()
+            if (hasWindowFocus && !completed.value) {
+                completed.value = requester.requestFocus()
+            }
         }
         view.viewTreeObserver.addOnWindowFocusChangeListener(listener)
         onDispose {
@@ -30,7 +34,9 @@ internal fun rememberInitialFocusRequester(key: Any? = Unit): FocusRequester {
     LaunchedEffect(view, requester, key) {
         repeat(2) {
             withFrameNanos { }
-            if (view.hasWindowFocus()) requester.requestFocus()
+            // A later frame/window notification must not undo the user's next focus move.
+            if (completed.value) return@LaunchedEffect
+            if (view.hasWindowFocus()) completed.value = requester.requestFocus()
         }
     }
     return requester
