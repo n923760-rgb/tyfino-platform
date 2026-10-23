@@ -289,11 +289,11 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
-Official source3359b4ddb206928af4374c55b95608b2594d59c5 includes About203 and CI204. About exact-head Validate39490050539 passed all seven logical jobs,137 cases/device; tablet alone required one retry after SDK ZIP provisioning failed before tests. Official-main Validate39494244653 subsequently passed all seven jobs. Earlier held/prerequisite notes are historical.
-Focus correction206 is merged at official main43010dee7f0492bfd84a71d1dddba490285bb229, tree6a4fc0c3d65421836029c0c196e322355e594e2d identical to qualified head2230a7a2518492e08dbbe2c7248003b083f78e79. Validate39517407781 PASS seven jobs,138 cases/device with0 failures/skips, exact owner APK API33 install/launch PASS. Separate official-main workflow query returned no runs at this checkpoint; no independent main CI PASS is claimed. [Diagnosis/correction](REPORTS/INITIAL_FOCUS_DIAGNOSIS_2026-10-21.md) retains causal reproduction and earlier failures.
-Current bounded readiness task: bind manual signed-build preparation to full reviewed official-main SHA, fail before key materialization on ref/source drift, and include checkout SHA in the APK bundle. Ten real local Git fixture tests run without signing keys and join existing Validate. [Source-binding report](REPORTS/RELEASE_SOURCE_BINDING_2026-10-22.md). Exact task-head CI belongs to its isolated PR. This is preparation only; signing workflow dispatch, signing/publication/deployment and policy changes remain excluded. Physical/provider/accessibility/performance and production/custody gates remain open.
-Stop: changed baseline/conflicting source, secrets, causal required failures, protected scope expansion or unproved runtime claims.
-Following gate: owner LG Velvet/TV visual/input trial and separate physical/provider/TalkBack/performance, signing continuity/custody/recovery and production operations before sale.
+Official source `df7201054a22d96501077872aa194b618d162750` includes #206 and #207. Official-main Validate39717316309 passed six jobs but tablet failed the existing after-Down picture-size focus assertion (138 cases,1 failure,0 skips). This supersedes assumptions of full readiness from the premerge pass; #205 remains open. Full retained failure artifact12400061948 was reviewed and SHA256 verified.
+
+Current task: test-only observation of the actual dialog window/native focus/touch transitions and semantic focus/bounds around the unchanged Down event. Preserve all assertions,138 cases/device and seven gates; no speculative product fix or rerun-as-proof. [Report](REPORTS/PICTURE_FOCUS_WINDOW_DIAGNOSIS_2026-10-23.md). Local Gradle/SDK/emulator unavailable; exact-head CI belongs to the isolated diagnostic PR. A passing observation run alone does not resolve an intermittent failure.
+
+Next: inspect full diagnostic traces, isolate the cause and qualify a bounded correction. Physical phone/TV/provider/accessibility/performance, signing custody/continuity/recovery and production operations remain separate gates before sale. Signing/release/publication/deployment are not performed by this task.
 
 ## Linked Reports
 

@@ -4,6 +4,8 @@ package dev.tyfino.foundation.ui.screen
 
 import android.content.res.Configuration
 import android.view.View
+import android.view.ViewTreeObserver
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -29,6 +31,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.isFocusable
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -45,6 +48,8 @@ import androidx.media3.ui.PlayerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
+import androidx.test.espresso.matcher.ViewMatchers.isRoot
+import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.R
@@ -65,10 +70,16 @@ import org.junit.runner.RunWith
 class PlaybackAspectTest {
     @get:Rule val compose = createComposeRule()
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
+    private val focusTrace = mutableListOf<String>()
+    private var dialogView: View? = null
+    private var removeFocusObservers: (() -> Unit)? = null
     private var owner by mutableStateOf(PlaybackSelection("fixture-a", 1L, CatalogSection.Live, "one", "ts"))
 
     @Before fun useDirectionalInput() { instrumentation.setInTouchMode(false) }
-    @After fun restoreTouchInput() { instrumentation.setInTouchMode(true) }
+    @After fun restoreTouchInput() {
+        instrumentation.runOnMainSync { removeFocusObservers?.invoke() }
+        instrumentation.setInTouchMode(true)
+    }
 
     @Test fun touchUpdatesTheSameNativePlayerViewAndFrameGeometryWithoutReplacingItsPlayer() {
         render()
@@ -106,7 +117,10 @@ class PlaybackAspectTest {
         compose.onNodeWithTag("playback-aspect").performSemanticsAction(SemanticsActions.RequestFocus) { it() }
             .performKeyInput { pressKey(Key.Enter) }
         compose.onNodeWithTag("aspect-mode-Fit").assertIsSelected().assertIsFocused()
-            .performKeyInput { pressKey(Key.DirectionDown) }
+        observeDialogWindow()
+        recordFocus("before Down")
+        compose.onNodeWithTag("aspect-mode-Fit").performKeyInput { pressKey(Key.DirectionDown) }
+        recordFocus("after Down")
         assertZoomFocused("after Down from Fit")
         compose.runOnIdle { assertEquals(AspectRatioFrameLayout.RESIZE_MODE_FIT, video.resizeMode) }
         compose.onNodeWithTag("aspect-mode-Zoom").performKeyInput { pressKey(Key.Enter) }
@@ -171,7 +185,54 @@ class PlaybackAspectTest {
     private fun assertZoomFocused(stage: String) {
         val focused = compose.onNodeWithTag("aspect-mode-Zoom").fetchSemanticsNode()
             .config[SemanticsProperties.Focused]
-        assertTrue("Picture-size focus $stage: Zoom must own focus", focused)
+        val trace = compose.runOnIdle { focusTrace.joinToString("; ") }
+        assertTrue("Picture-size focus $stage: Zoom must own focus; trace=[$trace]", focused)
+    }
+
+    /** Observe the real production dialog; listeners never request focus or consume input. */
+    private fun observeDialogWindow() {
+        onView(isRoot()).inRoot(isDialog()).check { view, error ->
+            if (error != null) throw error
+            val root = requireNotNull(view)
+            dialogView = root
+            val observer = root.viewTreeObserver
+            val window = ViewTreeObserver.OnWindowFocusChangeListener { focused ->
+                trace("window=$focused touch=${root.isInTouchMode} native=${root.findFocus()?.javaClass?.simpleName}")
+            }
+            val native = ViewTreeObserver.OnGlobalFocusChangeListener { old, current ->
+                trace("native=${old?.javaClass?.simpleName}->${current?.javaClass?.simpleName}")
+            }
+            val touch = ViewTreeObserver.OnTouchModeChangeListener { inTouchMode -> trace("touch=$inTouchMode") }
+            observer.addOnWindowFocusChangeListener(window)
+            observer.addOnGlobalFocusChangeListener(native)
+            observer.addOnTouchModeChangeListener(touch)
+            removeFocusObservers = {
+                if (observer.isAlive) {
+                    observer.removeOnWindowFocusChangeListener(window)
+                    observer.removeOnGlobalFocusChangeListener(native)
+                    observer.removeOnTouchModeChangeListener(touch)
+                }
+            }
+        }
+    }
+
+    private fun recordFocus(stage: String) {
+        val nodes = compose.onAllNodes(isFocusable()).fetchSemanticsNodes().map { node ->
+            val tag = if (node.config.contains(SemanticsProperties.TestTag)) node.config[SemanticsProperties.TestTag] else "untagged"
+            val focused = node.config[SemanticsProperties.Focused]
+            "$tag=$focused@${node.boundsInRoot}"
+        }
+        compose.runOnIdle {
+            val root = dialogView
+            trace("$stage window=${root?.hasWindowFocus()} touch=${root?.isInTouchMode} nodes=$nodes")
+        }
+    }
+
+    private fun trace(value: String) {
+        // Static fixture tags, geometry and input/focus facts only; no media/provider data.
+        val entry = "${android.os.SystemClock.uptimeMillis()}:$value"
+        focusTrace += entry
+        Log.i("TyfinoAspectFocusTest", entry)
     }
 
     private fun render() {
