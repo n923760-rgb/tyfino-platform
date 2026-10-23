@@ -445,6 +445,17 @@ jobs:
             apps/android/app/build/outputs/androidTest-results/managedDevice
           if-no-files-found: ignore
 
+      - name: Retain picture-size focus trace
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: picture-focus-${{ matrix.device }}-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
+          path: |
+            apps/android/app/build/outputs/androidTest-results/managedDevice/**/logcat-dev.tyfino.foundation.ui.screen.PlaybackAspectTest-directionalNavigationSelectsOnlyOnEnterAndCancelRetainsTheCurrentMode.txt
+            apps/android/app/build/outputs/androidTest-results/managedDevice/**/TEST-*.xml
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Download exact owner-test APK for API33 install
         if: matrix.device == 'phone-api-27'
         uses: actions/download-artifact@v4
