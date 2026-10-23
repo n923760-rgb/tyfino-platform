@@ -23,3 +23,7 @@ NOT RUN at this checkpoint: exact new-head CI; physical TV/phone/provider/access
 ## Next gate
 
 Inspect exact diagnostic head logs and trace; reproduce or isolate the failed event/window/focus sequence before altering product code. Keep #205 and release acceptance open until causal correction and required regression evidence exist. No production release is created by this task.
+
+## Diagnostic fixture compilation correction
+
+Diagnostic head `fa461dbcfadd5df4467eb88c84252fbbf5a1c383`, Validate39952535729: both native jobs failed before any test (0 cases) because an unnecessary top-level `onAllNodes` import is unresolved. The API is a member of the test rule. Remove only the import; this is a test compilation correction, not product/focus evidence. Android build/unit/lint and API/database/config gates passed; Admin provisioning was still running at this checkpoint. Require fresh exact-head native execution.
