@@ -1,5 +1,6 @@
 package dev.tyfino.foundation.app
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -176,14 +177,27 @@ internal fun TyfinoApp() {
     }
     val previousLiveChannelController = remember { PreviousLiveChannelController() }
     var licensingState by remember { mutableStateOf(controller.state) }
+    var activationFromSettings by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val publish: (LicensingUiState) -> Unit = { licensingState = it }
+    val publish: (LicensingUiState) -> Unit = {
+        licensingState = it
+        if (it is LicensingUiState.Active) activationFromSettings = false
+    }
+    val returnFromActivation: () -> Unit = {
+        activationFromSettings = false
+        scope.launch { controller.initialize(publish) }
+    }
+    BackHandler(enabled = activationFromSettings) {
+        if (licensingState != LicensingUiState.Working) returnFromActivation()
+    }
 
     LaunchedEffect(controller) { controller.initialize(publish) }
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner, controller) {
+    DisposableEffect(lifecycleOwner, controller, activationFromSettings) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) scope.launch { controller.onForeground(publish) }
+            if (event == Lifecycle.Event.ON_START && !activationFromSettings) {
+                scope.launch { controller.onForeground(publish) }
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -192,6 +206,10 @@ internal fun TyfinoApp() {
     val activeLicense = licensingState as? LicensingUiState.Active
     if (activeLicense != null) {
         XtreamGate(
+            onActivateLicense = {
+                activationFromSettings = true
+                controller.showActivation(publish)
+            },
             licenseSummary = LicenseSummary(activeLicense.entitlement.kind, activeLicense.entitlement.expiresAtMillis, activeLicense.offline),
             controller = xtreamController,
             repository = xtreamRepository,
@@ -215,9 +233,14 @@ internal fun TyfinoApp() {
             state = licensingState,
             onStartTrial = { scope.launch { controller.startTrial(publish) } },
             onShowActivation = { controller.showActivation(publish) },
-            onBack = { controller.showChoice(publish) },
+            onBack = {
+                if (activationFromSettings) {
+                    returnFromActivation()
+                } else controller.showChoice(publish)
+            },
             onActivate = { code -> scope.launch { controller.activate(code, publish) } },
             onRetry = { scope.launch { controller.retry(publish) } },
+            onCancelActivation = if (activationFromSettings) returnFromActivation else null,
         )
     }
 }
@@ -225,6 +248,7 @@ internal fun TyfinoApp() {
 @Composable
 private fun XtreamGate(
     licenseSummary: LicenseSummary,
+    onActivateLicense: () -> Unit,
     controller: XtreamController,
     repository: XtreamRepository,
     catalogRepository: CatalogRepository,
@@ -279,6 +303,7 @@ private fun XtreamGate(
     if (signedIn != null && !addingAccount) {
         key(shellEpoch, signedIn.account.accountId) {
             LicensedAppShell(
+                onActivateLicense = onActivateLicense,
                 licenseSummary = licenseSummary,
                 catalogRepository = catalogRepository,
                 favoritesRepository = favoritesRepository,
@@ -424,6 +449,7 @@ private fun XtreamGate(
 @Composable
 private fun LicensedAppShell(
     licenseSummary: LicenseSummary,
+    onActivateLicense: () -> Unit,
     catalogRepository: CatalogRepository,
     favoritesRepository: CatalogFavoritesRepository,
     historyRepository: CatalogHistoryRepository,
@@ -575,6 +601,7 @@ private fun LicensedAppShell(
     }
     val navHost: @Composable (Modifier) -> Unit = { modifier ->
         AppNavHost(
+            onActivateLicense = onActivateLicense,
             licenseSummary = licenseSummary,
             navController = navController,
             modifier = modifier,
@@ -751,6 +778,7 @@ private fun LicensedAppShell(
 @Composable
 private fun AppNavHost(
     licenseSummary: LicenseSummary,
+    onActivateLicense: () -> Unit,
     navController: NavHostController,
     modifier: Modifier,
     catalogRepository: CatalogRepository,
@@ -870,6 +898,7 @@ private fun AppNavHost(
         }
         composable(AppDestination.Settings.route) {
             SettingsScreen(
+                onActivateLicense = onActivateLicense,
                 licenseSummary = licenseSummary,
                 accountStore = accountStore,
                 onOpenAccountSwitcher = onOpenAccountSwitcher,

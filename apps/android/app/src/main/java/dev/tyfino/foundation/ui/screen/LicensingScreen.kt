@@ -58,6 +58,7 @@ internal fun LicensingScreen(
     onActivate: (String) -> Unit,
     onRetry: () -> Unit,
     onOpenPurchase: (() -> Boolean)? = null,
+    onCancelActivation: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).imePadding()
@@ -82,6 +83,10 @@ internal fun LicensingScreen(
                 }
                 is LicensingUiState.Failure -> ProductPanel(Modifier.fillMaxWidth()) {
                     FailureContent(state, onRetry, onShowActivation)
+                    onCancelActivation?.let { cancel ->
+                        FocusVisibleButton(stringResource(R.string.back), cancel,
+                            Modifier.fillMaxWidth().testTag("activation-return-to-app"), prominent = false)
+                    }
                 }
                 is LicensingUiState.Active -> Unit
             }

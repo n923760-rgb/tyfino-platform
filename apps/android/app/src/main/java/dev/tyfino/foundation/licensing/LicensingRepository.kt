@@ -31,7 +31,7 @@ internal class LicensingRepository(
         api.startTrial(owner.installationId, appVersion)
     }
 
-    suspend fun activate(activationCode: String): LicenseOutcome = perform { owner ->
+    suspend fun activate(activationCode: String): LicenseOutcome = perform(allowOfflineFallback = false) { owner ->
         api.activate(owner.installationId, appVersion, activationCode)
     }
 
@@ -40,7 +40,8 @@ internal class LicensingRepository(
         return perform { owner -> api.refresh(owner.installationId, appVersion, snapshot.sessionToken) }
     }
 
-    private suspend fun perform(request: suspend (OperationOwner) -> LicenseEnvelope): LicenseOutcome {
+    private suspend fun perform(allowOfflineFallback: Boolean = true,
+        request: suspend (OperationOwner) -> LicenseEnvelope): LicenseOutcome {
         val owner = operations.begin(store.installationId())
         var lastFailure = LicensingApiException("LICENSE_UNAVAILABLE", true)
         repeat(MAX_ATTEMPTS) { attempt ->
@@ -64,19 +65,20 @@ internal class LicensingRepository(
                 }
             } catch (failure: LicensingApiException) {
                 lastFailure = failure
-                if (!failure.retryable || attempt == MAX_ATTEMPTS - 1) return handleFailure(owner, failure)
+                if (!failure.retryable || attempt == MAX_ATTEMPTS - 1) return handleFailure(owner, failure, allowOfflineFallback)
                 delay(RETRY_DELAYS_MILLIS[attempt] + Random.nextLong(0, RETRY_JITTER_MILLIS))
             }
         }
-        return handleFailure(owner, lastFailure)
+        return handleFailure(owner, lastFailure, allowOfflineFallback)
     }
 
-    private suspend fun handleFailure(owner: OperationOwner, failure: LicensingApiException): LicenseOutcome =
+    private suspend fun handleFailure(owner: OperationOwner, failure: LicensingApiException,
+        allowOfflineFallback: Boolean): LicenseOutcome =
         commitMutex.withLock {
             if (!operations.isCurrent(owner, store.installationId())) return@withLock LicenseOutcome.Stale
             if (failure.code in TERMINAL_CODES) store.clearEntitlement()
             val local = store.snapshot()
-            if (failure.retryable && local != null && OfflinePolicy.canUse(local, clock)) {
+            if (allowOfflineFallback && failure.retryable && local != null && OfflinePolicy.canUse(local, clock)) {
                 LicenseOutcome.Active(local, offline = true)
             } else {
                 LicenseOutcome.Failure(failure.code, failure.retryable)
@@ -96,23 +98,27 @@ internal class LicensingController(private val repository: LicensingRepository) 
 
     private val actionMutex = Mutex()
     private var retryTarget = RetryTarget.Refresh
+    private var presentationGeneration = 0L
     var state: LicensingUiState = LicensingUiState.Checking
         private set
 
     suspend fun initialize(onState: (LicensingUiState) -> Unit) = actionMutex.withLock {
-        apply(withContext(Dispatchers.IO) { repository.localOutcome() }, onState)
+        val generation = presentationGeneration
+        apply(withContext(Dispatchers.IO) { repository.localOutcome() }, onState, generation)
         if (withContext(Dispatchers.IO) { repository.shouldRefresh() }) {
             retryTarget = RetryTarget.Refresh
-            apply(withContext(Dispatchers.IO) { repository.refresh() }, onState)
+            apply(withContext(Dispatchers.IO) { repository.refresh() }, onState, generation)
         }
     }
 
     fun showActivation(onState: (LicensingUiState) -> Unit) {
+        presentationGeneration++
         state = LicensingUiState.ActivationEntry
         onState(state)
     }
 
     fun showChoice(onState: (LicensingUiState) -> Unit) {
+        presentationGeneration++
         state = LicensingUiState.Choice
         onState(state)
     }
@@ -148,13 +154,16 @@ internal class LicensingController(private val repository: LicensingRepository) 
     }
 
     suspend fun onForeground(onState: (LicensingUiState) -> Unit) = actionMutex.withLock {
+        val generation = presentationGeneration
         if (withContext(Dispatchers.IO) { repository.shouldRefresh() }) {
             retryTarget = RetryTarget.Refresh
-            apply(withContext(Dispatchers.IO) { repository.refresh() }, onState)
+            apply(withContext(Dispatchers.IO) { repository.refresh() }, onState, generation)
         }
     }
 
-    private fun apply(outcome: LicenseOutcome, onState: (LicensingUiState) -> Unit) {
+    private fun apply(outcome: LicenseOutcome, onState: (LicensingUiState) -> Unit,
+        generation: Long = presentationGeneration) {
+        if (generation != presentationGeneration) return
         state = when (outcome) {
             LicenseOutcome.Choice -> LicensingUiState.Choice
             is LicenseOutcome.Active -> LicensingUiState.Active(outcome.entitlement, outcome.offline)

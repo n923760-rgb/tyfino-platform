@@ -10,6 +10,40 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LicensingTest {
+    @Test fun pendingRefreshCannotReplaceExplicitActivationEntry() = runBlocking {
+        val store = FakeStore().apply { value = snapshot() }
+        val api = ControllableApi(blockRefresh = true)
+        val controller = LicensingController(LicensingRepository(store, api, FakeClock(7_000L, 1_000L, 7), "test"))
+        val refresh = async { controller.onForeground { } }
+        api.refreshStarted.await()
+        controller.showActivation { }
+        api.releaseRefresh.complete(Unit)
+        refresh.await()
+        assertEquals(LicensingUiState.ActivationEntry, controller.state)
+    }
+
+    @Test fun activationDuringTrialReplacesTheEntitlementImmediately() = runBlocking {
+        val store = FakeStore().apply { value = snapshot() }
+        val repository = LicensingRepository(store, ControllableApi(), FakeClock(1_000L, 1_000L, 7), "test")
+        val outcome = repository.activate("TYF-01234-56789-ABCDE-FGHJK-MNPQRS") as LicenseOutcome.Active
+        assertEquals(EntitlementKind.Lifetime, outcome.entitlement.kind)
+        assertEquals(EntitlementKind.Lifetime, store.value?.kind)
+        assertFalse(outcome.offline)
+    }
+
+    @Test fun failedActivationDoesNotReportOfflineTrialAsSuccessfulActivation() = runBlocking {
+        val trial = snapshot()
+        val store = FakeStore().apply { value = trial }
+        val api = ControllableApi(activationFailure = LicensingApiException("LICENSE_UNAVAILABLE", true))
+        val repository = LicensingRepository(store, api, FakeClock(1_000L, 1_000L, 7), "test")
+        assertEquals(LicenseOutcome.Failure("LICENSE_UNAVAILABLE", true),
+            repository.activate("TYF-01234-56789-ABCDE-FGHJK-MNPQRS"))
+        assertEquals(trial, store.value)
+        val controller = LicensingController(repository)
+        controller.initialize { }
+        assertEquals(EntitlementKind.Trial, (controller.state as LicensingUiState.Active).entitlement.kind)
+    }
+
     @Test
     fun activationCodesNormalizeOnlyCaseWhitespaceAndSeparators() {
         val canonical = "TYF-01234-56789-ABCDE-FGHJK-MNPQRS"
@@ -90,7 +124,10 @@ class LicensingTest {
         override fun clearEntitlement() { value = null }
     }
 
-    private class ControllableApi : LicensingApi {
+    private class ControllableApi(private val activationFailure: LicensingApiException? = null,
+        private val blockRefresh: Boolean = false) : LicensingApi {
+        val refreshStarted = CompletableDeferred<Unit>()
+        val releaseRefresh = CompletableDeferred<Unit>()
         val trialStarted = CompletableDeferred<Unit>()
         val releaseTrial = CompletableDeferred<Unit>()
 
@@ -104,13 +141,20 @@ class LicensingTest {
             installationId: String,
             appVersion: String,
             activationCode: String,
-        ): LicenseEnvelope = envelope(EntitlementKind.Lifetime, "paid-session")
+        ): LicenseEnvelope {
+            activationFailure?.let { throw it }
+            return envelope(EntitlementKind.Lifetime, "paid-session")
+        }
 
         override suspend fun refresh(
             installationId: String,
             appVersion: String,
             sessionToken: String,
-        ): LicenseEnvelope = envelope(EntitlementKind.Lifetime, "refreshed-session")
+        ): LicenseEnvelope {
+            refreshStarted.complete(Unit)
+            if (blockRefresh) releaseRefresh.await()
+            return envelope(EntitlementKind.Lifetime, "refreshed-session")
+        }
 
         override suspend fun revoke(sessionToken: String) = Unit
 

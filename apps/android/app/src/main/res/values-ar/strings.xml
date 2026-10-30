@@ -79,6 +79,7 @@
     <string name="licensing_description">ابدأ تجربتك المجانية لمدة 7 أيام أو فعّل التطبيق مباشرة. يبقى حساب IPTV على جهازك فقط.</string>
     <string name="start_trial">ابدأ التجربة المجانية 7 أيام</string>
     <string name="activate_now">التفعيل الآن</string>
+    <string name="settings_activate_app">تفعيل التطبيق</string>
     <string name="activation_code">كود التفعيل</string>
     <string name="activation_code_hint">TYF-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX</string>
     <string name="activate">تفعيل</string>

@@ -45,6 +45,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.ui.theme.TyfinoTheme
 import dev.tyfino.foundation.BuildConfig
 import dev.tyfino.foundation.R
+import dev.tyfino.foundation.licensing.EntitlementKind
 import dev.tyfino.foundation.xtream.ProviderUserAgent
 import dev.tyfino.foundation.xtream.ProviderUserAgentPreset
 import java.util.Locale
@@ -58,6 +59,23 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SettingsScreenTest {
+    @Test fun trialCanOpenCodeEntryFromSettingsAndPaidLicenseHidesTheAction() {
+        var requests = 0
+        var kind by mutableStateOf(EntitlementKind.Trial)
+        compose.setContent {
+            TyfinoTheme {
+                SettingsScreen({}, {}, licenseSummary = LicenseSummary(kind, null, false),
+                    onActivateLicense = { requests++ })
+            }
+        }
+        compose.onNodeWithTag("settings-activate-app").performScrollTo().assertIsDisplayed().performClick()
+        compose.onNodeWithTag("settings-activate-app")
+            .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+            .performKeyInput { pressKey(Key.Enter) }
+        compose.runOnIdle { assertEquals(2, requests); kind = EntitlementKind.Lifetime }
+        compose.onNodeWithTag("settings-activate-app").assertDoesNotExist()
+    }
+
     @get:Rule val compose = createComposeRule()
 
     @Test fun dpadReachesReadOnlyBuildFactsInShortArabicSettingsAtBothFontSizes() {

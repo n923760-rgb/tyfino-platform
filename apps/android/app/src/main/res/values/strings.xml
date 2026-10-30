@@ -79,6 +79,7 @@
     <string name="licensing_description">Start your 7-day free trial or activate the app now. Your IPTV account stays only on this device.</string>
     <string name="start_trial">Start 7-Day Free Trial</string>
     <string name="activate_now">Activate Now</string>
+    <string name="settings_activate_app">Activate app</string>
     <string name="activation_code">Activation code</string>
     <string name="activation_code_hint">TYF-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX</string>
     <string name="activate">Activate</string>

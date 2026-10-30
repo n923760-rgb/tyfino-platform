@@ -43,6 +43,7 @@ internal fun SettingsScreen(
     onManageAccounts: () -> Unit,
     licenseSummary: LicenseSummary? = null,
     accountStore: XtreamAccountStore? = null,
+    onActivateLicense: (() -> Unit)? = null,
 ) {
     val initialFocus = rememberInitialFocusRequester()
     val context = LocalContext.current
@@ -92,7 +93,7 @@ internal fun SettingsScreen(
                     )
                 }
                 playlist?.let { PlaylistSummary(it) }
-                licenseSummary?.let { LicenseSummaryPanel(it) }
+                licenseSummary?.let { LicenseSummaryPanel(it, onActivateLicense) }
                 SettingsSection(
                     title = stringResource(R.string.settings_user_agent_title),
                     description = stringResource(R.string.settings_user_agent_description),
