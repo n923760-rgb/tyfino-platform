@@ -301,6 +301,8 @@ Next: inspect full diagnostic traces, isolate the cause and qualify a bounded co
 
 ## Linked Reports
 
+2026-10-31 activation continuation: official main57664b503b7b63e556d1c3e24639df05410ff5b2 passed all seven gates in Validate41129681117. Investigate queued licensing initialization adopting a newer code-entry presentation generation after mutex acquisition, using a deterministic regression before correction. [Report](REPORTS/LICENSING_QUEUED_PRESENTATION_2026-10-31.md). Physical/release/production gates remain separate.
+
 2026-10-30 owner-requested Settings activation: expose an explicit trial-upgrade action in the app-license panel, reuse secure code entry and server grant, retain authoritative trial on cancel/failure, and reject late refresh presentation over the new entry. [Report](REPORTS/SETTINGS_ACTIVATION_2026-10-30.md). Exact-source validation is recorded on its task PR; no signing, deployment or physical-device acceptance is implied.
 
 2026-10-30 operational-readiness follow-up: owner confirmed public API/login recovered after resolving a generic Docker `api` name collision on the shared Caddy networks. Source still used that generic upstream. Current bounded correction adds `tyfino-licensing-api` as an API backend alias and updates the source proxy target. The shared host Caddyfile/override set requires its own authorized rollout; no production changes are performed. [Report](REPORTS/LICENSING_PROXY_ALIAS_2026-10-30.md). #205 causal/physical qualification remains separate from this confirmed networking defect.
