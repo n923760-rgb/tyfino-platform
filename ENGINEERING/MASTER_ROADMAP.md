@@ -301,6 +301,8 @@ Next: inspect full diagnostic traces, isolate the cause and qualify a bounded co
 
 ## Linked Reports
 
+2026-10-30 operational-readiness follow-up: owner confirmed public API/login recovered after resolving a generic Docker `api` name collision on the shared Caddy networks. Source still used that generic upstream. Current bounded correction adds `tyfino-licensing-api` as an API backend alias and updates the source proxy target. The shared host Caddyfile/override set requires its own authorized rollout; no production changes are performed. [Report](REPORTS/LICENSING_PROXY_ALIAS_2026-10-30.md). #205 causal/physical qualification remains separate from this confirmed networking defect.
+
 - `/ENGINEERING/REPORTS/MASTER_ENGINEERING_BASELINE_REPORT.md`
 - `/ENGINEERING/REPORTS/OPERATIONS_PERFORMANCE_DOC_ROUND_2026-09-27.md`
 - `/ENGINEERING/REPORTS/TEST_MATRIX_DOC_ROUND_2026-09-27.md`

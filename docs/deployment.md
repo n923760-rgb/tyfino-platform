@@ -61,3 +61,9 @@ CI runs both scripts against PostgreSQL 16 on every change. This is repeatable r
 Backups intentionally omit owners and ACLs so they remain portable. After restoring under the approved schema owner, rerun `database/init/002_app_role.sh` with the target environment's independently generated application credential before starting the API.
 
 The API exposes separate `/healthz` liveness and `/readyz` traffic-readiness probes. Container dependency checks use `/readyz`, which requires a reachable database and the current licensing/audit protection schema. Full audit-chain verification is kept out of the high-frequency readiness path and must be monitored through the authorized Admin audit endpoint.
+
+## Shared-VPS proxy routing
+
+The licensing API has the network-scoped alias `tyfino-licensing-api` on TYFINO's private `backend` network. The repository Caddyfile proxies to `tyfino-licensing-api:3000`. A shared proxy attached to several project networks must use project-specific upstream names; generic Compose service names such as `api` can resolve to another project's container.
+
+For an authorized rollout, retain the complete live Compose override set and inspect the resolved configuration before applying it. Ensure the API has its new alias before switching the proxy target. An overridden or bind-mounted Caddyfile takes precedence over the repository image's file: preserve other project routes and update only the TYFINO upstream. Do not replace a shared host file with this repository's standalone Caddyfile. Verify `/readyz` from the proxy and public HTTPS, then verify Admin/app login. Rollback must restore the prior working target while retaining the live network attachments. A repository merge does not update that host file or qualify a production rollout.
