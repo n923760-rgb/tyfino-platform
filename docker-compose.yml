@@ -54,7 +54,9 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - backend
+      backend:
+        aliases:
+          - tyfino-licensing-api
     security_opt:
       - no-new-privileges:true
 
