@@ -62,15 +62,20 @@ class SettingsScreenTest {
     @Test fun trialCanOpenCodeEntryFromSettingsAndPaidLicenseHidesTheAction() {
         var requests = 0
         var kind by mutableStateOf(EntitlementKind.Trial)
+        lateinit var input: InputModeManager
         compose.setContent {
+            input = LocalInputModeManager.current
             TyfinoTheme {
                 SettingsScreen({}, {}, licenseSummary = LicenseSummary(kind, null, false),
                     onActivateLicense = { requests++ })
             }
         }
         compose.onNodeWithTag("settings-activate-app").performScrollTo().assertIsDisplayed().performClick()
+        compose.runOnIdle { assertTrue("Switch to keyboard input after the touch action",
+            input.requestInputMode(InputMode.Keyboard)) }
         compose.onNodeWithTag("settings-activate-app")
             .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+            .assertIsFocused()
             .performKeyInput { pressKey(Key.Enter) }
         compose.runOnIdle { assertEquals(2, requests); kind = EntitlementKind.Lifetime }
         compose.onNodeWithTag("settings-activate-app").assertDoesNotExist()
