@@ -103,12 +103,15 @@ internal class LicensingController(private val repository: LicensingRepository) 
     var state: LicensingUiState = LicensingUiState.Checking
         private set
 
-    suspend fun initialize(onState: (LicensingUiState) -> Unit) = actionMutex.withLock {
+    suspend fun initialize(onState: (LicensingUiState) -> Unit) {
         val generation = presentationGeneration
-        apply(withContext(Dispatchers.IO) { repository.localOutcome() }, onState, generation)
-        if (withContext(Dispatchers.IO) { repository.shouldRefresh() }) {
-            retryTarget = RetryTarget.Refresh
-            apply(withContext(Dispatchers.IO) { repository.refresh() }, onState, generation)
+        actionMutex.withLock {
+            if (generation != presentationGeneration) return@withLock
+            apply(withContext(Dispatchers.IO) { repository.localOutcome() }, onState, generation)
+            if (withContext(Dispatchers.IO) { repository.shouldRefresh() }) {
+                retryTarget = RetryTarget.Refresh
+                apply(withContext(Dispatchers.IO) { repository.refresh() }, onState, generation)
+            }
         }
     }
 
@@ -154,11 +157,14 @@ internal class LicensingController(private val repository: LicensingRepository) 
         apply(outcome, onState)
     }
 
-    suspend fun onForeground(onState: (LicensingUiState) -> Unit) = actionMutex.withLock {
+    suspend fun onForeground(onState: (LicensingUiState) -> Unit) {
         val generation = presentationGeneration
-        if (withContext(Dispatchers.IO) { repository.shouldRefresh() }) {
-            retryTarget = RetryTarget.Refresh
-            apply(withContext(Dispatchers.IO) { repository.refresh() }, onState, generation)
+        actionMutex.withLock {
+            if (generation != presentationGeneration) return@withLock
+            if (withContext(Dispatchers.IO) { repository.shouldRefresh() }) {
+                retryTarget = RetryTarget.Refresh
+                apply(withContext(Dispatchers.IO) { repository.refresh() }, onState, generation)
+            }
         }
     }
 

@@ -28,6 +28,8 @@ class LicensingTest {
         withTimeout(5_000L) { refresh.await(); initialization.await() }
         assertTrue("Older queued initialization must publish no new presentation", queuedPublications.isEmpty())
         assertEquals(LicensingUiState.ActivationEntry, controller.state)
+        controller.initialize { }
+        assertTrue("A new explicit initialization can restore authoritative access", controller.state is LicensingUiState.Active)
     }
 
     @Test fun expiredOrRevokedCodeDoesNotDeleteAnExistingTrial() = runBlocking {
