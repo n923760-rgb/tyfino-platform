@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.licensing.EntitlementKind
 import dev.tyfino.foundation.ui.components.ProductPanel
+import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.components.ProductSectionHeading
 import java.text.DateFormat
 import java.util.Date
@@ -25,7 +26,7 @@ internal data class LicenseSummary(
 )
 
 @Composable
-internal fun LicenseSummaryPanel(summary: LicenseSummary) {
+internal fun LicenseSummaryPanel(summary: LicenseSummary, onActivate: (() -> Unit)? = null) {
     val locale = Locale.forLanguageTag(LocalLocale.current.toLanguageTag())
     val expiry = remember(summary.expiresAtMillis, locale) {
         summary.expiresAtMillis?.let { DateFormat.getDateInstance(DateFormat.MEDIUM, locale).format(Date(it)) }
@@ -45,6 +46,10 @@ internal fun LicenseSummaryPanel(summary: LicenseSummary) {
             color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.testTag("license-summary-status"))
         Text(stringResource(R.string.product_license_scope), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (summary.kind == EntitlementKind.Trial && onActivate != null) {
+            FocusVisibleButton(stringResource(R.string.settings_activate_app), onActivate,
+                Modifier.fillMaxWidth().testTag("settings-activate-app"))
+        }
         Text(stringResource(R.string.product_license_transfer), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
