@@ -3,6 +3,7 @@ package dev.tyfino.foundation.licensing
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -11,11 +12,12 @@ import org.junit.Test
 
 class LicensingTest {
     @Test fun pendingRefreshCannotReplaceExplicitActivationEntry() = runBlocking {
-        val store = FakeStore().apply { value = snapshot() }
+        val trial = snapshot()
+        val store = FakeStore().apply { value = trial }
         val api = ControllableApi(blockRefresh = true)
         val controller = LicensingController(LicensingRepository(store, api, FakeClock(7_000L, 1_000L, 7), "test"))
         val refresh = async { controller.onForeground { } }
-        api.refreshStarted.await()
+        withTimeout(5_000L) { api.refreshStarted.await() }
         controller.showActivation { }
         api.releaseRefresh.complete(Unit)
         refresh.await()
@@ -23,7 +25,8 @@ class LicensingTest {
     }
 
     @Test fun activationDuringTrialReplacesTheEntitlementImmediately() = runBlocking {
-        val store = FakeStore().apply { value = snapshot() }
+        val trial = snapshot()
+        val store = FakeStore().apply { value = trial }
         val repository = LicensingRepository(store, ControllableApi(), FakeClock(1_000L, 1_000L, 7), "test")
         val outcome = repository.activate("TYF-01234-56789-ABCDE-FGHJK-MNPQRS") as LicenseOutcome.Active
         assertEquals(EntitlementKind.Lifetime, outcome.entitlement.kind)
