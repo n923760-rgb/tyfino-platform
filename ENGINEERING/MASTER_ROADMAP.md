@@ -297,6 +297,8 @@ Current bounded task: always retain the specific picture-size directional per-ca
 
 Next: inspect full diagnostic traces, isolate the cause and qualify a bounded correction. Physical phone/TV/provider/accessibility/performance, signing custody/continuity/recovery and production operations remain separate gates before sale. Signing/release/publication/deployment are not performed by this task.
 
+2026-10-30 weekly-review implementation: current main028b001db77b8213342342e8d27cd1cb1769cb0f has no open task PR at the initial gate. Restore the original Fit-assertion/Down sequence by moving added window observations after a captured failure verdict. This removes a known diagnostic timing confound without claiming a product fix. Exact-source results belong to the isolated PR; #205 remains open. [Scoped report](REPORTS/FOCUS_ORIGINAL_SEQUENCE_2026-10-30.md).
+
 ## Linked Reports
 
 - `/ENGINEERING/REPORTS/MASTER_ENGINEERING_BASELINE_REPORT.md`

@@ -117,10 +117,7 @@ class PlaybackAspectTest {
         compose.onNodeWithTag("playback-aspect").performSemanticsAction(SemanticsActions.RequestFocus) { it() }
             .performKeyInput { pressKey(Key.Enter) }
         compose.onNodeWithTag("aspect-mode-Fit").assertIsSelected().assertIsFocused()
-        observeDialogWindow()
-        recordFocus("before Down")
-        compose.onNodeWithTag("aspect-mode-Fit").performKeyInput { pressKey(Key.DirectionDown) }
-        recordFocus("after Down")
+            .performKeyInput { pressKey(Key.DirectionDown) }
         assertZoomFocused("after Down from Fit")
         compose.runOnIdle { assertEquals(AspectRatioFrameLayout.RESIZE_MODE_FIT, video.resizeMode) }
         compose.onNodeWithTag("aspect-mode-Zoom").performKeyInput { pressKey(Key.Enter) }
@@ -185,6 +182,15 @@ class PlaybackAspectTest {
     private fun assertZoomFocused(stage: String) {
         val focused = compose.onNodeWithTag("aspect-mode-Zoom").fetchSemanticsNode()
             .config[SemanticsProperties.Focused]
+        // Capture the verdict before Espresso/window observation can change scheduling.
+        if (!focused) {
+            runCatching {
+                observeDialogWindow()
+                recordFocus("after captured failure: $stage")
+            }.onFailure { error ->
+                compose.runOnIdle { trace("post-failure diagnostics unavailable: ${error.javaClass.simpleName}") }
+            }
+        }
         val trace = compose.runOnIdle { focusTrace.joinToString("; ") }
         assertTrue("Picture-size focus $stage: Zoom must own focus; trace=[$trace]", focused)
     }
