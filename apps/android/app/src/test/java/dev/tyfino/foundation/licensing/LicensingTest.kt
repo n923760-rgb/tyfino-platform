@@ -11,6 +11,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LicensingTest {
+    @Test fun expiredOrRevokedCodeDoesNotDeleteAnExistingTrial() = runBlocking {
+        for (code in listOf("ENTITLEMENT_EXPIRED", "ENTITLEMENT_REVOKED", "ACTIVATION_REJECTED")) {
+            val trial = snapshot()
+            val store = FakeStore().apply { value = trial }
+            val repository = LicensingRepository(store,
+                ControllableApi(activationFailure = LicensingApiException(code, false)),
+                FakeClock(1_000L, 1_000L, 7), "test")
+            assertEquals(LicenseOutcome.Failure(code, false),
+                repository.activate("TYF-01234-56789-ABCDE-FGHJK-MNPQRS"))
+            assertEquals(trial, store.value)
+        }
+    }
+
     @Test fun pendingRefreshCannotReplaceExplicitActivationEntry() = runBlocking {
         val trial = snapshot()
         val store = FakeStore().apply { value = trial }

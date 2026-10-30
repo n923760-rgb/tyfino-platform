@@ -31,7 +31,7 @@ internal class LicensingRepository(
         api.startTrial(owner.installationId, appVersion)
     }
 
-    suspend fun activate(activationCode: String): LicenseOutcome = perform(allowOfflineFallback = false) { owner ->
+    suspend fun activate(activationCode: String): LicenseOutcome = perform(activationRequest = true) { owner ->
         api.activate(owner.installationId, appVersion, activationCode)
     }
 
@@ -40,7 +40,7 @@ internal class LicensingRepository(
         return perform { owner -> api.refresh(owner.installationId, appVersion, snapshot.sessionToken) }
     }
 
-    private suspend fun perform(allowOfflineFallback: Boolean = true,
+    private suspend fun perform(activationRequest: Boolean = false,
         request: suspend (OperationOwner) -> LicenseEnvelope): LicenseOutcome {
         val owner = operations.begin(store.installationId())
         var lastFailure = LicensingApiException("LICENSE_UNAVAILABLE", true)
@@ -65,20 +65,21 @@ internal class LicensingRepository(
                 }
             } catch (failure: LicensingApiException) {
                 lastFailure = failure
-                if (!failure.retryable || attempt == MAX_ATTEMPTS - 1) return handleFailure(owner, failure, allowOfflineFallback)
+                if (!failure.retryable || attempt == MAX_ATTEMPTS - 1) return handleFailure(owner, failure, activationRequest)
                 delay(RETRY_DELAYS_MILLIS[attempt] + Random.nextLong(0, RETRY_JITTER_MILLIS))
             }
         }
-        return handleFailure(owner, lastFailure, allowOfflineFallback)
+        return handleFailure(owner, lastFailure, activationRequest)
     }
 
     private suspend fun handleFailure(owner: OperationOwner, failure: LicensingApiException,
-        allowOfflineFallback: Boolean): LicenseOutcome =
+        activationRequest: Boolean): LicenseOutcome =
         commitMutex.withLock {
             if (!operations.isCurrent(owner, store.installationId())) return@withLock LicenseOutcome.Stale
-            if (failure.code in TERMINAL_CODES) store.clearEntitlement()
+            // Rejection of a submitted code says nothing about the existing trial's authority.
+            if (!activationRequest && failure.code in TERMINAL_CODES) store.clearEntitlement()
             val local = store.snapshot()
-            if (allowOfflineFallback && failure.retryable && local != null && OfflinePolicy.canUse(local, clock)) {
+            if (!activationRequest && failure.retryable && local != null && OfflinePolicy.canUse(local, clock)) {
                 LicenseOutcome.Active(local, offline = true)
             } else {
                 LicenseOutcome.Failure(failure.code, failure.retryable)
