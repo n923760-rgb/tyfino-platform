@@ -1,6 +1,7 @@
 package dev.tyfino.foundation.licensing
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -11,6 +12,24 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LicensingTest {
+    @Test fun queuedInitializationCannotReplaceNewerActivationEntry() = runBlocking {
+        val trial = snapshot()
+        val store = FakeStore().apply { value = trial }
+        val api = ControllableApi(blockRefresh = true)
+        val controller = LicensingController(LicensingRepository(store, api, FakeClock(7_000L, 1_000L, 7), "test"))
+        val refresh = async { controller.onForeground { } }
+        withTimeout(5_000L) { api.refreshStarted.await() }
+        val queuedPublications = mutableListOf<LicensingUiState>()
+        val initialization = async(start = CoroutineStart.UNDISPATCHED) {
+            controller.initialize { queuedPublications.add(it) }
+        }
+        controller.showActivation { }
+        api.releaseRefresh.complete(Unit)
+        withTimeout(5_000L) { refresh.await(); initialization.await() }
+        assertTrue("Older queued initialization must publish no new presentation", queuedPublications.isEmpty())
+        assertEquals(LicensingUiState.ActivationEntry, controller.state)
+    }
+
     @Test fun expiredOrRevokedCodeDoesNotDeleteAnExistingTrial() = runBlocking {
         for (code in listOf("ENTITLEMENT_EXPIRED", "ENTITLEMENT_REVOKED", "ACTIVATION_REJECTED")) {
             val trial = snapshot()
