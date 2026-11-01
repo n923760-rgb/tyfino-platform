@@ -301,6 +301,8 @@ Next: inspect full diagnostic traces, isolate the cause and qualify a bounded co
 
 ## Linked Reports
 
+2026-11-01 licensing navigation improvement: official main78fae08632dba4d60263750bd46f75093d9dc5f3 passed all seven gates in Validate41289846997. Unify initial activation hardware Back with the visible Back callback and consume Back during licensing work. Retain139 native cases plus2 new behavior checks (141/device); exact-source results belong to the PR. [Report](REPORTS/LICENSING_HARDWARE_BACK_2026-11-01.md). Physical/provider/signing/release gates remain separate.
+
 2026-11-01 release-readiness continuation: on official main2907d2360b13afd3d4af86d2cb46ec783903f5a9, a local no-key regression reproduced signature-verifier failure hidden by tee in the protected APK workflow. A bounded fail-closed correction passes all14 local release guard tests; exact-source hosted qualification belongs to the PR. [Report](REPORTS/RELEASE_SIGNATURE_EXIT_2026-11-01.md). No signing/release/deployment or physical acceptance is performed.
 
 2026-10-31 activation continuation: official main57664b503b7b63e556d1c3e24639df05410ff5b2 passed all seven gates in Validate41129681117. Investigate queued licensing initialization adopting a newer code-entry presentation generation after mutex acquisition, using a deterministic regression before correction. [Report](REPORTS/LICENSING_QUEUED_PRESENTATION_2026-10-31.md). Physical/release/production gates remain separate.
