@@ -66,6 +66,7 @@ jobs:
         run: ./gradlew --no-daemon :app:assembleRelease -PTYFINO_SIGN_RELEASE=true
       - name: Verify signing certificate and package
         run: |
+          set -euo pipefail
           apk_path="app/build/outputs/apk/release/app-release.apk"
           test -s "$apk_path"
           apksigner_path="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"

@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Exercise the signing preflight against disposable real Git repositories; no SDK/key/network."""
+"""Exercise release source/signature guards with disposable fixtures; no SDK/key/network."""
+import hashlib
 import os
 from pathlib import Path
 import subprocess
 import tempfile
+import textwrap
 import unittest
 
 SCRIPT = Path(__file__).with_name("verify-release-source.sh").resolve()
+WORKFLOW = SCRIPT.parents[3] / ".github/workflows/release-apk.yml"
 
 
 def git(directory, *args):
@@ -91,6 +94,79 @@ class ReleaseSourceTest(unittest.TestCase):
     def test_fetch_failure_cannot_accept_cached_main(self):
         git(self.checkout, "remote", "set-url", "origin", str(self.remote / "missing"))
         self.check(False, "does not appear to be a git repository")
+
+
+class ReleaseSignatureTest(unittest.TestCase):
+    """Run the actual workflow verification block with synthetic APK/verifier output."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix="tyfino-release-signature-")
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        git(self.root, "init", "--initial-branch=main")
+        git(self.root, "config", "user.name", "Release fixture")
+        git(self.root, "config", "user.email", "fixture@example.invalid")
+        (self.root / "source.txt").write_text("synthetic release verification fixture")
+        git(self.root, "add", "source.txt")
+        git(self.root, "commit", "-m", "fixture")
+        self.source = git(self.root, "rev-parse", "HEAD")
+        self.apk = self.root / "app/build/outputs/apk/release/app-release.apk"
+        self.apk.parent.mkdir(parents=True)
+        self.apk.write_bytes(b"synthetic APK; never signed or installed")
+        self.output = self.root / "build/release-output"
+        self.fingerprint = "ab" * 32
+        sdk = self.root / "sdk"
+        signer = sdk / "build-tools/fixture/apksigner"
+        signer.parent.mkdir(parents=True)
+        signer.write_text('#!/bin/bash\nprintf "Signer #1 certificate SHA-256 digest: %s\\n" "$FIXTURE_CERT"\nexit "$FIXTURE_VERIFY_STATUS"\n')
+        signer.chmod(0o700)
+        self.env = {
+            **os.environ,
+            "ANDROID_HOME": str(sdk),
+            "TYFINO_ANDROID_CERT_SHA256": self.fingerprint,
+            "FIXTURE_CERT": self.fingerprint,
+            "FIXTURE_VERIFY_STATUS": "0",
+        }
+        # Extract the production literal run block without introducing a YAML dependency.
+        block = WORKFLOW.read_text().split("      - name: Verify signing certificate and package\n", 1)[1]
+        block = block.split("      - name: Upload signed APK for owner review\n", 1)[0]
+        script = textwrap.dedent(block.split("        run: |\n", 1)[1])
+        self.script = self.root / "verify.sh"
+        self.script.write_text(script)
+
+    def verify(self, **env):
+        # GitHub's unspecified Linux shell uses bash -e, without automatic pipefail.
+        return subprocess.run(
+            ["bash", "--noprofile", "--norc", "-e", str(self.script)],
+            cwd=self.root, env={**self.env, **env}, text=True, capture_output=True, timeout=10,
+        )
+
+    def assert_no_review_package(self):
+        for name in ("TYFINO-1.0.0.apk", "TYFINO-1.0.0.apk.sha256", "source-sha.txt"):
+            self.assertFalse((self.output / name).exists(), name)
+
+    def test_success_emits_exact_apk_checksum_and_source(self):
+        result = self.verify()
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertEqual(self.apk.read_bytes(), (self.output / "TYFINO-1.0.0.apk").read_bytes())
+        self.assertEqual(hashlib.sha256(self.apk.read_bytes()).hexdigest(),
+                         (self.output / "TYFINO-1.0.0.apk.sha256").read_text().split()[0])
+        self.assertEqual(self.source, (self.output / "source-sha.txt").read_text().strip())
+
+    def test_verifier_failure_rejects_even_matching_reported_certificate(self):
+        result = self.verify(FIXTURE_VERIFY_STATUS="7")
+        self.assertNotEqual(0, result.returncode, "Verifier failure must block the owner-review package")
+        self.assert_no_review_package()
+
+    def test_wrong_certificate_rejects(self):
+        result = self.verify(FIXTURE_CERT="cd" * 32)
+        self.assertNotEqual(0, result.returncode)
+        self.assert_no_review_package()
+
+    def test_missing_certificate_rejects(self):
+        result = self.verify(FIXTURE_CERT="")
+        self.assertNotEqual(0, result.returncode)
+        self.assert_no_review_package()
 
 
 if __name__ == "__main__":
