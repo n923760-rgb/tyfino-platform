@@ -289,6 +289,14 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-01 owner priority: television
+
+Owner explicitly prioritizes professional Android TV/Google TV behavior. Current verified official source ed7237fc6c379cd98315819c75797695d2e93ce6 passed official-main Validate41319159216; no open task PRs at the initial gate. Prioritize remote-only navigation, visible and restored focus, Back, scrollable dialogs and playback controls. Physical TV/provider/performance acceptance remains mandatory and NOT RUN; phone/tablet directional tests do not replace it.
+
+Current bounded improvement: open audio/subtitle choices at the selected Automatic/Off/embedded row, including a deep lazy-list selection, while arrows do not change playback and Enter invokes the selected action once. Three actual-dialog Off/LTR/RTL regressions join the retained141 cases (144/device). [Scoped report](REPORTS/TV_SELECTED_TRACK_FOCUS_2026-11-01.md). Exact-source results belong to the PR. Next television work follows confirmed focus/navigation findings and actual TV-runtime qualification, rather than unrelated product expansion.
+
+### Historical focus-diagnosis checkpoints
+
 Official source `df7201054a22d96501077872aa194b618d162750` includes #206 and #207. Official-main Validate39717316309 passed six jobs but tablet failed the existing after-Down picture-size focus assertion (138 cases,1 failure,0 skips). This supersedes assumptions of full readiness from the premerge pass; #205 remains open. Full retained failure artifact12400061948 was reviewed and SHA256 verified.
 
 Focus diagnosis #208 is merged at `8ddbde958d63f4392b4e43be254a613fc82c9703`. Its exact head d9639da922f09ce9adc17c56318d00a1d04b682e passed all seven gates in Validate39953214125,138 cases/device,0 failures/skips and exact configured APK API33 install/launch. The original intermittent failure did not reproduce; no causal fix or TV acceptance is established. [Diagnosis report](REPORTS/PICTURE_FOCUS_WINDOW_DIAGNOSIS_2026-10-23.md).
