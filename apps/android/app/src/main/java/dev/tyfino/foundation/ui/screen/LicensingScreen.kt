@@ -1,5 +1,6 @@
 package dev.tyfino.foundation.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,6 +62,9 @@ internal fun LicensingScreen(
     onCancelActivation: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
+    BackHandler(enabled = state == LicensingUiState.ActivationEntry || state == LicensingUiState.Working) {
+        if (state == LicensingUiState.ActivationEntry) onBack()
+    }
     Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).imePadding()
         .padding(horizontal = 16.dp, vertical = 16.dp).testTag("licensing-screen"),
         contentAlignment = Alignment.Center) {
