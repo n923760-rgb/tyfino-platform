@@ -85,7 +85,35 @@ class PlaybackTrackDialogViewportTest {
                     { automatic++ }, { off++ }, { tracks++ }, { closed++ })
             }
         }
-        compose.onNodeWithTag("track-picker-off").assertIsSelected().assertIsFocused()
+        compose.onNodeWithTag("track-picker-off").assertIsSelected()
+        // Preserve the first-focus assertion before any diagnostic observation.
+        try {
+            compose.onNodeWithTag("track-picker-off").assertIsFocused()
+        } catch (original: AssertionError) {
+            // Failure-only snapshot: no extra synchronization on the passing path.
+            // All tags below are synthetic; no provider data or secrets are read.
+            val focusSnapshot = listOf("automatic", "off", "close").joinToString { item ->
+                val focused = runCatching {
+                    compose.onNodeWithTag("track-picker-${item}").fetchSemanticsNode()
+                        .config.getOrNull(SemanticsProperties.Focused)
+                }.getOrNull()
+                "${item}=${focused}"
+            }
+            val windowFocus = runCatching {
+                var focused = false
+                onView(isRoot()).inRoot(isDialog()).check { view, error ->
+                    if (error != null) throw error
+                    focused = view.hasWindowFocus()
+                }
+                focused.toString()
+            }.getOrElse { "unavailable:" + it.javaClass.simpleName }
+            throw AssertionError(
+                "Selected subtitle Off did not receive initial focus: " +
+                    "nodes=[${focusSnapshot}], dialogWindowFocused=${windowFocus}",
+                original,
+            )
+        }
+        compose.onNodeWithTag("track-picker-off")
             .performKeyInput { pressKey(Key.DirectionUp) }
         compose.onNodeWithTag("track-picker-automatic").assertIsFocused()
         compose.onNodeWithTag("track-picker-off").assertIsSelected()
