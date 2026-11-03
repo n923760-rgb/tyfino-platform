@@ -95,7 +95,7 @@ class PlaybackTrackDialogViewportTest {
             val focusSnapshot = listOf("automatic", "off", "close").joinToString { item ->
                 val focused = runCatching {
                     compose.onNodeWithTag("track-picker-${item}").fetchSemanticsNode()
-                        .config.getOrNull(SemanticsProperties.Focused)
+                        .config[SemanticsProperties.Focused]
                 }.getOrNull()
                 "${item}=${focused}"
             }
