@@ -86,18 +86,37 @@ class PlaybackTrackDialogViewportTest {
             }
         }
         compose.onNodeWithTag("track-picker-off").assertIsSelected()
-        // Preserve the first-focus assertion before any diagnostic observation.
+        awaitInitialFocus("track-picker-off")
+        compose.onNodeWithTag("track-picker-off").assertIsFocused()
+        compose.onNodeWithTag("track-picker-off")
+            .performKeyInput { pressKey(Key.DirectionUp) }
+        compose.onNodeWithTag("track-picker-automatic").assertIsFocused()
+        compose.onNodeWithTag("track-picker-off").assertIsSelected()
+        compose.runOnIdle { assertEquals(0, automatic + off + tracks + closed) }
+        compose.onNodeWithTag("track-picker-automatic").performKeyInput { pressKey(Key.Enter) }
+        compose.runOnIdle { assertEquals(1, automatic); assertEquals(0, off + tracks + closed) }
+    }
+
+    private fun awaitInitialFocus(tag: String) {
+        // A composed/selected row can precede Android's asynchronous dialog window focus.
+        // Observe the production focus request; never request focus or scroll from the test.
         try {
-            compose.onNodeWithTag("track-picker-off").assertIsFocused()
-        } catch (original: AssertionError) {
+            compose.waitUntil(5_000) {
+                runCatching {
+                    compose.onNodeWithTag(tag).fetchSemanticsNode()
+                        .config[SemanticsProperties.Focused]
+                }.getOrDefault(false)
+            }
+        } catch (original: Exception) {
             // Failure-only snapshot: no extra synchronization on the passing path.
             // All tags below are synthetic; no provider data or secrets are read.
-            val focusSnapshot = listOf("automatic", "off", "close").joinToString { item ->
-                val focused = runCatching {
-                    compose.onNodeWithTag("track-picker-${item}").fetchSemanticsNode()
-                        .config[SemanticsProperties.Focused]
-                }.getOrNull()
-                "${item}=${focused}"
+            val focusSnapshot = listOf(tag, "track-picker-automatic", "track-picker-off", "track-picker-close")
+                .distinct().joinToString { item ->
+                    val focused = runCatching {
+                        compose.onNodeWithTag(item).fetchSemanticsNode()
+                            .config[SemanticsProperties.Focused]
+                    }.getOrNull()
+                    "${item}=${focused}"
             }
             val windowFocus = runCatching {
                 var focused = false
@@ -108,18 +127,11 @@ class PlaybackTrackDialogViewportTest {
                 focused.toString()
             }.getOrElse { "unavailable:" + it.javaClass.simpleName }
             throw AssertionError(
-                "Selected subtitle Off did not receive initial focus: " +
+                "Initial focus did not reach $tag within 5 seconds: " +
                     "nodes=[${focusSnapshot}], dialogWindowFocused=${windowFocus}",
                 original,
             )
         }
-        compose.onNodeWithTag("track-picker-off")
-            .performKeyInput { pressKey(Key.DirectionUp) }
-        compose.onNodeWithTag("track-picker-automatic").assertIsFocused()
-        compose.onNodeWithTag("track-picker-off").assertIsSelected()
-        compose.runOnIdle { assertEquals(0, automatic + off + tracks + closed) }
-        compose.onNodeWithTag("track-picker-automatic").performKeyInput { pressKey(Key.Enter) }
-        compose.runOnIdle { assertEquals(1, automatic); assertEquals(0, off + tracks + closed) }
     }
 
     @Test fun selectedDeepTrackIsVisibleAndDirectionalInLtr() = selectedDeepTrack(LayoutDirection.Ltr)
@@ -143,6 +155,7 @@ class PlaybackTrackDialogViewportTest {
             }
         }
         // No scrolling or target-forcing: the real dialog must initially mount/focus the selected row.
+        awaitInitialFocus("track-picker-option-$selectedIndex")
         compose.onNodeWithTag("track-picker-option-$selectedIndex")
             .assertIsSelected().assertIsFocused().assertIsDisplayed()
             .performKeyInput { pressKey(Key.DirectionDown) }
