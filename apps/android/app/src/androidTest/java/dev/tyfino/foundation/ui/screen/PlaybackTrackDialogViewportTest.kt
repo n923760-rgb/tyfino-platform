@@ -226,11 +226,27 @@ class PlaybackTrackDialogViewportTest {
                 assertTrue(action(layouts))
                 assertEquals(2f, layouts.single().layoutInput.density.fontScale, 0f)
             }
-        compose.onNodeWithTag("track-picker-off").performScrollTo().assertIsSelected().performClick()
+        val offButton = compose.onNodeWithTag("track-picker-off").performScrollTo().assertIsSelected()
+        val offNode = offButton.fetchSemanticsNode()
+        val offBounds = offNode.boundsInRoot
+        val offSize = offNode.size
+        val outerBounds = compose.onNodeWithTag("track-picker-scroll").fetchSemanticsNode().boundsInRoot
+        val offGeometry = "Off bounds=$offBounds, size=$offSize, outer=$outerBounds"
+        assertTrue("Selected Off must be fully visible before touch: $offGeometry",
+            offBounds.width >= offSize.width - 1f && offBounds.height >= offSize.height - 1f)
+        offButton.performClick()
+        compose.runOnIdle {
+            assertEquals("Off touch must invoke its callback once: $offGeometry", 1, off)
+            assertEquals(0, automatic + tracks + closed)
+        }
         compose.onNodeWithTag("track-picker-close").performScrollTo().assertIsDisplayed()
         assertOuterScroll()
         compose.onNodeWithTag("track-picker-close").performClick()
-        compose.runOnIdle { assertEquals(1, off); assertEquals(1, closed); assertEquals(0, automatic + tracks) }
+        compose.runOnIdle {
+            assertEquals("Off callback must remain exactly once", 1, off)
+            assertEquals("Close touch must invoke its callback once", 1, closed)
+            assertEquals(0, automatic + tracks)
+        }
     }
 
     private fun renderDialog() {

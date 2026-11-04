@@ -297,6 +297,8 @@ Current bounded improvement: open audio/subtitle choices at the selected Automat
 
 ### Historical focus-diagnosis checkpoints
 
+2026-11-04 #216 follow-up: selected-row focus cases now pass, but Validate41679652057 fails the existing tablet Arabic/font2 Off touch callback (144 cases,1 failure). Six other jobs pass. Diagnose actual clipping/target geometry and first callback before any product correction or merge; all assertions remain. [Source-bound record](REPORTS/TV_SELECTED_TRACK_FOCUS_2026-11-01.md).
+
 2026-11-03 continuation of #216: exact head07249b8 failed only the tablet Off initial-focus assertion in Validate41603821012. Retained JUnit plus failure-only snapshot show focus arriving between observations (Off false then true, no test focus request). Synchronize the three new initial-focus checks with a bounded condition wait while preserving all selection/visibility/D-pad/callback assertions and144 cases/device; no production focus-helper change. Require seven exact-source gates and API33 install smoke before acceptance. [Diagnosis and source-bound evidence](REPORTS/TV_SELECTED_TRACK_FOCUS_2026-11-01.md). Physical television/provider/performance qualification remains NOT RUN.
 
 Official source `df7201054a22d96501077872aa194b618d162750` includes #206 and #207. Official-main Validate39717316309 passed six jobs but tablet failed the existing after-Down picture-size focus assertion (138 cases,1 failure,0 skips). This supersedes assumptions of full readiness from the premerge pass; #205 remains open. Full retained failure artifact12400061948 was reviewed and SHA256 verified.
