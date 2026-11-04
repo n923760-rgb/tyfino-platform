@@ -64,6 +64,12 @@ internal fun LiveEpgContent(
     val locale = LocalConfiguration.current.locales[0]
     val timeFormat = remember(locale) { DateFormat.getTimeInstance(DateFormat.SHORT, locale) }
     val now = System.currentTimeMillis()
+    val refreshing = when (state) {
+        LiveEpgState.Loading -> true
+        is LiveEpgState.Content -> state.refreshing
+        is LiveEpgState.Empty -> state.refreshing
+        else -> false
+    }
     val programs = when (state) {
         is LiveEpgState.Content -> state.programs
         is LiveEpgState.Stale -> state.programs
@@ -103,6 +109,7 @@ internal fun LiveEpgContent(
                         )
                     }
                     is LiveEpgState.Empty -> item {
+                        if (state.refreshing) EpgLoadingStatus()
                         Text(
                             text = stringResource(R.string.epg_empty),
                             modifier = Modifier
@@ -142,12 +149,17 @@ internal fun LiveEpgContent(
             FocusVisibleButton(
                 label = stringResource(R.string.epg_refresh),
                 onClick = onRefresh,
-                modifier = Modifier.fillMaxWidth().focusRequester(firstFocus).testTag("epg-refresh"),
+                enabled = !refreshing,
+                modifier = Modifier.fillMaxWidth()
+                    .then(if (!refreshing) Modifier.focusRequester(firstFocus) else Modifier)
+                    .testTag("epg-refresh"),
             )
             FocusVisibleButton(
                 label = stringResource(R.string.playback_close),
                 onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth().testTag("epg-close"),
+                modifier = Modifier.fillMaxWidth()
+                    .then(if (refreshing) Modifier.focusRequester(firstFocus) else Modifier)
+                    .testTag("epg-close"),
             )
         }
     }

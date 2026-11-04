@@ -22,6 +22,8 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.Root
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
@@ -78,6 +81,65 @@ class LiveEpgViewportTest {
                 now - 60_000, now + 3_600_000),
             LiveEpgProgram("fixture", "channel", "Next program", "Upcoming description. ".repeat(20),
                 now + 3_600_000, now + 7_200_000)), now, LiveEpgFailure.Timeout)
+    }
+
+    @Test fun busyGuideKeepsCloseAndRetryNavigableInLtr() = busyGuide(LayoutDirection.Ltr)
+
+    @Test fun busyGuideKeepsCloseAndRetryNavigableInRtl() = busyGuide(LayoutDirection.Rtl)
+
+    private fun busyGuide(direction: LayoutDirection) {
+        var state by mutableStateOf<LiveEpgState>(LiveEpgState.Loading)
+        compose.setContent {
+            var visible by remember { mutableStateOf(true) }
+            CompositionLocalProvider(LocalLayoutDirection provides direction) {
+                TyfinoTheme { if (visible) LiveEpgDialog(state,
+                    { refreshed++; state = LiveEpgState.Loading }, { closed++; visible = false }) }
+            }
+        }
+        compose.waitUntil(5_000) {
+            compose.onNodeWithTag("epg-close").fetchSemanticsNode().config[SemanticsProperties.Focused]
+        }
+        val programs = (fixture() as LiveEpgState.Stale).programs
+        for (busyState in listOf(LiveEpgState.Loading,
+            LiveEpgState.Content(programs, 1L, true), LiveEpgState.Empty(1L, true))) {
+            compose.runOnIdle { state = busyState }
+            compose.onNodeWithTag("epg-loading").assertExists()
+            compose.onNodeWithTag("epg-refresh").assertIsNotEnabled()
+            compose.onNodeWithTag("epg-close").assertIsEnabled().assertIsFocused()
+            compose.runOnIdle { assertEquals(0, refreshed + closed) }
+        }
+        compose.runOnIdle { state = LiveEpgState.Error(LiveEpgFailure.Timeout) }
+        compose.onNodeWithTag("epg-loading").assertDoesNotExist()
+        compose.onNodeWithTag("epg-refresh").assertIsEnabled()
+        // Finishing work must not pull focus away from the user's current Close action.
+        compose.onNodeWithTag("epg-close").assertIsFocused()
+            .performKeyInput { pressKey(Key.DirectionUp) }
+        compose.onNodeWithTag("epg-refresh").assertIsFocused()
+            .performKeyInput { pressKey(Key.Enter) }
+        compose.onNodeWithTag("epg-refresh").assertIsNotEnabled()
+        compose.runOnIdle { assertEquals(1, refreshed); assertEquals(0, closed) }
+        pressBack()
+        compose.onNodeWithTag("live-epg-dialog").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(1, refreshed); assertEquals(1, closed) }
+    }
+
+    @Test fun busyEmptyGuideRejectsTouchRefreshUntilReady() {
+        var state by mutableStateOf<LiveEpgState>(LiveEpgState.Empty(1L, true))
+        compose.setContent {
+            var visible by remember { mutableStateOf(true) }
+            TyfinoTheme { if (visible) LiveEpgDialog(state,
+                { refreshed++; state = LiveEpgState.Empty(1L, true) }, { closed++; visible = false }) }
+        }
+        compose.onNodeWithTag("epg-loading").assertExists()
+        repeat(2) { compose.onNodeWithTag("epg-refresh").assertIsNotEnabled().performClick() }
+        compose.runOnIdle { assertEquals(0, refreshed + closed); state = LiveEpgState.Empty(1L, false) }
+        compose.onNodeWithTag("epg-loading").assertDoesNotExist()
+        compose.onNodeWithTag("epg-refresh").assertIsEnabled().performClick()
+        compose.onNodeWithTag("epg-refresh").assertIsNotEnabled().performClick()
+        compose.runOnIdle { assertEquals(1, refreshed); assertEquals(0, closed) }
+        compose.onNodeWithTag("epg-close").assertIsEnabled().performClick()
+        compose.onNodeWithTag("live-epg-dialog").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(1, refreshed); assertEquals(1, closed) }
     }
 
     @Test fun shortNativeDialogKeepsRefreshAndCloseReachableByTouch() {
