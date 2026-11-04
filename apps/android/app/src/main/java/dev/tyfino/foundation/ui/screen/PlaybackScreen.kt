@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -838,6 +839,15 @@ internal fun TrackPickerContent(
     onDismiss: () -> Unit,
 ) {
     val selectedSuffix = stringResource(R.string.playback_selected)
+    val trackOffset = if (includeOff) 2 else 1
+    val selectedTrack = options.indexOfFirst { it.selected }
+    val initialFocusIndex = when {
+        automaticSelected -> 0
+        includeOff && offSelected -> 1
+        selectedTrack >= 0 -> trackOffset + selectedTrack
+        else -> 0
+    }
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFocusIndex)
     Surface(
         modifier = Modifier
             .widthIn(max = 520.dp)
@@ -855,6 +865,7 @@ internal fun TrackPickerContent(
             ProductHeader(title = title, eyebrow = stringResource(R.string.product_player_options))
             LazyColumn(
                 modifier = Modifier.heightIn(max = 360.dp),
+                state = listState,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 item {
@@ -868,7 +879,7 @@ internal fun TrackPickerContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .semantics { selected = automaticSelected }
-                            .focusRequester(firstFocus)
+                            .then(if (initialFocusIndex == 0) Modifier.focusRequester(firstFocus) else Modifier)
                             .testTag("track-picker-automatic"),
                     )
                 }
@@ -884,17 +895,20 @@ internal fun TrackPickerContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { selected = offSelected }
+                                .then(if (initialFocusIndex == 1) Modifier.focusRequester(firstFocus) else Modifier)
                                 .testTag("track-picker-off"),
                         )
                     }
                 }
-                itemsIndexed(options) { _, option ->
+                itemsIndexed(options) { index, option ->
                     FocusVisibleButton(
                         label = selectionLabel(option.label, option.selected, selectedSuffix),
                         onClick = { onTrack(option) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { selected = option.selected },
+                            .semantics { selected = option.selected }
+                            .then(if (initialFocusIndex == trackOffset + index) Modifier.focusRequester(firstFocus) else Modifier)
+                            .testTag("track-picker-option-$index"),
                     )
                 }
                 if (options.isEmpty()) {

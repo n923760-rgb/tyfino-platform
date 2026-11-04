@@ -1,3 +1,5 @@
+@file:androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+
 package dev.tyfino.foundation.ui.screen
 
 import android.content.res.Configuration
@@ -44,6 +46,11 @@ import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.media3.common.C
+import androidx.media3.common.Format
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.TrackGroup
+import androidx.media3.common.Tracks
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.theme.TyfinoTheme
 import java.util.Locale
@@ -70,6 +77,99 @@ class PlaybackTrackDialogViewportTest {
 
     @Before fun useDirectionalInput() { instrumentation.setInTouchMode(false) }
     @After fun restoreTouchInput() { instrumentation.setInTouchMode(true) }
+
+    @Test fun subtitleOffReceivesInitialFocusWithoutChangingSelection() {
+        compose.setContent {
+            TyfinoTheme {
+                TrackPickerDialog("Subtitles", emptyList(), false, true, true, "No tracks",
+                    { automatic++ }, { off++ }, { tracks++ }, { closed++ })
+            }
+        }
+        compose.onNodeWithTag("track-picker-off").assertIsSelected()
+        awaitInitialFocus("track-picker-off")
+        compose.onNodeWithTag("track-picker-off").assertIsFocused()
+        compose.onNodeWithTag("track-picker-off")
+            .performKeyInput { pressKey(Key.DirectionUp) }
+        compose.onNodeWithTag("track-picker-automatic").assertIsFocused()
+        compose.onNodeWithTag("track-picker-off").assertIsSelected()
+        compose.runOnIdle { assertEquals(0, automatic + off + tracks + closed) }
+        compose.onNodeWithTag("track-picker-automatic").performKeyInput { pressKey(Key.Enter) }
+        compose.runOnIdle { assertEquals(1, automatic); assertEquals(0, off + tracks + closed) }
+    }
+
+    private fun awaitInitialFocus(tag: String) {
+        // A composed/selected row can precede Android's asynchronous dialog window focus.
+        // Observe the production focus request; never request focus or scroll from the test.
+        try {
+            compose.waitUntil(5_000) {
+                runCatching {
+                    compose.onNodeWithTag(tag).fetchSemanticsNode()
+                        .config[SemanticsProperties.Focused]
+                }.getOrDefault(false)
+            }
+        } catch (original: Exception) {
+            // Failure-only snapshot: no extra synchronization on the passing path.
+            // All tags below are synthetic; no provider data or secrets are read.
+            val focusSnapshot = listOf(tag, "track-picker-automatic", "track-picker-off", "track-picker-close")
+                .distinct().joinToString { item ->
+                    val focused = runCatching {
+                        compose.onNodeWithTag(item).fetchSemanticsNode()
+                            .config[SemanticsProperties.Focused]
+                    }.getOrNull()
+                    "${item}=${focused}"
+            }
+            val windowFocus = runCatching {
+                var focused = false
+                onView(isRoot()).inRoot(isDialog()).check { view, error ->
+                    if (error != null) throw error
+                    focused = view.hasWindowFocus()
+                }
+                focused.toString()
+            }.getOrElse { "unavailable:" + it.javaClass.simpleName }
+            throw AssertionError(
+                "Initial focus did not reach $tag within 5 seconds: " +
+                    "nodes=[${focusSnapshot}], dialogWindowFocused=${windowFocus}",
+                original,
+            )
+        }
+    }
+
+    @Test fun selectedDeepTrackIsVisibleAndDirectionalInLtr() = selectedDeepTrack(LayoutDirection.Ltr)
+
+    @Test fun selectedDeepTrackIsVisibleAndDirectionalInRtl() = selectedDeepTrack(LayoutDirection.Rtl)
+
+    private fun selectedDeepTrack(direction: LayoutDirection) {
+        val selectedIndex = 72
+        val count = 80
+        val formats = Array(count) { Format.Builder().setSampleMimeType(MimeTypes.AUDIO_AAC).build() }
+        val group = Tracks.Group(TrackGroup("tv-fixture", *formats), false,
+            IntArray(count) { C.FORMAT_HANDLED }, BooleanArray(count) { it == selectedIndex })
+        val options = List(count) { EmbeddedTrackOption(group, it, "Audio track $it", it == selectedIndex) }
+        var chosen: EmbeddedTrackOption? = null
+        compose.setContent {
+            CompositionLocalProvider(LocalLayoutDirection provides direction) {
+                TyfinoTheme {
+                    TrackPickerDialog("Audio", options, false, false, false, "No tracks",
+                        { automatic++ }, { off++ }, { chosen = it; tracks++ }, { closed++ })
+                }
+            }
+        }
+        // No scrolling or target-forcing: the real dialog must initially mount/focus the selected row.
+        awaitInitialFocus("track-picker-option-$selectedIndex")
+        compose.onNodeWithTag("track-picker-option-$selectedIndex")
+            .assertIsSelected().assertIsFocused().assertIsDisplayed()
+            .performKeyInput { pressKey(Key.DirectionDown) }
+        compose.onNodeWithTag("track-picker-option-${selectedIndex + 1}")
+            .assertIsFocused().assertIsDisplayed()
+        compose.onNodeWithTag("track-picker-option-$selectedIndex").assertIsSelected()
+        compose.runOnIdle { assertEquals(0, automatic + off + tracks + closed) }
+        compose.onNodeWithTag("track-picker-option-${selectedIndex + 1}")
+            .performKeyInput { pressKey(Key.Enter) }
+        compose.runOnIdle {
+            assertEquals(selectedIndex + 1, chosen?.trackIndex)
+            assertEquals(1, tracks); assertEquals(0, automatic + off + closed)
+        }
+    }
 
     @Test fun closeRemainsReachableInAnActualShortDialogWithoutChangingTracks() {
         renderDialog()
@@ -126,11 +226,27 @@ class PlaybackTrackDialogViewportTest {
                 assertTrue(action(layouts))
                 assertEquals(2f, layouts.single().layoutInput.density.fontScale, 0f)
             }
-        compose.onNodeWithTag("track-picker-off").performScrollTo().assertIsSelected().performClick()
+        val offButton = compose.onNodeWithTag("track-picker-off").performScrollTo().assertIsSelected()
+        val offNode = offButton.fetchSemanticsNode()
+        val offBounds = offNode.boundsInRoot
+        val offSize = offNode.size
+        val outerBounds = compose.onNodeWithTag("track-picker-scroll").fetchSemanticsNode().boundsInRoot
+        val offGeometry = "Off bounds=$offBounds, size=$offSize, outer=$outerBounds"
+        assertTrue("Selected Off must be fully visible before touch: $offGeometry",
+            offBounds.width >= offSize.width - 1f && offBounds.height >= offSize.height - 1f)
+        offButton.performClick()
+        compose.runOnIdle {
+            assertEquals("Off touch must invoke its callback once: $offGeometry", 1, off)
+            assertEquals(0, automatic + tracks + closed)
+        }
         compose.onNodeWithTag("track-picker-close").performScrollTo().assertIsDisplayed()
         assertOuterScroll()
         compose.onNodeWithTag("track-picker-close").performClick()
-        compose.runOnIdle { assertEquals(1, off); assertEquals(1, closed); assertEquals(0, automatic + tracks) }
+        compose.runOnIdle {
+            assertEquals("Off callback must remain exactly once", 1, off)
+            assertEquals("Close touch must invoke its callback once", 1, closed)
+            assertEquals(0, automatic + tracks)
+        }
     }
 
     private fun renderDialog() {
