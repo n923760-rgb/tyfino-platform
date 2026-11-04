@@ -289,6 +289,12 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-04 continuation: EPG busy controls
+
+Owner explicitly defers the physical TCL check and requests continued development. Current official source eba2a3b5a1ba2174e51b27e9bf3e8d108dee6858 contains merged #216 and matches the qualified tree from seven-gate Validate41828523283 (144 cases/device, API33 install smoke PASS). Official-main Validate41831581956 was still running at this task's initial gate. The earlier transient Arabic touch failure did not reproduce with stronger geometry/callback assertions; no causal product repair is claimed.
+
+Current bounded task: disable EPG Refresh during published loading/refreshing state, show loading for refreshing empty data, and initially focus Close when busy while preserving normal ready-state entry and no refocus on completion. Add three native LTR/RTL/touch regressions (147/device); exact-source evidence belongs to the new PR. [Report/work order](REPORTS/EPG_REFRESH_BUSY_2026-11-04.md). Physical television/provider/accessibility/performance gates remain NOT RUN; deferral does not grant release acceptance.
+
 ### 2026-11-01 owner priority: television
 
 Owner explicitly prioritizes professional Android TV/Google TV behavior. Current verified official source ed7237fc6c379cd98315819c75797695d2e93ce6 passed official-main Validate41319159216; no open task PRs at the initial gate. Prioritize remote-only navigation, visible and restored focus, Back, scrollable dialogs and playback controls. Physical TV/provider/performance acceptance remains mandatory and NOT RUN; phone/tablet directional tests do not replace it.
