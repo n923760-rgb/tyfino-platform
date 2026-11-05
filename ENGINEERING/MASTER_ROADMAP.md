@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-05 explicit icon selection
+
+On verified main85e780f05bf9e681bb17d98adf16da69b76e6645 (#218 merged), expose existing explicit icon selected/unselected state to accessibility semantics, retaining ordinary action semantics, colors and input behavior. Strengthen existing category search and picture-size journeys;149 native cases/device remain. [Work order/report](REPORTS/ICON_SELECTED_STATE_2026-11-05.md). Exact-head CI belongs to the PR; physical TCL/TalkBack/provider/performance remain deferred/NOT RUN.
+
 ### 2026-11-05 playback action state
 
 Owner requests continued improvement while physical TCL qualification remains deferred. Official base1fed87be68911f9d9d60a747738144b02dab8883 contains #217 and matches its seven-gate qualified tree (147 cases/device). Add current audio/subtitle policy state descriptions without changing selection, focus or layout. Two native LTR/RTL cases cover state changes, unknown state and explicit Enter (149/device). [Work order/report](REPORTS/PLAYBACK_TRACK_STATE_2026-11-05.md). Exact-source results belong to the PR; physical TV/TalkBack/provider/performance remain NOT RUN.

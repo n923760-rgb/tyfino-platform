@@ -22,6 +22,7 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.SemanticsMatcher
@@ -163,7 +164,8 @@ class CatalogCategoryPickerTest {
             CatalogCategoryPickerDialog(categories, categories[30].providerId, { chosen = it }, {})
         } }
         constrainWindow()
-        compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").assertIsNotSelected().performClick()
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").assertIsSelected()
         compose.onNodeWithTag("catalog-category-picker-query").performTextReplacement("Category 39")
         androidx.test.espresso.Espresso.closeSoftKeyboard()
         compose.waitUntil(5_000) {
@@ -172,7 +174,8 @@ class CatalogCategoryPickerTest {
         }
         compose.onNodeWithTag("catalog-category-picker-option-0").assertIsDisplayed()
         compose.runOnIdle { assertEquals(null, chosen) }
-        compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").assertIsSelected().performClick()
+        compose.onNodeWithTag("catalog-category-picker-search-toggle").assertIsNotSelected()
         compose.onNodeWithTag("catalog-category-picker-query").assertDoesNotExist()
         compose.onNodeWithTag("catalog-category-picker-option-30").assertIsSelected().assertIsDisplayed()
         compose.onNodeWithTag("catalog-category-picker-search-toggle").performClick()
