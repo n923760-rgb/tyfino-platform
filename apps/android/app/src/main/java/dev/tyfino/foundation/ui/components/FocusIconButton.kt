@@ -17,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 
 /** A compact visual control with a 48 dp touch target and visible TV focus. */
@@ -26,13 +28,15 @@ internal fun FocusIconButton(
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    selected: Boolean = false,
+    selected: Boolean? = null,
 ) {
+    val selectionState = selected
     var focused by remember { mutableStateOf(false) }
     IconButton(
         onClick = onClick,
         modifier = modifier
             .size(48.dp)
+            .semantics { selectionState?.let { this.selected = it } }
             .onFocusChanged { focused = it.isFocused }
             .border(
                 BorderStroke(
@@ -43,7 +47,7 @@ internal fun FocusIconButton(
             ),
         colors = IconButtonDefaults.iconButtonColors(
             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
-            contentColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            contentColor = if (selected == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
         ),
     ) {
         Icon(painterResource(icon), contentDescription = description, modifier = Modifier.size(22.dp))

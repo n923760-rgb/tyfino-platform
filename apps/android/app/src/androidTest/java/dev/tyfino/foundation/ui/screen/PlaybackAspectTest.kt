@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.isFocusable
@@ -90,6 +91,8 @@ class PlaybackAspectTest {
             PlaybackAspectMode.Zoom to AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
             PlaybackAspectMode.Stretch to AspectRatioFrameLayout.RESIZE_MODE_FILL)) {
             choose(mode)
+            if (mode == PlaybackAspectMode.Fit) compose.onNodeWithTag("playback-aspect").assertIsNotSelected()
+            else compose.onNodeWithTag("playback-aspect").assertIsSelected()
             onView(isAssignableFrom(PlayerView::class.java)).check { view, error ->
                 if (error != null) throw error
                 val current = view as PlayerView
