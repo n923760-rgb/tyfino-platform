@@ -14,12 +14,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -33,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import dev.tyfino.foundation.R
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.xtream.XtreamAccountSummary
 import dev.tyfino.foundation.xtream.XtreamAccountsSnapshot
 
@@ -46,11 +45,9 @@ internal fun XtreamAccountManager(
 ) {
     var confirmation by remember { mutableStateOf<XtreamAccountSummary?>(null) }
     val busy = removingAccountId != null
-    val backFocus = remember { FocusRequester() }
-    val confirmationFocus = remember { FocusRequester() }
 
     Dialog(onDismissRequest = { if (!busy) onBack() }) {
-        LaunchedEffect(Unit) { backFocus.requestAfterManagerDialogFrames() }
+        val backFocus = rememberInitialFocusRequester()
         Surface(
             modifier = Modifier.fillMaxWidth().heightIn(max = 720.dp).testTag("xtream-account-manager"),
             shape = MaterialTheme.shapes.large,
@@ -117,7 +114,7 @@ internal fun XtreamAccountManager(
     }
     confirmation?.let { account ->
         Dialog(onDismissRequest = { if (!busy) confirmation = null }) {
-            LaunchedEffect(account.accountId) { confirmationFocus.requestAfterManagerDialogFrames() }
+            val confirmationFocus = rememberInitialFocusRequester(account.accountId)
             XtreamRemovalConfirmationContent(
                 account = account,
                 busy = busy,
@@ -182,12 +179,5 @@ internal fun XtreamRemovalConfirmationContent(
                 modifier = Modifier.fillMaxWidth().testTag("xtream-confirm-remove"),
             )
         }
-    }
-}
-
-private suspend fun FocusRequester.requestAfterManagerDialogFrames() {
-    repeat(2) {
-        withFrameNanos { }
-        requestFocus()
     }
 }
