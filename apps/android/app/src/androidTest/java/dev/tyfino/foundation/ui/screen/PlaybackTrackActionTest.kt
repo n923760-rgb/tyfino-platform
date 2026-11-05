@@ -6,6 +6,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import android.view.View
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -28,6 +33,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Before
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,10 +52,14 @@ class PlaybackTrackActionTest {
         var automatic by mutableStateOf(true)
         var off by mutableStateOf(false)
         var label by mutableStateOf<String?>("English")
+        lateinit var host: View
+        lateinit var input: InputModeManager
         var opened = 0
         var automaticLabel = ""
         var offLabel = ""
         compose.setContent {
+            host = LocalView.current
+            input = LocalInputModeManager.current
             CompositionLocalProvider(LocalLayoutDirection provides direction) {
                 automaticLabel = stringResource(R.string.playback_automatic)
                 offLabel = stringResource(R.string.playback_off)
@@ -61,9 +71,13 @@ class PlaybackTrackActionTest {
                 } }
             }
         }
+        compose.waitUntil(5_000) { compose.runOnIdle { host.hasWindowFocus() } }
+        compose.runOnIdle { assertTrue(input.requestInputMode(InputMode.Keyboard)) }
+        compose.waitUntil(5_000) { compose.runOnIdle { input.inputMode == InputMode.Keyboard } }
         val action = compose.onNodeWithTag("track-action")
         action.assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, automaticLabel))
             .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
+        action.assertIsFocused()
         compose.runOnIdle { automatic = false }
         action.assertIsFocused().assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "English"))
         compose.runOnIdle { off = true }
