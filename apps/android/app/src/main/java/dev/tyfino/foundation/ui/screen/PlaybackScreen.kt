@@ -731,16 +731,22 @@ private fun PlayerSurface(
                         modifier = Modifier.testTag("playback-epg"),
                     )
                 }
-                FocusIconButton(
+                PlaybackTrackAction(
                     icon = R.drawable.ic_player_audio,
-                    description = stringResource(R.string.playback_audio),
-                    onClick = { activeMenu = TrackMenu.Audio },
+                    description = R.string.playback_audio,
+                    automaticSelected = audioAutomatic,
+                    offSelected = false,
+                    selectedLabel = audioTracks.firstOrNull { it.selected }?.label,
+                    onOpen = { activeMenu = TrackMenu.Audio },
                     modifier = Modifier.testTag("playback-audio"),
                 )
-                FocusIconButton(
+                PlaybackTrackAction(
                     icon = R.drawable.ic_player_subtitles,
-                    description = stringResource(R.string.playback_subtitles),
-                    onClick = { activeMenu = TrackMenu.Subtitles },
+                    description = R.string.playback_subtitles,
+                    automaticSelected = subtitleAutomatic,
+                    offSelected = subtitlesDisabled,
+                    selectedLabel = subtitleTracks.firstOrNull { it.selected }?.label,
+                    onOpen = { activeMenu = TrackMenu.Subtitles },
                     modifier = Modifier.testTag("playback-subtitles"),
                 )
                 PlaybackAspectAction(aspectMode) { activeMenu = TrackMenu.Picture }

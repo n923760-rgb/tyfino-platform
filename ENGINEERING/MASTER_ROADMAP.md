@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-05 playback action state
+
+Owner requests continued improvement while physical TCL qualification remains deferred. Official base1fed87be68911f9d9d60a747738144b02dab8883 contains #217 and matches its seven-gate qualified tree (147 cases/device). Add current audio/subtitle policy state descriptions without changing selection, focus or layout. Two native LTR/RTL cases cover state changes, unknown state and explicit Enter (149/device). [Work order/report](REPORTS/PLAYBACK_TRACK_STATE_2026-11-05.md). Exact-source results belong to the PR; physical TV/TalkBack/provider/performance remain NOT RUN.
+
 ### 2026-11-04 continuation: EPG busy controls
 
 Owner explicitly defers the physical TCL check and requests continued development. Current official source eba2a3b5a1ba2174e51b27e9bf3e8d108dee6858 contains merged #216 and matches the qualified tree from seven-gate Validate41828523283 (144 cases/device, API33 install smoke PASS). Official-main Validate41831581956 was still running at this task's initial gate. The earlier transient Arabic touch failure did not reproduce with stronger geometry/callback assertions; no causal product repair is claimed.
