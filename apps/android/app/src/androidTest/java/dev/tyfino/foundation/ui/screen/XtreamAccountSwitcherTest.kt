@@ -1,6 +1,16 @@
 package dev.tyfino.foundation.ui.screen
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsFocused
@@ -91,6 +101,43 @@ class XtreamAccountSwitcherTest {
         compose.waitForIdle()
         compose.onNodeWithTag("xtream-account-saved").assertIsFocused()
         compose.onNodeWithTag("xtream-close-switcher").assertDoesNotExist()
+    }
+
+
+    @Test fun snapshotRefreshRetainsDirectionalChoiceInLtr() = snapshotRefresh(LayoutDirection.Ltr)
+    @Test fun snapshotRefreshRetainsDirectionalChoiceInRtl() = snapshotRefresh(LayoutDirection.Rtl)
+
+    private fun snapshotRefresh(direction: LayoutDirection) {
+        val active = account("active", "one")
+        val first = account("first", "two")
+        val second = account("second", "three")
+        var snapshot by mutableStateOf(XtreamAccountsSnapshot(active.accountId, listOf(active, first, second)))
+        var selected: String? = null
+        var calls = 0
+        compose.setContent {
+            CompositionLocalProvider(LocalLayoutDirection provides direction) {
+                MaterialTheme { XtreamAccountSwitcher(snapshot, null, false,
+                    { selected = it; calls++ }, {}, {}, {}) }
+            }
+        }
+        compose.waitUntil(5_000) {
+            compose.onNodeWithTag("xtream-account-first").fetchSemanticsNode()
+                .config[SemanticsProperties.Focused]
+        }
+        compose.onNodeWithTag("xtream-account-first").assertIsFocused()
+            .performKeyInput { pressKey(Key.DirectionDown) }
+        compose.onNodeWithTag("xtream-account-second").assertIsFocused()
+        compose.runOnIdle {
+            assertEquals(0, calls)
+            snapshot = XtreamAccountsSnapshot(active.accountId, listOf(
+                XtreamAccountSummary(accountId = active.accountId, providerOrigin = active.providerOrigin,
+                    username = "updated-fixture"), first, second))
+        }
+        compose.waitForIdle()
+        compose.onNodeWithTag("xtream-account-second").assertIsFocused()
+        compose.runOnIdle { assertEquals(0, calls); assertEquals(null, selected) }
+        compose.onNodeWithTag("xtream-account-second").performKeyInput { pressKey(Key.Enter) }
+        compose.runOnIdle { assertEquals(1, calls); assertEquals("second", selected) }
     }
 
     private fun account(id: String, number: String) = XtreamAccountSummary(

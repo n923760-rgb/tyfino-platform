@@ -14,9 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -30,6 +28,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import dev.tyfino.foundation.R
+import dev.tyfino.foundation.ui.components.rememberInitialFocusRequester
 import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.xtream.XtreamAccountsSnapshot
 
@@ -45,14 +44,15 @@ internal fun XtreamAccountSwitcher(
     dismissible: Boolean = true,
 ) {
     val busy = switchingAccountId != null
-    val initialFocus = remember { FocusRequester() }
     val firstSelectableAccountId = snapshot?.accounts
         ?.firstOrNull { it.accountId != snapshot.activeAccountId }
         ?.accountId
 
     Dialog(onDismissRequest = { if (!busy && dismissible) onDismiss() }) {
-        LaunchedEffect(snapshot, busy) {
-            if (snapshot != null && !busy) initialFocus.requestAfterDialogFrames()
+        val initialFocus = if (snapshot != null && !busy) {
+            rememberInitialFocusRequester(snapshot.activeAccountId)
+        } else {
+            remember { FocusRequester() }
         }
         Surface(
             modifier = Modifier
@@ -156,9 +156,3 @@ internal fun XtreamAccountSwitcher(
     }
 }
 
-private suspend fun FocusRequester.requestAfterDialogFrames() {
-    repeat(2) {
-        withFrameNanos { }
-        requestFocus()
-    }
-}

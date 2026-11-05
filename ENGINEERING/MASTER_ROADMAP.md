@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-05 account switcher focus
+
+On main0fbb635b7d31ecdcf374b29c16bf51b0d4356f15 (#219 merged), replace the switcher's snapshot-keyed double focus requests with the shared window-aware stop-after-success helper. Two native LTR/RTL regressions require focus to remain on the user's account after display-snapshot replacement, then explicit Enter once (151 cases/device). [Work order/report](REPORTS/SWITCHER_FOCUS_2026-11-05.md). Local execution unavailable; require hosted exact-head validation. Physical TCL remains deferred.
+
 ### 2026-11-05 explicit icon selection
 
 On verified main85e780f05bf9e681bb17d98adf16da69b76e6645 (#218 merged), expose existing explicit icon selected/unselected state to accessibility semantics, retaining ordinary action semantics, colors and input behavior. Strengthen existing category search and picture-size journeys;149 native cases/device remain. [Work order/report](REPORTS/ICON_SELECTED_STATE_2026-11-05.md). Exact-head CI belongs to the PR; physical TCL/TalkBack/provider/performance remain deferred/NOT RUN.
