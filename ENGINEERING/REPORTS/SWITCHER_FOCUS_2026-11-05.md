@@ -1,0 +1,12 @@
+# Preserve account-switcher directional focus
+Task TYFINO-20261105-switcher-focus — IMPLEMENTATION. Controller/executor Codex, sequential self-review. Owner requests continued development with standing reviewed-merge authority after successful gates. Physical TCL check remains deferred.
+
+Verified repository/default branch n923760-rgb/tyfino-platform, main0fbb635b7d31ecdcf374b29c16bf51b0d4356f15. No open/conflicting PRs. Base tree de1f4e32407e6b88611154be8894869295f59972 matches qualified #219: seven checks,149 cases/device and API33 installation smoke PASS. Branch improve/switcher-focus-20261105.
+
+Source finding: switcher uses a snapshot-keyed effect and requests focus unconditionally on two frames. Updating displayed account metadata can restart the effect and replace the user's focus with the first selectable account. The existing shared helper already implements window readiness and stop-after-success behavior.
+
+Scope: replace the switcher's private helper with the existing shared helper inside the actual Dialog. Mount the helper only when a snapshot exists and switching is not busy, with active account as the content-owner key. Non-owner snapshot updates retain focus; readiness/busy-owner transitions can establish initial focus anew. Preserve first inactive-account/Add fallback, disabled/busy actions, dismissal and all account selection/persistence authority. No network, credentials, player lifecycle, dependency/CI profile, identity, signing/release/deployment changes.
+
+Two actual-dialog LTR/RTL cases enter at first inactive account, move Down without selection, replace only synthetic display metadata, require the second account to retain focus, then Enter selecting that exact stable ID once. Retain149 prior cases,151 expected/device. Existing generic helper controlled-frame no-refocus coverage remains.
+
+Capabilities: authenticated repository API and JavaScript source review only; execution environment unavailable (command attempt failed), so local Git/toolchain/governance checks are BLOCKED, not PASS. Hosted existing Validate must supply builds/JVM/lint, all six governance validators and phone/tablet native evidence. Full four-file source review and whitespace checks performed in JavaScript. Require seven exact-head jobs,151 native cases/device and API33 install smoke. Stop on drift, conflicts, secrets or required failure. Physical TV/provider/TalkBack/performance remain NOT RUN. Exact-source results belong to the PR.
