@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-06 track-dialog return focus
+
+Verified main65bbb0a01709af523a4535573269a44ec267fa69 includes #221 and the qualified diagnostic baseline (seven checks,153 cases/device). Add two real action/Dialog English/LTR and Arabic/RTL journeys covering hardware Back, Close, Off/Automatic selection, retained launcher focus and immediate Enter reopening, with zero host exits and exact callback counts (155/device). [Work order/report](REPORTS/TRACK_DIALOG_RETURN_FOCUS_2026-11-06.md). This qualifies component integration; no product defect or full-player/physical-TV behavior is assumed. Physical TCL remains deferred.
+
 ### 2026-11-06 account-manager dialog focus requalification
 
 Manager PR221 is updated with official main28056cf2d348cda9b17971edcf22df277b768dfb (#222 merged,151 cases/device and all seven checks PASS). Its prior tablet retry failed only the switcher first-Down assertion before metadata replacement; the diagnostic branch did not reproduce it and establishes no causal fix. Preserve the manager's shared window-aware Back/Keep helper and both new nested-dialog LTR/RTL journeys. Reconcile this roadmap with the diagnostic record, then require fresh153/device and all seven exact-head gates for the combined source. [Work order/report](REPORTS/MANAGER_DIALOG_FOCUS_2026-11-06.md). Physical TCL remains deferred.
