@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-06 account-manager dialog focus requalification
+
+Manager PR221 is updated with official main28056cf2d348cda9b17971edcf22df277b768dfb (#222 merged,151 cases/device and all seven checks PASS). Its prior tablet retry failed only the switcher first-Down assertion before metadata replacement; the diagnostic branch did not reproduce it and establishes no causal fix. Preserve the manager's shared window-aware Back/Keep helper and both new nested-dialog LTR/RTL journeys. Reconcile this roadmap with the diagnostic record, then require fresh153/device and all seven exact-head gates for the combined source. [Work order/report](REPORTS/MANAGER_DIALOG_FOCUS_2026-11-06.md). Physical TCL remains deferred.
+
 ### 2026-11-06 account-switcher first-Down diagnosis
 
 Official main34e7d5f3a517211e604319e5076163d60445b45d; manager PR221 remains blocked after tablet retry153 cases/1 failure. Full retained report places the baseline switcher failure immediately after Down, before snapshot replacement. Add post-failure-only semantics/window facts while preserving the original input/assertion sequence and151 cases on main. [Evidence/work order](REPORTS/SWITCHER_DOWN_DIAGNOSIS_2026-11-06.md). No causal product fix is established; reconcile this roadmap overlap before qualifying the manager PR. Physical TCL remains deferred.

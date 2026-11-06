@@ -161,6 +161,65 @@ class XtreamRemovalConfirmationTest {
         compose.runOnIdle { assertEquals(1, kept); assertEquals(1, confirmed) }
     }
 
+    @Test fun nestedManagerDialogsKeepExplicitDirectionalActionsInLtr() = nestedDialogs(LayoutDirection.Ltr)
+    @Test fun nestedManagerDialogsKeepExplicitDirectionalActionsInRtl() = nestedDialogs(LayoutDirection.Rtl)
+
+    private fun nestedDialogs(direction: LayoutDirection) {
+        val first = XtreamAccountSummary("first", "https://first.example", "first")
+        val second = XtreamAccountSummary("second", "https://second.example", "second")
+        var backs = 0
+        compose.setContent {
+            CompositionLocalProvider(LocalLayoutDirection provides direction) {
+                TyfinoTheme {
+                    XtreamAccountManager(
+                        snapshot = XtreamAccountsSnapshot(first.accountId, listOf(first, second)),
+                        removingAccountId = null,
+                        storageError = false,
+                        onRemoveAccount = { removed += it },
+                        onBack = { backs++ },
+                    )
+                }
+            }
+        }
+        awaitFocused("xtream-manage-back")
+        compose.onNodeWithTag("xtream-manage-back")
+            .performKeyInput { pressKey(Key.DirectionUp) }
+        compose.onNodeWithTag("xtream-remove-second").assertIsFocused()
+        compose.runOnIdle { assertTrue(removed.isEmpty()); assertEquals(0, backs) }
+        compose.onNodeWithTag("xtream-remove-second").performKeyInput { pressKey(Key.Enter) }
+        awaitFocused("xtream-keep-account")
+        compose.onNodeWithTag("xtream-keep-account")
+            .performKeyInput { pressKey(Key.DirectionDown) }
+        compose.onNodeWithTag("xtream-confirm-remove").assertIsFocused()
+        compose.waitForIdle()
+        compose.onNodeWithTag("xtream-confirm-remove").assertIsFocused()
+        compose.runOnIdle { assertTrue(removed.isEmpty()); assertEquals(0, backs) }
+        compose.onNodeWithTag("xtream-confirm-remove")
+            .performKeyInput { pressKey(Key.DirectionUp) }
+        compose.onNodeWithTag("xtream-keep-account").assertIsFocused()
+            .performKeyInput { pressKey(Key.Enter) }
+        compose.onNodeWithTag("xtream-remove-confirmation").assertDoesNotExist()
+        compose.runOnIdle { assertTrue(removed.isEmpty()); assertEquals(0, backs) }
+
+        // Reopen the same account: the new Dialog must establish Keep focus again.
+        compose.onNodeWithTag("xtream-remove-second").performClick()
+        awaitFocused("xtream-keep-account")
+        compose.onNodeWithTag("xtream-keep-account")
+            .performKeyInput { pressKey(Key.DirectionDown) }
+        compose.onNodeWithTag("xtream-confirm-remove").assertIsFocused()
+        compose.runOnIdle { assertTrue(removed.isEmpty()); assertEquals(0, backs) }
+        compose.onNodeWithTag("xtream-confirm-remove").performKeyInput { pressKey(Key.Enter) }
+        compose.onNodeWithTag("xtream-remove-confirmation").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(listOf("second"), removed); assertEquals(0, backs) }
+    }
+
+    private fun awaitFocused(tag: String) {
+        compose.waitUntil(5_000) {
+            compose.onNodeWithTag(tag).fetchSemanticsNode().config[SemanticsProperties.Focused]
+        }
+        compose.onNodeWithTag(tag).assertIsFocused().assertIsDisplayed()
+    }
+
     private fun renderManager() {
         val resources = arabicResources()
         compose.setContent {
