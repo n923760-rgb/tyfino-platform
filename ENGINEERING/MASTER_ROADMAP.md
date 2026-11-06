@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-06 account-switcher first-Down diagnosis
+
+Official main34e7d5f3a517211e604319e5076163d60445b45d; manager PR221 remains blocked after tablet retry153 cases/1 failure. Full retained report places the baseline switcher failure immediately after Down, before snapshot replacement. Add post-failure-only semantics/window facts while preserving the original input/assertion sequence and151 cases on main. [Evidence/work order](REPORTS/SWITCHER_DOWN_DIAGNOSIS_2026-11-06.md). No causal product fix is established; reconcile this roadmap overlap before qualifying the manager PR. Physical TCL remains deferred.
+
 ### 2026-11-05 account switcher focus
 
 On main0fbb635b7d31ecdcf374b29c16bf51b0d4356f15 (#219 merged), replace the switcher's snapshot-keyed double focus requests with the shared window-aware stop-after-success helper. Two native LTR/RTL regressions require focus to remain on the user's account after display-snapshot replacement, then explicit Enter once (151 cases/device). [Work order/report](REPORTS/SWITCHER_FOCUS_2026-11-05.md). Local execution unavailable; require hosted exact-head validation. Physical TCL remains deferred.
