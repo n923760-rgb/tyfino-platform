@@ -1,5 +1,12 @@
 package dev.tyfino.foundation.ui.screen
 
+import androidx.compose.ui.test.isFocusable
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Root
+import androidx.test.espresso.matcher.RootMatchers.isDialog
+import androidx.test.espresso.matcher.ViewMatchers.isRoot
+import org.hamcrest.Description
+import org.hamcrest.TypeSafeMatcher
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -126,7 +133,7 @@ class XtreamAccountSwitcherTest {
         }
         compose.onNodeWithTag("xtream-account-first").assertIsFocused()
             .performKeyInput { pressKey(Key.DirectionDown) }
-        compose.onNodeWithTag("xtream-account-second").assertIsFocused()
+        assertSecondFocused("after Down, before snapshot replacement")
         compose.runOnIdle {
             assertEquals(0, calls)
             snapshot = XtreamAccountsSnapshot(active.accountId, listOf(
@@ -134,10 +141,50 @@ class XtreamAccountSwitcherTest {
                     username = "updated-fixture"), first, second))
         }
         compose.waitForIdle()
-        compose.onNodeWithTag("xtream-account-second").assertIsFocused()
+        assertSecondFocused("after snapshot replacement")
         compose.runOnIdle { assertEquals(0, calls); assertEquals(null, selected) }
         compose.onNodeWithTag("xtream-account-second").performKeyInput { pressKey(Key.Enter) }
         compose.runOnIdle { assertEquals(1, calls); assertEquals("second", selected) }
+    }
+
+    private fun assertSecondFocused(stage: String) {
+        try {
+            // Preserve the original assertion/verdict before any extra observation runs.
+            compose.onNodeWithTag("xtream-account-second").assertIsFocused()
+        } catch (failure: AssertionError) {
+            val details = mutableListOf("stage=$stage; observations are AFTER the failed verdict")
+            runCatching {
+                val nodes = compose.onAllNodes(isFocusable()).fetchSemanticsNodes().map { node ->
+                    val tag = if (node.config.contains(SemanticsProperties.TestTag)) {
+                        node.config[SemanticsProperties.TestTag]
+                    } else "untagged"
+                    "$tag:focused=${node.config[SemanticsProperties.Focused]},bounds=${node.boundsInRoot}"
+                }
+                details += "semantics=$nodes"
+            }.onFailure { details += "semantics unavailable: ${it.javaClass.simpleName}" }
+            val windows = mutableListOf<String>()
+            runCatching {
+                val dialog = object : TypeSafeMatcher<Root>() {
+                    override fun describeTo(description: Description) {
+                        description.appendText("account switcher dialog for post-failure observation")
+                    }
+                    override fun matchesSafely(root: Root): Boolean {
+                        if (!isDialog().matches(root)) return false
+                        val view = root.decorView
+                        val state = "windowFocus=${view.hasWindowFocus()},touch=${view.isInTouchMode}," +
+                            "attached=${view.isAttachedToWindow},size=${view.width}x${view.height}," +
+                            "nativeFocus=${view.findFocus()?.javaClass?.simpleName}"
+                        if (windows.lastOrNull() != state && windows.size < 8) windows += state
+                        return true
+                    }
+                }
+                onView(isRoot()).inRoot(dialog).check { _, error -> if (error != null) throw error }
+            }.onFailure { details += "window observation unavailable: ${it.javaClass.simpleName}" }
+            details += "windows=$windows"
+            // Static fixture tags, geometry and focus facts only; never provider text or credentials.
+            failure.addSuppressed(AssertionError(details.joinToString("; ")))
+            throw failure
+        }
     }
 
     private fun account(id: String, number: String) = XtreamAccountSummary(
