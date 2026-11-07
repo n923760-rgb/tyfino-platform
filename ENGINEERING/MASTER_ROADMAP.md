@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-07 track-dialog return-focus requalification
+
+Requalify PR223 on official main674f1a2b2e6059b736190409a95d292c7a18bc98 (#224, seven checks and153 cases/device PASS). Normal two-parent integration retains mounted keyboard/native-dialog preconditions and all original first-Down assertions. Preserve the two actual action/Dialog English/LTR and Arabic/RTL return-focus journeys; require fresh seven-gate155/device plus API33 smoke on the combined source. [Work order/evidence](REPORTS/TRACK_DIALOG_RETURN_FOCUS_2026-11-06.md). Earlier failures remain attributed to their heads; no causal production correction is claimed. Physical TCL remains deferred.
+
 ### 2026-11-07 mounted keyboard readiness
 
 Main65bbb0a01709af523a4535573269a44ec267fa69; PR223 remains blocked by baseline initial-focus/first-Down failures while both new return-focus cases pass. Correct three affected fixtures to establish/verify mounted Keyboard mode, then require a real Dialog with native window/child focus before the retained original directional chain (153/device on main). First qualification with mounted mode alone still failed switcher first Down; do not claim a causal correction. [Evidence/work order](REPORTS/DIALOG_KEYBOARD_READINESS_2026-11-07.md). Existing exact intermittent cause remains unproven. Reconcile PR223 roadmap overlap and require fresh155/device combined-source qualification later. Physical TCL remains deferred.
