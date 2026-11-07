@@ -145,11 +145,11 @@ internal fun VisionLabDialog(onDismiss: () -> Unit) {
 
 @Composable
 internal fun VisionLabControls(profile: VisionLabProfile, failed: Boolean,
-    onChange: (VisionLabProfile) -> Unit, onClose: () -> Unit, initialModifier: Modifier = Modifier) {
+    onChange: (VisionLabProfile) -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FocusVisibleButton(stringResource(R.string.vision_lab_original),
             { onChange(profile.copy(balanced = false, compareOriginal = false)) },
-            (if (failed) Modifier else initialModifier).weight(1f).semantics { selected = !profile.balanced }.testTag("vision-original"),
+            (if (failed) Modifier else modifier).weight(1f).semantics { selected = !profile.balanced }.testTag("vision-original"),
             enabled = !failed, prominent = !profile.balanced)
         FocusVisibleButton(stringResource(R.string.vision_lab_balanced),
             { onChange(profile.copy(balanced = true, compareOriginal = false)) },
@@ -170,5 +170,5 @@ internal fun VisionLabControls(profile: VisionLabProfile, failed: Boolean,
         Modifier.fillMaxWidth().semantics { selected = profile.compareOriginal }.testTag("vision-compare"),
         enabled = !failed && profile.balanced && profile.strength > 0, prominent = false)
     FocusVisibleButton(stringResource(R.string.playback_close), onClose,
-        (if (failed) initialModifier else Modifier).fillMaxWidth().testTag("vision-close"), prominent = false)
+        (if (failed) modifier else Modifier).fillMaxWidth().testTag("vision-close"), prominent = false)
 }

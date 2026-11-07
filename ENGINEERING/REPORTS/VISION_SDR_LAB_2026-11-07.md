@@ -15,3 +15,5 @@ Local required checks: full diff/secret review, git diff --check, six governance
 Before live integration: physical image-quality/performance/compatibility A/B measurements plus a qualified direct-decoder Off/error recovery and HDR/DRM bypass design. TCL remains deferred. This branch does not promise channels or movies are enhanced.
 
 Local PASS: all six governance validators, locale-key parity, monotonic/range sampling101101 points, explicit BT.709 transfer/primaries/matrix and limited-range FFprobe inspection. Fixture SHA-256 ab8b08c8bf65fdc9e813bd34d6a595dcb80d335e14fb4d2c0a5dcc4444f74974; generated with FFmpeg7.1.5-0+deb13u1. No physical-device claim.
+
+First hosted run42365050162 on57f239d05485a88f1bb97e9cd31340078ab3d0e5: Debug/unsigned Release/JVM tests PASS, lint FAIL on the new Compose controls Modifier parameter name (ModifierParameter); native jobs consequently SKIPPED. Reviewed complete Android log; renamed the parameter to the required modifier, with no behavioral or gate change. This original failure remains attributable; a new exact head must qualify all gates.
