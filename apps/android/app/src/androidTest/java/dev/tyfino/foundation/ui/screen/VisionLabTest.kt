@@ -7,6 +7,8 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
 import androidx.compose.foundation.layout.Column
@@ -39,6 +41,7 @@ import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.ui.theme.TyfinoTheme
+import dev.tyfino.foundation.R
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -129,11 +132,13 @@ class VisionLabTest {
         lateinit var surface: SurfaceView
         val starts = AtomicInteger()
         val releases = AtomicInteger()
+        val frames = AtomicInteger()
         Espresso.onView(isAssignableFrom(PlayerView::class.java)).check { view, error ->
             if (error != null) throw error
             val playerView = view as PlayerView
             player = playerView.player as ExoPlayer
             surface = playerView.videoSurfaceView as SurfaceView
+            player.setVideoFrameMetadataListener { _, _, _, _ -> frames.incrementAndGet() }
             player.addAnalyticsListener(object : AnalyticsListener {
                 override fun onVideoDecoderInitialized(eventTime: AnalyticsListener.EventTime,
                     decoderName: String, initializedTimestampMs: Long, initializationDurationMs: Long) { starts.incrementAndGet() }
@@ -145,10 +150,31 @@ class VisionLabTest {
         assertTrue(original[0] < 10)
         assertTrue(original[1] in 175..205)
         assertTrue(original[2] > 245)
-        compose.onNodeWithTag("vision-balanced").performScrollTo().performClick()
+        compose.onNodeWithTag("vision-balanced").performScrollTo().performClick().assertIsSelected()
         repeat(2) { compose.onNodeWithTag("vision-more").performScrollTo().performClick() }
+        val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
+        compose.onNodeWithTag("vision-strength").assertTextEquals(resources.getString(R.string.vision_lab_strength, 100))
+        compose.onNodeWithTag("vision-compare").assertIsNotSelected()
         var filtered = original
-        compose.waitUntil(10_000) { filtered = pixels(surface); filtered[1] >= original[1] + 2 }
+        val framesBefore = frames.get()
+        var lastCaptureMs = 0L
+        try {
+            compose.waitUntil(10_000) {
+                val now = SystemClock.elapsedRealtime()
+                if (now - lastCaptureMs < 100) false else {
+                    lastCaptureMs = now
+                    filtered = pixels(surface)
+                    filtered[1] >= original[1] + 2
+                }
+            }
+        } finally {
+            compose.runOnIdle {
+                Log.i("VisionLabTest", "pixel-proof original=${original.contentToString()} filtered=${filtered.contentToString()} " +
+                    "frames=$framesBefore/${frames.get()} playing=${player.isPlaying} state=${player.playbackState} " +
+                    "position=${player.currentPosition} surface=${surface.width}x${surface.height} " +
+                    "decoderStarts=${starts.get()} decoderReleases=${releases.get()}")
+            }
+        }
         assertTrue(abs(filtered[0] - original[0]) <= 3)
         assertTrue(abs(filtered[2] - original[2]) <= 3)
         compose.onNodeWithTag("vision-compare").performScrollTo().performClick()
@@ -185,7 +211,7 @@ class VisionLabTest {
         val done = CountDownLatch(1)
         val result = AtomicInteger(-1)
         instrumentation.runOnMainSync {
-            bitmap = Bitmap.createBitmap(surface.width, surface.height, Bitmap.Config.ARGB_8888)
+            bitmap = Bitmap.createBitmap(320, 180, Bitmap.Config.ARGB_8888)
             PixelCopy.request(surface, bitmap, { result.set(it); done.countDown() }, Handler(Looper.getMainLooper()))
         }
         try {
