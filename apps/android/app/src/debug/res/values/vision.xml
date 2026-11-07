@@ -1,0 +1,15 @@
+<resources>
+    <string name="vision_lab_open">Try TYFINO Vision</string>
+    <string name="vision_lab_title">TYFINO Vision · experimental</string>
+    <string name="vision_lab_description">Local SDR test video. These controls do not change your channels or movies. This is not HDR or AI upscaling.</string>
+    <string name="vision_lab_original">Original</string>
+    <string name="vision_lab_balanced">Balanced</string>
+    <string name="vision_lab_strength">Strength: %1$d%%</string>
+    <string name="vision_lab_less">Less</string>
+    <string name="vision_lab_more">More</string>
+    <string name="vision_lab_compare">Compare with original</string>
+    <string name="vision_lab_return">Return to balanced</string>
+    <string name="vision_lab_failed">Image processing is unavailable on this device. Close this experiment to return.</string>
+    <string name="vision_lab_ready">Local sample ready</string>
+    <string name="vision_lab_loading">Preparing local sample…</string>
+</resources>
