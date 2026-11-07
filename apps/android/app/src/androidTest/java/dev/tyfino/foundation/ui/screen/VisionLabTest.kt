@@ -73,9 +73,9 @@ class VisionLabTest {
         compose.runOnIdle { assertEquals(.5f, profile.effectiveStrength, 0f); assertEquals(0, closes) }
         compose.onNodeWithTag("vision-more").performClick().performClick().assertIsNotEnabled()
         compose.runOnIdle { assertEquals(100, profile.strength) }
-        compose.onNodeWithTag("vision-compare").performClick().assertIsSelected()
+        compose.onNodeWithTag("vision-compare").performScrollTo().performClick().assertIsSelected()
         compose.runOnIdle { assertEquals(0f, profile.effectiveStrength, 0f); assertEquals(100, profile.strength) }
-        compose.onNodeWithTag("vision-compare").performClick()
+        compose.onNodeWithTag("vision-compare").performScrollTo().performClick()
         repeat(4) { compose.onNodeWithTag("vision-less").performClick() }
         compose.onNodeWithTag("vision-less").assertIsNotEnabled()
         compose.onNodeWithTag("vision-compare").assertIsNotEnabled()
@@ -153,7 +153,7 @@ class VisionLabTest {
         assertTrue(abs(filtered[2] - original[2]) <= 3)
         compose.onNodeWithTag("vision-compare").performScrollTo().performClick()
         compose.waitUntil(10_000) { val result = pixels(surface); result.indices.all { abs(result[it] - original[it]) <= 2 } }
-        compose.onNodeWithTag("vision-compare").performClick()
+        compose.onNodeWithTag("vision-compare").performScrollTo().performClick()
         repeat(4) { compose.onNodeWithTag("vision-less").performScrollTo().performClick() }
         compose.waitUntil(10_000) { val result = pixels(surface); result.indices.all { abs(result[it] - original[it]) <= 2 } }
         Espresso.onView(isAssignableFrom(PlayerView::class.java)).check { view, error ->
@@ -171,6 +171,15 @@ class VisionLabTest {
 
     /** PixelCopy reads the actual Surface buffer, including the effect, rather than Compose semantics. */
     private fun pixels(surface: SurfaceView): IntArray {
+        // Controls and video share a scrollable dialog. Capture only a displayed surface,
+        // and wait for an actual queued buffer: Media3's frame notification is not that fence.
+        compose.onNodeWithTag("vision-lab-video").performScrollTo().assertIsDisplayed()
+        var captured: IntArray? = null
+        compose.waitUntil(5_000) { captured = copyPixels(surface); captured != null }
+        return requireNotNull(captured)
+    }
+
+    private fun copyPixels(surface: SurfaceView): IntArray? {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         lateinit var bitmap: Bitmap
         val done = CountDownLatch(1)
@@ -181,6 +190,7 @@ class VisionLabTest {
         }
         try {
             assertTrue("Surface copy timeout", done.await(3, TimeUnit.SECONDS))
+            if (result.get() == PixelCopy.ERROR_SOURCE_NO_DATA) return null
             assertEquals("Surface copy failed", PixelCopy.SUCCESS, result.get())
             return intArrayOf(0, 3, 4).map { bar ->
                 val x = ((bar + .5f) * bitmap.width / 8).toInt()
