@@ -48,9 +48,16 @@ internal fun LiveEpgDialog(
     state: LiveEpgState,
     onRefresh: () -> Unit,
     onDismiss: () -> Unit,
+    clock: LiveEpgTimeSource = WallLiveEpgTimeSource,
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        LiveEpgContent(state, rememberInitialFocusRequester(), onRefresh, onDismiss)
+        val hasPrograms = when (state) {
+            is LiveEpgState.Content -> state.programs.isNotEmpty()
+            is LiveEpgState.Stale -> state.programs.isNotEmpty()
+            else -> false
+        }
+        val now = rememberLiveEpgTime(hasPrograms, clock)
+        LiveEpgContent(state, rememberInitialFocusRequester(), onRefresh, onDismiss, now)
     }
 }
 
@@ -60,10 +67,10 @@ internal fun LiveEpgContent(
     firstFocus: FocusRequester,
     onRefresh: () -> Unit,
     onDismiss: () -> Unit,
+    nowEpochMillis: Long = System.currentTimeMillis(),
 ) {
     val locale = LocalConfiguration.current.locales[0]
     val timeFormat = remember(locale) { DateFormat.getTimeInstance(DateFormat.SHORT, locale) }
-    val now = System.currentTimeMillis()
     val refreshing = when (state) {
         LiveEpgState.Loading -> true
         is LiveEpgState.Content -> state.refreshing
@@ -75,8 +82,8 @@ internal fun LiveEpgContent(
         is LiveEpgState.Stale -> state.programs
         else -> emptyList()
     }
-    val current = programs.firstOrNull { it.startEpochMillis <= now && it.endEpochMillis > now }
-    val next = programs.firstOrNull { it.startEpochMillis > now }
+    val current = programs.firstOrNull { it.startEpochMillis <= nowEpochMillis && it.endEpochMillis > nowEpochMillis }
+    val next = programs.firstOrNull { it.startEpochMillis > nowEpochMillis }
     Surface(
         modifier = Modifier.widthIn(max = 620.dp).fillMaxWidth()
             .heightIn(max = 680.dp).testTag("live-epg-dialog"),
@@ -132,11 +139,13 @@ internal fun LiveEpgContent(
                 if (programs.isNotEmpty()) {
                     item {
                         Text(stringResource(R.string.epg_current), style = MaterialTheme.typography.titleMedium)
-                        Text(current?.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_no_current))
+                        Text(current?.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_no_current),
+                            modifier = Modifier.testTag("epg-current-program"))
                     }
                     item {
                         Text(stringResource(R.string.epg_next), style = MaterialTheme.typography.titleMedium)
-                        Text(next?.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_no_next))
+                        Text(next?.title?.takeIf(String::isNotBlank) ?: stringResource(R.string.epg_no_next),
+                            modifier = Modifier.testTag("epg-next-program"))
                     }
                     item { Text(stringResource(R.string.epg_schedule), style = MaterialTheme.typography.titleMedium) }
                     itemsIndexed(programs) { index, program ->

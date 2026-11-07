@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-07 guide presentation time
+
+Verified main3981882ba49b0e80a82d13ff1f994a56bf39d6e2 (#223 merged, seven checks and155 cases/device PASS). Correct current/next guide summaries freezing while the unchanged guide stays open: sample local wall time every30s only for nonempty programs while RESUMED, with cancellation on pause/no-program/disposal. Three deterministic native UI/lifecycle cases cover Content/LTR, Stale/RTL, focus/callback stability and clock cleanup (158/device). [Work order/report](REPORTS/EPG_PRESENTATION_CLOCK_2026-11-07.md). No provider polling/cache/owner change. Physical TCL remains deferred.
+
 ### 2026-11-07 track-dialog return-focus requalification
 
 Requalify PR223 on official main674f1a2b2e6059b736190409a95d292c7a18bc98 (#224, seven checks and153 cases/device PASS). Normal two-parent integration retains mounted keyboard/native-dialog preconditions and all original first-Down assertions. Preserve the two actual action/Dialog English/LTR and Arabic/RTL return-focus journeys; require fresh seven-gate155/device plus API33 smoke on the combined source. [Work order/evidence](REPORTS/TRACK_DIALOG_RETURN_FOCUS_2026-11-06.md). Earlier failures remain attributed to their heads; no causal production correction is claimed. Physical TCL remains deferred.
