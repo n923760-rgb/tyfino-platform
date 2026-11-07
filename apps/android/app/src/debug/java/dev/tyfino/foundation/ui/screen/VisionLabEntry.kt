@@ -65,9 +65,11 @@ internal fun VisionLabDialog(onDismiss: () -> Unit) {
     var profile by remember { mutableStateOf(VisionLabProfile()) }
     var ready by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
-    val player = remember(context) {
+    val effect = remember { VisionBalancedEffect(0f) }
+    val player = remember(context, effect) {
         ExoPlayer.Builder(context).build().apply {
-            setVideoEffects(emptyList()) // Deliberately opt in only for this laboratory player.
+            // One lifetime shader, identity at strength zero. No graph replacement on controls.
+            setVideoEffects(listOf(effect))
             setMediaItem(MediaItem.fromUri("asset:///vision-sdr.mp4"))
             repeatMode = Player.REPEAT_MODE_ONE
             volume = 0f
@@ -108,11 +110,8 @@ internal fun VisionLabDialog(onDismiss: () -> Unit) {
             player.release()
         }
     }
-    LaunchedEffect(player, profile.effectiveStrength, failed) {
-        if (!failed) {
-            player.setVideoEffects(if (profile.effectiveStrength == 0f) emptyList()
-                else listOf(VisionBalancedEffect(profile.effectiveStrength)))
-        }
+    LaunchedEffect(effect, profile.effectiveStrength, failed) {
+        if (!failed) effect.setStrength(profile.effectiveStrength)
     }
     Dialog(onDismissRequest = onDismiss) {
         val initialFocus = rememberInitialFocusRequester(failed)

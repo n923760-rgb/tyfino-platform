@@ -14,7 +14,7 @@ Media3 1.11.0's renderer creates its GPU video sink even when initialized with a
 
 ## Ownership and failure
 
-One local ExoPlayer belongs to the visible experiment. Settings has no concurrent playback destination. The video repeats silently, with no transport controls or persisted state. Effects update on this same player without preparing or replacing media. A processing/player error stops playback, disables effect controls, and leaves Close/Back available with focus recovery. Background/stop dismisses the experiment; disposal detaches the view, removes observers/listeners and releases the player. No retries or automatic HDR fallback are introduced.
+One local ExoPlayer belongs to the visible experiment. Settings has no concurrent playback destination. The video repeats silently, with no transport controls or persisted state. A single custom shader is registered before prepare for the whole session. Controls publish a validated atomic scalar; the GL thread reads it once per frame and updates its uniform. Original/comparison use zero in that same shader. Controls do not replace effects, re-register streams, prepare or replace media. A processing/player error stops playback, disables effect controls, and leaves Close/Back available with focus recovery. Background/stop dismisses the experiment; disposal detaches the view, removes observers/listeners and releases the player. No retries or automatic HDR fallback are introduced.
 
 ## Qualification
 

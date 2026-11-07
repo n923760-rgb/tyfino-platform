@@ -208,9 +208,14 @@ class VisionLabTest {
     private fun copyPixels(surface: SurfaceView): IntArray? {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         lateinit var bitmap: Bitmap
+        var bufferWidth = 0
+        var bufferHeight = 0
         val done = CountDownLatch(1)
         val result = AtomicInteger(-1)
         instrumentation.runOnMainSync {
+            bufferWidth = surface.holder.surfaceFrame.width()
+            bufferHeight = surface.holder.surfaceFrame.height()
+            assertTrue("Surface buffer dimensions", bufferWidth > 0 && bufferHeight > 0)
             bitmap = Bitmap.createBitmap(320, 180, Bitmap.Config.ARGB_8888)
             PixelCopy.request(surface, bitmap, { result.set(it); done.countDown() }, Handler(Looper.getMainLooper()))
         }
@@ -218,8 +223,12 @@ class VisionLabTest {
             assertTrue("Surface copy timeout", done.await(3, TimeUnit.SECONDS))
             if (result.get() == PixelCopy.ERROR_SOURCE_NO_DATA) return null
             assertEquals("Surface copy failed", PixelCopy.SUCCESS, result.get())
+            // Sample the actual 16:9 video, excluding any FIT letterbox in a wider surface.
+            val scale = minOf(bufferWidth / 320f, bufferHeight / 180f)
+            val contentLeft = (bufferWidth - 320f * scale) / 2f
             return intArrayOf(0, 3, 4).map { bar ->
-                val x = ((bar + .5f) * bitmap.width / 8).toInt()
+                val sourceX = contentLeft + (bar + .5f) * 40f * scale
+                val x = (sourceX * bitmap.width / bufferWidth).toInt()
                 val y = bitmap.height / 2
                 (-2..2).sumOf { dx -> Color.red(bitmap.getPixel(x + dx, y)) } / 5
             }.toIntArray()

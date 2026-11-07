@@ -11,17 +11,21 @@ import androidx.media3.common.util.Size
 import androidx.media3.effect.BaseGlShaderProgram
 import androidx.media3.effect.GlEffect
 import androidx.media3.effect.GlShaderProgram
+import java.util.concurrent.atomic.AtomicReference
 
 /** One mild monotone curve on linear SDR RGB; no HDR conversion, sharpening or invented detail. */
-internal class VisionBalancedEffect(private val strength: Float) : GlEffect {
-    init { require(strength.isFinite() && strength in 0f..1f) }
+internal class VisionBalancedEffect(initialStrength: Float) : GlEffect {
+    private val strength = AtomicReference(checkedStrength(initialStrength))
+
+    // UI writes a scalar; only the GL thread touches program/uniform state.
+    fun setStrength(value: Float) { strength.set(checkedStrength(value)) }
 
     override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram {
         if (useHdr) throw VideoFrameProcessingException("Vision laboratory accepts SDR only")
         return CurveProgram(strength)
     }
 
-    private class CurveProgram(strength: Float) : BaseGlShaderProgram(false, 1) {
+    private class CurveProgram(private val strength: AtomicReference<Float>) : BaseGlShaderProgram(false, 1) {
         private val program: GlProgram
         init {
             try {
@@ -31,7 +35,7 @@ internal class VisionBalancedEffect(private val strength: Float) : GlEffect {
             }
             try {
                 program.setBufferAttribute("aPosition", GlUtil.getNormalizedCoordinateBounds(), 4)
-                program.setFloatUniform("uStrength", strength)
+                program.setFloatUniform("uStrength", strength.get())
             } catch (error: GlUtil.GlException) {
                 try { program.delete() } catch (cleanup: GlUtil.GlException) { error.addSuppressed(cleanup) }
                 throw VideoFrameProcessingException(error)
@@ -41,6 +45,7 @@ internal class VisionBalancedEffect(private val strength: Float) : GlEffect {
         override fun drawFrame(inputTexId: Int, presentationTimeUs: Long) {
             try {
                 program.use()
+                program.setFloatUniform("uStrength", strength.get())
                 program.setSamplerTexIdUniform("uTexture", inputTexId, 0)
                 program.bindAttributesAndUniforms()
                 GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
@@ -59,6 +64,10 @@ internal class VisionBalancedEffect(private val strength: Float) : GlEffect {
     }
 
     private companion object {
+        fun checkedStrength(value: Float): Float {
+            require(value.isFinite() && value in 0f..1f)
+            return value
+        }
         const val VERTEX = """
             attribute vec4 aPosition;
             varying vec2 vCoordinate;

@@ -17,6 +17,8 @@ class VisionLabProfileTest {
         for (strength in listOf(-1, 101)) assertThrows(IllegalArgumentException::class.java) { VisionLabProfile(strength = strength) }
         for (strength in listOf(Float.NaN, Float.POSITIVE_INFINITY, -.1f, 1.1f)) {
             assertThrows(IllegalArgumentException::class.java) { VisionBalancedEffect(strength) }
+            val effect = VisionBalancedEffect(.5f)
+            assertThrows(IllegalArgumentException::class.java) { effect.setStrength(strength) }
         }
     }
 }
