@@ -18,6 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
@@ -72,6 +76,8 @@ class PlaybackAspectTest {
     @get:Rule val compose = createComposeRule()
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private val focusTrace = mutableListOf<String>()
+    private lateinit var inputHost: View
+    private lateinit var inputMode: InputModeManager
     private var dialogView: View? = null
     private var removeFocusObservers: (() -> Unit)? = null
     private var owner by mutableStateOf(PlaybackSelection("fixture-a", 1L, CatalogSection.Live, "one", "ts"))
@@ -116,9 +122,14 @@ class PlaybackAspectTest {
 
     @Test fun directionalNavigationSelectsOnlyOnEnterAndCancelRetainsTheCurrentMode() {
         render()
+        compose.waitUntil(5_000) { compose.runOnIdle { inputHost.hasWindowFocus() } }
+        compose.runOnIdle { assertTrue("Mounted host must accept keyboard mode",
+            inputMode.requestInputMode(InputMode.Keyboard)) }
+        compose.waitUntil(5_000) { compose.runOnIdle { inputMode.inputMode == InputMode.Keyboard } }
         val video = nativeView()
         compose.onNodeWithTag("playback-aspect").performSemanticsAction(SemanticsActions.RequestFocus) { it() }
             .performKeyInput { pressKey(Key.Enter) }
+        awaitKeyboardDialogWindow()
         compose.onNodeWithTag("aspect-mode-Fit").assertIsSelected().assertIsFocused()
             .performKeyInput { pressKey(Key.DirectionDown) }
         assertZoomFocused("after Down from Fit")
@@ -246,6 +257,8 @@ class PlaybackAspectTest {
 
     private fun render() {
         compose.setContent {
+            inputHost = LocalView.current
+            inputMode = LocalInputModeManager.current
             val context = LocalContext.current
             val player = remember { PlayerFactory.create(context, false, CatalogSection.Live) }
             DisposableEffect(player) { onDispose { player.release() } }

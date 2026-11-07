@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-07 mounted keyboard readiness
+
+Main65bbb0a01709af523a4535573269a44ec267fa69; PR223 remains blocked by baseline initial-focus/first-Down failures while both new return-focus cases pass. Correct three affected fixtures to establish/verify mounted Keyboard mode, then require a real Dialog with native window/child focus before the retained original directional chain (153/device on main). First qualification with mounted mode alone still failed switcher first Down; do not claim a causal correction. [Evidence/work order](REPORTS/DIALOG_KEYBOARD_READINESS_2026-11-07.md). Existing exact intermittent cause remains unproven. Reconcile PR223 roadmap overlap and require fresh155/device combined-source qualification later. Physical TCL remains deferred.
+
 ### 2026-11-06 account-manager dialog focus requalification
 
 Manager PR221 is updated with official main28056cf2d348cda9b17971edcf22df277b768dfb (#222 merged,151 cases/device and all seven checks PASS). Its prior tablet retry failed only the switcher first-Down assertion before metadata replacement; the diagnostic branch did not reproduce it and establishes no causal fix. Preserve the manager's shared window-aware Back/Keep helper and both new nested-dialog LTR/RTL journeys. Reconcile this roadmap with the diagnostic record, then require fresh153/device and all seven exact-head gates for the combined source. [Work order/report](REPORTS/MANAGER_DIALOG_FOCUS_2026-11-06.md). Physical TCL remains deferred.
