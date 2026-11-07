@@ -7,6 +7,14 @@ import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import org.hamcrest.Description
 import org.hamcrest.TypeSafeMatcher
+import android.view.View
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.platform.LocalView
+import dev.tyfino.foundation.ui.components.FocusVisibleButton
+import org.junit.Assert.assertTrue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -38,6 +46,10 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class XtreamAccountSwitcherTest {
     @get:Rule val compose = createComposeRule()
+    private lateinit var inputHost: View
+    private lateinit var inputMode: InputModeManager
+    private var mounted by mutableStateOf(false)
+
 
     @Before
     fun useDpadInputMode() {
@@ -57,7 +69,7 @@ class XtreamAccountSwitcherTest {
         var additions = 0
         var managementRequests = 0
 
-        compose.setContent {
+        compose.setContent { InputHost {
             MaterialTheme {
                 XtreamAccountSwitcher(
                     snapshot = XtreamAccountsSnapshot(active.accountId, listOf(active, inactive)),
@@ -69,9 +81,11 @@ class XtreamAccountSwitcherTest {
                     onDismiss = {},
                 )
             }
-        }
+        } }
+        prepareKeyboard()
 
         compose.waitForIdle()
+        awaitInitialFocus("xtream-account-inactive")
         compose.onNodeWithTag("xtream-account-active").assertIsSelected()
         compose.onNodeWithTag("xtream-account-inactive")
             .assertIsNotSelected()
@@ -90,7 +104,7 @@ class XtreamAccountSwitcherTest {
     @Test
     fun mandatoryChooserCannotBeClosedWithoutSelectingOrAddingAnAccount() {
         val account = account("saved", "one")
-        compose.setContent {
+        compose.setContent { InputHost {
             MaterialTheme {
                 XtreamAccountSwitcher(
                     snapshot = XtreamAccountsSnapshot(null, listOf(account)),
@@ -103,9 +117,11 @@ class XtreamAccountSwitcherTest {
                     dismissible = false,
                 )
             }
-        }
+        } }
+        prepareKeyboard()
 
         compose.waitForIdle()
+        awaitInitialFocus("xtream-account-saved")
         compose.onNodeWithTag("xtream-account-saved").assertIsFocused()
         compose.onNodeWithTag("xtream-close-switcher").assertDoesNotExist()
     }
@@ -121,12 +137,13 @@ class XtreamAccountSwitcherTest {
         var snapshot by mutableStateOf(XtreamAccountsSnapshot(active.accountId, listOf(active, first, second)))
         var selected: String? = null
         var calls = 0
-        compose.setContent {
+        compose.setContent { InputHost {
             CompositionLocalProvider(LocalLayoutDirection provides direction) {
                 MaterialTheme { XtreamAccountSwitcher(snapshot, null, false,
                     { selected = it; calls++ }, {}, {}, {}) }
             }
-        }
+        } }
+        prepareKeyboard()
         compose.waitUntil(5_000) {
             compose.onNodeWithTag("xtream-account-first").fetchSemanticsNode()
                 .config[SemanticsProperties.Focused]
@@ -184,6 +201,28 @@ class XtreamAccountSwitcherTest {
             // Static fixture tags, geometry and focus facts only; never provider text or credentials.
             failure.addSuppressed(AssertionError(details.joinToString("; ")))
             throw failure
+        }
+    }
+
+    @Composable
+    private fun InputHost(content: @Composable () -> Unit) {
+        inputHost = LocalView.current
+        inputMode = LocalInputModeManager.current
+        MaterialTheme { FocusVisibleButton("Input setup", {}) }
+        if (mounted) content()
+    }
+
+    private fun prepareKeyboard() {
+        compose.waitUntil(5_000) { compose.runOnIdle { inputHost.hasWindowFocus() } }
+        compose.runOnIdle { assertTrue("Mounted host must accept keyboard mode",
+            inputMode.requestInputMode(InputMode.Keyboard)) }
+        compose.waitUntil(5_000) { compose.runOnIdle { inputMode.inputMode == InputMode.Keyboard } }
+        compose.runOnIdle { mounted = true }
+    }
+
+    private fun awaitInitialFocus(tag: String) {
+        compose.waitUntil(5_000) {
+            compose.onNodeWithTag(tag).fetchSemanticsNode().config[SemanticsProperties.Focused]
         }
     }
 
