@@ -41,7 +41,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.VideoFrameProcessor
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import dev.tyfino.foundation.R
@@ -113,7 +112,6 @@ internal fun VisionLabDialog(onDismiss: () -> Unit) {
         if (!failed) {
             player.setVideoEffects(if (profile.effectiveStrength == 0f) emptyList()
                 else listOf(VisionBalancedEffect(profile.effectiveStrength)))
-            if (!player.isPlaying) player.setVideoEffects(VideoFrameProcessor.REDRAW)
         }
     }
     Dialog(onDismissRequest = onDismiss) {
