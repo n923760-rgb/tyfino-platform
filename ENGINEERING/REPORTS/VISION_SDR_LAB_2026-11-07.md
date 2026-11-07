@@ -1,0 +1,17 @@
+# TYFINO Vision SDR prototype
+
+Task TYFINO-20261107-vision-sdr-lab — IMPLEMENTATION, STANDARD risk. Controller/executor Codex with sequential self-review. Owner requests continued development and a distinctive picture enhancement, then approves the proposed SDR experiment. Standing reviewed-merge authority applies after required checks; TCL physical testing remains deferred. No release/signing/deployment authority.
+
+Live gate: n923760-rgb/tyfino-platform, official/default main93ee41e0c71445f3e132fef9f520fa5413024b5c, tree035ee6297cf94d21fc8b910e85acf49881759956, no open PRs. Isolated branch feature/vision-sdr-lab-20261107. Real local CLI/source editing and GitHub API/hosted CI are available; local Android runtime/build is BLOCKED by the previously verified unavailable qualified toolchain/distribution access. Physical devices are NOT RUN.
+
+Bounded outcome: debug-only Settings laboratory on a self-generated fixed SDR video; Original/Balanced, adjustable strength and identity comparison. Release entry is a no-op, media3-effect1.11.0 is debugImplementation only. No normal player, provider, account, credential, licensing, resume, CI or identity change. Detailed behavior/gates: docs/android/vision-sdr-lab-v1.md.
+
+Architecture finding: pinned Media3 initializes a video sink even for empty initial effects, so dynamic Off does not restore direct decoding. This prototype deliberately isolates that path rather than modifying real playback. Original in the lab remains identity GPU processing. The custom mild monotone linear-SDR curve is not real HDR, upscaling or a proven visual-quality improvement. HDR is rejected before shader allocation. Local player errors stop, disable adjustments and retain Close; lifecycle stop dismisses, disposal releases. UI/player callbacks have only composition-local state, no external asynchronous owner writes.
+
+Meaningful validation: JVM profile/strength tests and four native cases,162 total/device expected (all158 existing retained). Actual decoded-surface pixels must change at full Balanced strength and return under comparison/zero; black/white endpoints remain within tolerance. Same player/media, no decoder reinitialization and release on hardware Back are asserted. Additional native cases cover English keyboard, Arabic 2x-font short viewport/failure controls and HDR rejection. No skipped GPU checks or substitute semantic-only image proof. Synthetic emulator coverage is not physical performance evidence.
+
+Local required checks: full diff/secret review, git diff --check, six governance validators, matching locale XML, deterministic monotonic-curve property checks and FFprobe metadata inspection. Hosted requirements: all seven exact-head Validate jobs,162 native cases/device, configured API33 APK smoke, unsigned release build. Planned checks are not PASS until observed; exact results/failures are recorded on the PR.
+
+Before live integration: physical image-quality/performance/compatibility A/B measurements plus a qualified direct-decoder Off/error recovery and HDR/DRM bypass design. TCL remains deferred. This branch does not promise channels or movies are enhanced.
+
+Local PASS: all six governance validators, locale-key parity, monotonic/range sampling101101 points, explicit BT.709 transfer/primaries/matrix and limited-range FFprobe inspection. Fixture SHA-256 ab8b08c8bf65fdc9e813bd34d6a595dcb80d335e14fb4d2c0a5dcc4444f74974; generated with FFmpeg7.1.5-0+deb13u1. No physical-device claim.

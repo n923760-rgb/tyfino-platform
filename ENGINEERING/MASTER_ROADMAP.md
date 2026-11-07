@@ -382,3 +382,7 @@ Exact-head PostgreSQL/Fastify integration and build results belong to the task P
 Report: [Admin audit atomicity](REPORTS/ADMIN_AUDIT_ATOMICITY_2026-09-30.md).
 
 Immediate next round: finish exact-head validation/review of this correction, then address Admin clipboard success/error handling in a separate bounded change.
+
+### 2026-11-07 Vision SDR laboratory
+
+Owner-approved first picture-enhancement prototype is isolated to Debug Settings and a bundled synthetic SDR sample. Original/Balanced, strength and comparison do not alter actual channel/movie playback. Release remains unchanged. Pinned Media3 empty-effect initialization still creates a GPU path, so Original in the experiment is not a direct-decoder bypass. Exact-head CI qualification belongs to the task PR; physical quality/performance and TCL remain deferred. Contract: [Vision laboratory](../docs/android/vision-sdr-lab-v1.md). Report: [prototype and qualification](REPORTS/VISION_SDR_LAB_2026-11-07.md).

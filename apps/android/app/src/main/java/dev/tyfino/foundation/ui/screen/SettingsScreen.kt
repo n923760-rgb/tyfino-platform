@@ -113,6 +113,7 @@ internal fun SettingsScreen(
                     )
                 }
                 SettingsAppInfo()
+                VisionLabEntry()
             }
         }
     }

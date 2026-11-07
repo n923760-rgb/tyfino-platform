@@ -1,0 +1,15 @@
+<resources>
+    <string name="vision_lab_open">تجربة TYFINO Vision</string>
+    <string name="vision_lab_title">TYFINO Vision · تجريبي</string>
+    <string name="vision_lab_description">فيديو SDR تجريبي محلي. هذه الأدوات لا تغيّر قنواتك أو أفلامك. ليست HDR أو رفع دقة بالذكاء الاصطناعي.</string>
+    <string name="vision_lab_original">أصلي</string>
+    <string name="vision_lab_balanced">متوازن</string>
+    <string name="vision_lab_strength">الشدة: %1$d%%</string>
+    <string name="vision_lab_less">أقل</string>
+    <string name="vision_lab_more">أكثر</string>
+    <string name="vision_lab_compare">مقارنة بالأصل</string>
+    <string name="vision_lab_return">العودة إلى المتوازن</string>
+    <string name="vision_lab_failed">معالجة الصورة غير متاحة على هذا الجهاز. أغلق التجربة للعودة.</string>
+    <string name="vision_lab_ready">العينة المحلية جاهزة</string>
+    <string name="vision_lab_loading">جارٍ تجهيز العينة المحلية…</string>
+</resources>
