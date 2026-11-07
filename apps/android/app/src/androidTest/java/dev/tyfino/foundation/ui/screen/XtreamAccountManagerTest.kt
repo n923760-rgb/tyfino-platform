@@ -95,6 +95,8 @@ class XtreamAccountManagerTest {
             inputMode.requestInputMode(InputMode.Keyboard)) }
         compose.waitUntil(5_000) { compose.runOnIdle { inputMode.inputMode == InputMode.Keyboard } }
         compose.runOnIdle { mounted = true }
+        compose.waitForIdle()
+        awaitKeyboardDialogWindow()
     }
 
     private fun awaitInitialFocus(tag: String) {

@@ -129,6 +129,7 @@ class PlaybackAspectTest {
         val video = nativeView()
         compose.onNodeWithTag("playback-aspect").performSemanticsAction(SemanticsActions.RequestFocus) { it() }
             .performKeyInput { pressKey(Key.Enter) }
+        awaitKeyboardDialogWindow()
         compose.onNodeWithTag("aspect-mode-Fit").assertIsSelected().assertIsFocused()
             .performKeyInput { pressKey(Key.DirectionDown) }
         assertZoomFocused("after Down from Fit")
