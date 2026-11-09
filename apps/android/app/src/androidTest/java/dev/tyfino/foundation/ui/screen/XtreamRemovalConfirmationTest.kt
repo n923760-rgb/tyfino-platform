@@ -99,6 +99,9 @@ class XtreamRemovalConfirmationTest {
 
     @Test fun directionalInputStartsAtKeepAndRemovesOnlyAfterExplicitEnter() {
         renderManager()
+        // Let the manager's asynchronous entry focus finish before the existing explicit test seed.
+        awaitFocused("xtream-manage-back")
+        awaitKeyboardDialogWindow()
         compose.onNodeWithTag("xtream-remove-target")
             .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
             .assertIsFocused().performKeyInput { pressKey(Key.Enter) }
