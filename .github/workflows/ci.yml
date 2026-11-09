@@ -393,6 +393,9 @@ jobs:
           test -e /dev/kvm
           sudo chmod 666 /dev/kvm
       - name: Run managed-device instrumentation
+        env:
+          # Headless qualification uses Android's platform software codecs, not Goldfish host decoding.
+          ANDROID_EMULATOR_FEATURES: '-HardwareDecoder'
         run: >-
           ./gradlew --no-daemon --stacktrace :app:${{ matrix.task }}
           -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
@@ -422,7 +425,7 @@ jobs:
                           cases[key] = result
               print(f"{label}: tests={len(cases)}, failed={sum(r[0] == 'FAIL' for r in cases.values())}, skipped={sum(r[0] == 'SKIPPED' for r in cases.values())}")
               for (owner, name), (status, failure) in sorted(cases.items()):
-                  if status == "FAIL" or owner.endswith(".AppNavigationTest"):
+                  if status == "FAIL" or owner.endswith((".AppNavigationTest", ".EmulatorMediaEnvironmentTest")):
                       print(f"{status}: {owner}.{name}")
                       if failure is not None:
                           message = (failure.get("message") or failure.text or "").strip()
@@ -433,6 +436,9 @@ jobs:
 
           reports = Path("app/build/outputs/androidTest-results/managedDevice")
           summarize((p.read_bytes() for p in reports.rglob("*.xml")), "Current exact-source instrumentation")
+          for path in reports.rglob("logcat-*.EmulatorMediaEnvironmentTest-*.txt"):
+              for match in re.finditer(r"TYFINO_CI_DECODER api=(\d+) name=([A-Za-z0-9_.-]+) software=(true|false)", path.read_text(errors="replace")):
+                  print(f"Managed decoder: API{match[1]} {match[2]} software={match[3]}")
 
           PY
       - name: Upload instrumentation report on failure
@@ -452,6 +458,7 @@ jobs:
           name: picture-focus-${{ matrix.device }}-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
           path: |
             apps/android/app/build/outputs/androidTest-results/managedDevice/**/logcat-dev.tyfino.foundation.ui.screen.PlaybackAspectTest-directionalNavigationSelectsOnlyOnEnterAndCancelRetainsTheCurrentMode.txt
+            apps/android/app/build/outputs/androidTest-results/managedDevice/**/logcat-dev.tyfino.foundation.playback.EmulatorMediaEnvironmentTest-*.txt
             apps/android/app/build/outputs/androidTest-results/managedDevice/**/TEST-*.xml
           if-no-files-found: warn
           retention-days: 30

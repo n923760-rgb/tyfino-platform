@@ -101,6 +101,8 @@ The repository CI provisions Gradle 9.6.0 and runs:
 ./gradlew --no-daemon :app:tabletApi35DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
 ```
 
+Managed-device instrumentation sets `ANDROID_EMULATOR_FEATURES=-HardwareDecoder` before emulator creation. This qualifies Android platform software AVC decoding with SwiftShader rendering. A native environment test checks the default Media3 AVC selection is software and excludes Goldfish, without overriding any app decoder selector. All existing playback and pixel assertions remain; hardware/OEM decoder behavior requires separate device evidence. For an equivalent local managed-device run, export that variable before the Gradle commands.
+
 An Android SDK, emulator acceleration, and JDK 17 are required. Instrumentation smoke tests run on clean API 27 phone and API 35 tablet managed devices. This automated baseline does not replace the physical phone, Android TV/Google TV, API 24-class, media, RTL, accessibility, and performance checks in [`../../docs/android/device-qualification-v1.md`](../../docs/android/device-qualification-v1.md).
 
 The ordinary Release variant runs R8 code optimization and resource shrinking in CI and embeds only the approved `https://api.tyfino.online` licensing origin. It remains unsigned by default and is build evidence only. The manual protected workflow signs only when explicitly requested with provisioned environment secrets, verifies the approved certificate fingerprint, and produces an owner-review artifact without publishing it. Production signing material must never be committed.

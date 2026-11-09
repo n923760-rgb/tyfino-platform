@@ -76,6 +76,8 @@ Managed-device CI currently qualifies:
 - `phone-api-27`;
 - `tablet-api-35`.
 
+Managed-device execution exports `ANDROID_EMULATOR_FEATURES=-HardwareDecoder` before AVD setup/boot. SwiftShader rendering is retained. Native qualification requires the default Media3 AVC decoder to be platform software and not Goldfish, and retains its safe decoder-name/API metadata. All prior playback/GL assertions still run; application decoder configuration, API levels, seven-job gates and the separate API33 APK smoke are unchanged. This baseline qualifies software media behavior only; emulated host decoding and physical/OEM codecs have separate qualification boundaries.
+
 The phone job also downloads the exact configured owner-test APK after its normal API27 instrumentation. It provisions a separate Pixel 2/API33 google_apis x86_64 emulator, verifies source/hash, installs without test-only/reinstall flags and launches offline. This serial check uses the same runner after managed-device work ends; the instrumentation job depends on the completed Android artifact job. Source/hash-bound installation evidence is retained separately. All seven jobs and six exact-source checkout definitions remain.
 
 The package verifier additionally checks all four native ABIs and 16KB ELF/ZIP alignment; it does not claim 16KB runtime execution.
