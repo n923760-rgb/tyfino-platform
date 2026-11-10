@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-10 Vision session exit and re-entry
+
+Verified official main `3cfe7a462085e09fc1b7f1cdfb332625593f0303` and successful push Validate42561660102, with no open task PRs. Add two actual laboratory entry/Dialog media regressions for explicit Close and lifecycle ON_STOP, decoder release, no automatic reopen on resume and fresh Original/strength50 state on explicit re-entry. Preserve all163 baseline cases (165/device expected); require seven exact-head gates and configured API33 smoke. No product/shader/provider change. [Work order and limits](REPORTS/VISION_SESSION_EXIT_2026-11-10.md). Physical TCL and real-media/performance qualification remain deferred/separate.
+
 ### 2026-11-07 guide presentation time
 
 Verified main3981882ba49b0e80a82d13ff1f994a56bf39d6e2 (#223 merged, seven checks and155 cases/device PASS). Correct current/next guide summaries freezing while the unchanged guide stays open: sample local wall time every30s only for nonempty programs while RESUMED, with cancellation on pause/no-program/disposal. Three deterministic native UI/lifecycle cases cover Content/LTR, Stale/RTL, focus/callback stability and clock cleanup (158/device). [Work order/report](REPORTS/EPG_PRESENTATION_CLOCK_2026-11-07.md). No provider polling/cache/owner change. Physical TCL remains deferred.
