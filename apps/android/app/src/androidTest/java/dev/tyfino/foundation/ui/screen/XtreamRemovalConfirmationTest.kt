@@ -8,13 +8,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.InputModeManager
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
@@ -41,6 +48,7 @@ import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.tyfino.foundation.R
+import dev.tyfino.foundation.ui.components.FocusVisibleButton
 import dev.tyfino.foundation.ui.theme.TyfinoTheme
 import dev.tyfino.foundation.xtream.XtreamAccountSummary
 import dev.tyfino.foundation.xtream.XtreamAccountsSnapshot
@@ -171,10 +179,16 @@ class XtreamRemovalConfirmationTest {
         val first = XtreamAccountSummary("first", "https://first.example", "first")
         val second = XtreamAccountSummary("second", "https://second.example", "second")
         var backs = 0
+        var mounted by mutableStateOf(false)
+        lateinit var host: View
+        lateinit var input: InputModeManager
         compose.setContent {
+            host = LocalView.current
+            input = LocalInputModeManager.current
             CompositionLocalProvider(LocalLayoutDirection provides direction) {
                 TyfinoTheme {
-                    XtreamAccountManager(
+                    FocusVisibleButton("Input setup", {})
+                    if (mounted) XtreamAccountManager(
                         snapshot = XtreamAccountsSnapshot(first.accountId, listOf(first, second)),
                         removingAccountId = null,
                         storageError = false,
@@ -184,13 +198,19 @@ class XtreamRemovalConfirmationTest {
                 }
             }
         }
+        compose.waitUntil(5_000) { compose.runOnIdle { host.hasWindowFocus() } }
+        compose.runOnIdle { assertTrue(input.requestInputMode(InputMode.Keyboard)) }
+        compose.waitUntil(5_000) { compose.runOnIdle { input.inputMode == InputMode.Keyboard } }
+        compose.runOnIdle { mounted = true }
         awaitFocused("xtream-manage-back")
+        awaitKeyboardDialogWindow()
         compose.onNodeWithTag("xtream-manage-back")
             .performKeyInput { pressKey(Key.DirectionUp) }
         compose.onNodeWithTag("xtream-remove-second").assertIsFocused()
         compose.runOnIdle { assertTrue(removed.isEmpty()); assertEquals(0, backs) }
         compose.onNodeWithTag("xtream-remove-second").performKeyInput { pressKey(Key.Enter) }
         awaitFocused("xtream-keep-account")
+        awaitKeyboardDialogWindow()
         compose.onNodeWithTag("xtream-keep-account")
             .performKeyInput { pressKey(Key.DirectionDown) }
         compose.onNodeWithTag("xtream-confirm-remove").assertIsFocused()
@@ -207,6 +227,7 @@ class XtreamRemovalConfirmationTest {
         // Reopen the same account: the new Dialog must establish Keep focus again.
         compose.onNodeWithTag("xtream-remove-second").performClick()
         awaitFocused("xtream-keep-account")
+        awaitKeyboardDialogWindow()
         compose.onNodeWithTag("xtream-keep-account")
             .performKeyInput { pressKey(Key.DirectionDown) }
         compose.onNodeWithTag("xtream-confirm-remove").assertIsFocused()

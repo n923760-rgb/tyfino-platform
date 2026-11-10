@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-10 nested removal input readiness
+
+Fresh official-main Validate42875007616 on `a5b44ba987a6ce97cb6d03007868061161e5ddac` passes phone167/0/0+API33 and five other gates, but tablet167/1/0 fails the first confirm-remove focus assertion after Down in the existing nested LTR journey. All eight Vision cases pass on both devices; overall source is not fully qualified. Full failure artifact13791443455 reviewed/hash verified. Establish mounted keyboard/native Dialog prerequisites before original nested directional chains, preserving all167 cases and every original verdict. [Failure evidence and work order](REPORTS/NESTED_REMOVAL_READINESS_2026-11-10.md). No historical causal product correction or physical-TV acceptance is claimed; require fresh seven-gate qualification.
+
 ### 2026-11-10 Vision remote journey
 
 Official main `619854fc59bf940c82568f7ba227269014e11d5c` includes merged#228. Fresh push Validate42793011441 passed all seven jobs (165/device), replacing the earlier pending observation. Qualify the actual Vision entry/Dialog/media path with English/LTR and Arabic/RTL remote-only arrows/Enter, comparison, explicit Close, restored opener focus, fresh re-entry and hardware Back without host exit. Preserve165 existing cases;167/device plus seven exact-head gates/API33 expected. [Work order and evidence limits](REPORTS/VISION_REMOTE_JOURNEY_2026-11-10.md). Physical TCL and live Vision integration remain separate.
