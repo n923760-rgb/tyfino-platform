@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-10 Vision remote journey
+
+Official main `619854fc59bf940c82568f7ba227269014e11d5c` includes merged#228. Fresh push Validate42793011441 passed all seven jobs (165/device), replacing the earlier pending observation. Qualify the actual Vision entry/Dialog/media path with English/LTR and Arabic/RTL remote-only arrows/Enter, comparison, explicit Close, restored opener focus, fresh re-entry and hardware Back without host exit. Preserve165 existing cases;167/device plus seven exact-head gates/API33 expected. [Work order and evidence limits](REPORTS/VISION_REMOTE_JOURNEY_2026-11-10.md). Physical TCL and live Vision integration remain separate.
+
 ### 2026-11-10 Vision session exit and re-entry
 
 Verified official main `3cfe7a462085e09fc1b7f1cdfb332625593f0303` and successful push Validate42561660102, with no open task PRs. Add two actual laboratory entry/Dialog media regressions for explicit Close and lifecycle ON_STOP, decoder release, no automatic reopen on resume and fresh Original/strength50 state on explicit re-entry. Preserve all163 baseline cases (165/device expected); require seven exact-head gates and configured API33 smoke. No product/shader/provider change. [Work order and limits](REPORTS/VISION_SESSION_EXIT_2026-11-10.md). Physical TCL and real-media/performance qualification remain deferred/separate.
