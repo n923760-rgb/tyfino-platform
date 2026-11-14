@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-14 native playback-view disposal
+
+Verified official main `e7bbc8331310d80268fbafe37442921d22b4fb48` (#230 merged; fresh push Validate42881765185 seven gates,167/device+API33 PASS), no open task PRs. Add explicit native PlayerView unbinding when its AndroidView is discarded, retaining external player ownership. One actual three-cycle mount/dispose regression checks retained discarded-view references/listeners and no view-owned engine release;168/device expected. [Source finding, work order and limits](REPORTS/PLAYER_VIEW_DETACH_2026-11-14.md). Physical/OEM lifecycle/performance and live Vision qualification remain separate.
+
 ### 2026-11-10 nested removal input readiness
 
 Fresh official-main Validate42875007616 on `a5b44ba987a6ce97cb6d03007868061161e5ddac` passes phone167/0/0+API33 and five other gates, but tablet167/1/0 fails the first confirm-remove focus assertion after Down in the existing nested LTR journey. All eight Vision cases pass on both devices; overall source is not fully qualified. Full failure artifact13791443455 reviewed/hash verified. Establish mounted keyboard/native Dialog prerequisites before original nested directional chains, preserving all167 cases and every original verdict. [Failure evidence and work order](REPORTS/NESTED_REMOVAL_READINESS_2026-11-10.md). No historical causal product correction or physical-TV acceptance is claimed; require fresh seven-gate qualification.

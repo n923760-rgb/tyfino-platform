@@ -67,7 +67,7 @@ internal fun PlaybackVideoView(player: Player?, mode: PlaybackAspectMode, modifi
             PlaybackAspectMode.Zoom -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             PlaybackAspectMode.Stretch -> AspectRatioFrameLayout.RESIZE_MODE_FILL
         }
-    }, modifier = modifier)
+    }, onRelease = { view -> view.player = null }, modifier = modifier)
 }
 
 @Composable
