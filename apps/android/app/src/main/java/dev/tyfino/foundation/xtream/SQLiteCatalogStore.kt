@@ -90,9 +90,18 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
         section: CatalogSection,
         query: String,
         limit: Int,
+        providerItemIds: Set<String>?,
     ): List<CatalogItem> = synchronized(helper) {
         require(query.isNotBlank() && query.codePointCount(0, query.length) <= 80)
         require(limit in 1..51)
+        require(providerItemIds == null || (providerItemIds.size <= 200 && providerItemIds.all {
+            it.isNotBlank() && it.codePointCount(0, it.length) <= 256
+        }))
+        // null searches All; an empty selected filter must never fall back to All.
+        if (providerItemIds?.isEmpty() == true) return@synchronized emptyList()
+        val ids = providerItemIds?.toList().orEmpty()
+        val membership = if (providerItemIds == null) "" else
+            "AND i.$PROVIDER_ID IN (${ids.joinToString(",") { "?" }})"
         // instr treats %, _, and backslashes literally; no wildcard expansion or remote search.
         val sql = """SELECT i.$CATEGORY_ID, i.$PROVIDER_ID, i.$DISPLAY_NAME,
             i.$PROVIDER_ORDER, i.$ARTWORK_URL, i.$RATING, i.$RELEASE_YEAR, i.$CONTAINER_EXTENSION, i.$ADDED_AT
@@ -104,10 +113,11 @@ internal class SQLiteCatalogStore(context: Context) : CatalogStore {
                 AND c.$SECTION = i.$SECTION AND c.$PROVIDER_ID = i.$CATEGORY_ID
             WHERE i.$ACCOUNT_ID = ? AND i.$SECTION = ?
                 AND instr(lower(i.$DISPLAY_NAME), lower(?)) > 0
+                $membership
             ORDER BY i.$DISPLAY_NAME COLLATE NOCASE ASC, i.$PROVIDER_ID ASC, i.$CATEGORY_ID ASC
             LIMIT ?""".trimIndent()
         helper.readableDatabase.rawQuery(
-            sql, arrayOf(accountId, section.name, query, limit.toString()),
+            sql, arrayOf(accountId, section.name, query, *ids.toTypedArray(), limit.toString()),
         ).use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {
