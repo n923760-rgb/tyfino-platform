@@ -289,6 +289,11 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-18 offline TV owner-bundle preflight
+
+Official `main@d240642b4943ba9bb0f63205cffecbca94d0b29f` has first-attempt [Validate 44262185211](https://github.com/n923760-rgb/tyfino-platform/actions/runs/44262185211) PASS 7/7; managed phone and tablet each 172 native tests without failure/skip and configured owner APK API33 clean install/launch PASS. Physical Android TV acceptance remains NOT RUN under [issue #234](https://github.com/n923760-rgb/tyfino-platform/issues/234). A bounded offline owner-bundle verifier checks exact externally supplied SHA and CI APK hash before generating a local-only manual test ledger; it cannot independently verify signing or execute TV/media scenarios. Existing CI adds synthetic adversarial regression coverage only. [Task report](REPORTS/TV_BUNDLE_PREFLIGHT_2026-11-18.md); exact branch-head evidence belongs to the task PR. Release-preparation draft #232 remains separate. No production signing, customer release, deployment or physical TV claims.
+
+
 ### 2026-11-14 filtered cached search
 
 Owner approved continuing the performance/interface review improvements on verified official `main@4c7e019f7adbef4f7caf19fe498f4306a72973c6`. Correct the confirmed search limit preceding Favorites/History membership: pass the bounded selected IDs into the existing parameterized cached query before its 51-row probe/50-result presentation limit. Requery on membership changes and isolate result cells per query/filter snapshot. Retain All search, local-only ownership, debounce, layout and existing gates. Three JVM and four native regressions added (172/device expected); exact-source qualification belongs to the task PR. [Task, reproduction and result](REPORTS/FILTERED_CACHED_SEARCH_2026-11-14.md). Separate release-preparation PR232/candidate remains unchanged; no protected action is authorized here.
