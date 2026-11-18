@@ -59,6 +59,8 @@ jobs:
         run: bash governance/scripts/validate-ci-qualification.sh
       - name: Run governance qualification adversarial suite
         run: bash governance/scripts/validate-governance-qualification.sh
+      - name: Test offline physical-TV owner bundle preflight
+        run: python3 apps/android/scripts/test-tv-bundle-preflight.py
       - name: Validate deployment configuration and scripts
         run: |
           python3 apps/android/scripts/test-release-source.py
