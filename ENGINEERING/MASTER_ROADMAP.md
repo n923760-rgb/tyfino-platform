@@ -289,6 +289,10 @@ Existing deferred scope such as M3U, Stalker/MAC Portal, downloads, cloud sync, 
 
 ## 12. Exact Immediate Next Round
 
+### 2026-11-14 filtered cached search
+
+Owner approved continuing the performance/interface review improvements on verified official `main@4c7e019f7adbef4f7caf19fe498f4306a72973c6`. Correct the confirmed search limit preceding Favorites/History membership: pass the bounded selected IDs into the existing parameterized cached query before its 51-row probe/50-result presentation limit. Requery on membership changes and isolate result cells per query/filter snapshot. Retain All search, local-only ownership, debounce, layout and existing gates. Three JVM and four native regressions added (172/device expected); exact-source qualification belongs to the task PR. [Task, reproduction and result](REPORTS/FILTERED_CACHED_SEARCH_2026-11-14.md). Separate release-preparation PR232/candidate remains unchanged; no protected action is authorized here.
+
 ### 2026-11-14 native playback-view disposal
 
 Verified official main `e7bbc8331310d80268fbafe37442921d22b4fb48` (#230 merged; fresh push Validate42881765185 seven gates,167/device+API33 PASS), no open task PRs. Add explicit native PlayerView unbinding when its AndroidView is discarded, retaining external player ownership. One actual three-cycle mount/dispose regression checks retained discarded-view references/listeners and no view-owned engine release;168/device expected. [Source finding, work order and limits](REPORTS/PLAYER_VIEW_DETACH_2026-11-14.md). Physical/OEM lifecycle/performance and live Vision qualification remain separate.

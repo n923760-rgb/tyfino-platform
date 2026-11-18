@@ -16,7 +16,13 @@ internal interface CatalogStore {
     fun loadCategories(accountId: String, section: CatalogSection): CatalogSnapshot<CatalogCategory>?
     fun loadItems(accountId: String, section: CatalogSection, categoryId: String): CatalogSnapshot<CatalogItem>?
     /** Searches only currently stored category snapshots; never initiates a provider request. */
-    fun searchItems(accountId: String, section: CatalogSection, query: String, limit: Int): List<CatalogItem> = emptyList()
+    fun searchItems(
+        accountId: String,
+        section: CatalogSection,
+        query: String,
+        limit: Int,
+        providerItemIds: Set<String>? = null,
+    ): List<CatalogItem> = emptyList()
     fun loadItemsByProviderIds(
         accountId: String,
         section: CatalogSection,
@@ -175,14 +181,21 @@ internal class CatalogRepository(
         }
     }
 
-    suspend fun searchCached(section: CatalogSection, rawQuery: String): CatalogSearchResult = withContext(Dispatchers.IO) {
+    suspend fun searchCached(
+        section: CatalogSection,
+        rawQuery: String,
+        providerItemIds: Set<String>? = null,
+    ): CatalogSearchResult = withContext(Dispatchers.IO) {
         val query = rawQuery.trim()
         val length = query.codePointCount(0, query.length)
         if (length !in 2..MAX_SEARCH_QUERY_CODE_POINTS) return@withContext CatalogSearchResult.InvalidQuery
+        if (providerItemIds != null && (providerItemIds.size > MAX_CACHED_ITEM_LOOKUP || providerItemIds.any {
+                it.isBlank() || it.codePointCount(0, it.length) > MAX_PROVIDER_ID_CODE_POINTS
+            })) return@withContext CatalogSearchResult.InvalidQuery
         mutex.withLock {
             val account = accountStore.load() ?: return@withLock CatalogSearchResult.StaleOwner
             val records = try {
-                store.searchItems(account.accountId, section, query, MAX_SEARCH_RESULTS + 1)
+                store.searchItems(account.accountId, section, query, MAX_SEARCH_RESULTS + 1, providerItemIds)
             } catch (_: RuntimeException) {
                 return@withLock CatalogSearchResult.LocalStorage
             }

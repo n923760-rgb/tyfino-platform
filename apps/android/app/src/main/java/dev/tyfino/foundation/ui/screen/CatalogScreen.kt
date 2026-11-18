@@ -128,7 +128,6 @@ internal fun CatalogScreen(
     var seriesHistory by remember(section) { mutableStateOf(emptyList<SeriesHistoryItem>()) }
     var searchText by remember(section) { mutableStateOf("") }
     var sortOrder by remember(section) { mutableStateOf(CatalogSort.Newest) }
-    var searchResult by remember(section) { mutableStateOf<CatalogSearchResult?>(null) }
     val searchActive = searchText.trim().codePointCount(0, searchText.trim().length) >= 2
     var favoritesState by remember(section) { mutableStateOf<FavoritesListResult?>(null) }
     var favoritesOnly by remember(section) { mutableStateOf(false) }
@@ -144,6 +143,15 @@ internal fun CatalogScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val favoriteItems = (favoritesState as? FavoritesListResult.Ready)?.items.orEmpty()
     val favoriteIds = favoriteItems.mapTo(hashSetOf()) { it.providerId }
+    val searchIds = when {
+        favoritesOnly -> favoriteIds
+        historyOnly -> recentIds
+        else -> null
+    }
+    // Each query/filter snapshot owns its result cell, including delayed completions.
+    var searchResult by remember(repository, section, searchText, searchIds) {
+        mutableStateOf<CatalogSearchResult?>(null)
+    }
     val scope = rememberCoroutineScope()
     val initialFocus = rememberInitialFocusRequester(section)
     val toggleFavorite: (CatalogItem) -> Unit = { item ->
@@ -240,11 +248,11 @@ internal fun CatalogScreen(
         favoritesState = favoritesRepository?.list(section)
     }
 
-    LaunchedEffect(repository, section, searchText) {
+    LaunchedEffect(repository, section, searchText, searchIds) {
         searchResult = null
         if (searchActive) {
             delay(250L)
-            searchResult = repository.searchCached(section, searchText)
+            searchResult = repository.searchCached(section, searchText, searchIds)
         }
     }
 

@@ -137,6 +137,8 @@ The search field also exposes localized current-result count/loading/no-match st
 
 Each Live, Movies, and Series destination searches only the active account's already-downloaded category snapshots. The search is local (no network fetch or background full-catalog synchronization), starts after two characters and a short debounce, and shows at most 50 matches. The UI states this limitation. Provider-wide search remains deferred.
 
+When Favorites or Recent viewing is selected, its bounded item IDs restrict the cached SQL query before the 50-result limit. Switching filters or changing their membership reruns the unchanged query; an empty filter stays empty. Query/filter snapshots own separate presentation cells so an older result cannot replace the current filter. Account/section/current-snapshot joins, literal matching, the 250ms debounce and All search remain unchanged. See [filtered cached search](../../ENGINEERING/REPORTS/FILTERED_CACHED_SEARCH_2026-11-14.md).
+
 ## Favorites scope
 
 The Favorites filter shows a localized available-item count after a successful read, plus a scrollable empty-list guide and Browse items action. Browse returns to All items, clears the local query and preserves the selected category; it does not add a favorite or start playback. Loading/error states do not invent a zero count. The count covers only rejoined downloaded metadata, not all saved identities or provider-wide content. Automated qualification resumes for the owner-authorized merge; physical/comprehensive owner testing remains deferred. See [favorites report](../../ENGINEERING/REPORTS/FAVORITES_GUIDANCE_2026-10-12.md).

@@ -157,6 +157,53 @@ class CatalogRepositoryTest {
     }
 
     @Test
+    fun filteredCachedSearchAppliesMembershipBeforeTheResultLimit() = runBlocking {
+        val store = FakeCatalogStore().apply {
+            (0..119).forEach { n ->
+                searchable += CatalogItem("id-$n", "category", "Match $n", n, null, null, null, null)
+            }
+        }
+        val api = FixedCatalogApi(success("Unused"))
+        val repository = repository(FakeAccountStore(account("account-a", 4)), api, store, 10_000)
+        for (section in CatalogSection.entries) {
+            for (ids in listOf(setOf("id-90"), setOf("id-91", "missing"))) {
+                val result = repository.searchCached(section, "match", ids) as CatalogSearchResult.Ready
+                assertEquals(ids.filter { it != "missing" }, result.records.map(CatalogItem::providerId))
+                assertTrue(!result.limited)
+            }
+            val ids = (60..119).mapTo(linkedSetOf()) { "id-$it" }
+            val limited = repository.searchCached(section, "match", ids) as CatalogSearchResult.Ready
+            assertEquals((60..109).map { "id-$it" }, limited.records.map(CatalogItem::providerId))
+            assertTrue(limited.limited)
+            val empty = repository.searchCached(section, "match", emptySet()) as CatalogSearchResult.Ready
+            assertTrue(empty.records.isEmpty())
+            assertTrue(!empty.limited)
+        }
+        assertEquals(0, api.categoryCalls)
+    }
+
+    @Test
+    fun filteredCachedSearchRejectsUnboundedMembershipWithoutReadingTheStore() = runBlocking {
+        val store = FakeCatalogStore()
+        val repository = repository(FakeAccountStore(account("account-a", 4)), FixedCatalogApi(success("Unused")), store, 10_000)
+        for (ids in listOf((0..200).mapTo(hashSetOf()) { "id-$it" }, setOf(" "), setOf("x".repeat(257)))) {
+            assertEquals(CatalogSearchResult.InvalidQuery, repository.searchCached(CatalogSection.Movies, "match", ids))
+        }
+        assertTrue(store.searchCalls.isEmpty())
+    }
+
+    @Test
+    fun filteredCachedSearchStillRejectsAnAccountReplacementDuringTheRead() = runBlocking {
+        val accounts = FakeAccountStore(account("account-a", 4))
+        val store = FakeCatalogStore().apply {
+            searchable += CatalogItem("id-90", "category", "Match", 0, null, null, null, null)
+            onSearch = { accounts.value = account("account-b", 1) }
+        }
+        val repository = repository(accounts, FixedCatalogApi(success("Unused")), store, 10_000)
+        assertEquals(CatalogSearchResult.StaleOwner, repository.searchCached(CatalogSection.Movies, "match", setOf("id-90")))
+    }
+
+    @Test
     fun newMovieAlertRequiresPriorSnapshotAndNewDatedIdentity() = runBlocking {
         val accountStore = FakeAccountStore(account("account-a", 4))
         val store = FakeCatalogStore()
@@ -376,10 +423,18 @@ class CatalogRepositoryTest {
             onRated()
             return searchable.take(limit)
         }
-        override fun searchItems(accountId: String, section: CatalogSection, query: String, limit: Int): List<CatalogItem> {
+        override fun searchItems(
+            accountId: String,
+            section: CatalogSection,
+            query: String,
+            limit: Int,
+            providerItemIds: Set<String>?,
+        ): List<CatalogItem> {
             searchCalls += Triple(accountId, section, query)
             onSearch()
-            return searchable.filter { it.name.contains(query, ignoreCase = true) }.take(limit)
+            return searchable.filter {
+                it.name.contains(query, ignoreCase = true) && (providerItemIds == null || it.providerId in providerItemIds)
+            }.take(limit)
         }
 
 
